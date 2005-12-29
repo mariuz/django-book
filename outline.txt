@@ -1,0 +1,137 @@
+Part 1: getting started
+```````````````````````
+
+    1. Introduction to Django
+
+        * What is Django?
+        * Why was Django developed?
+        * Who uses Django?
+        * Who should use Django?
+
+    2. Getting started
+
+        * Installing
+        * Starting a project
+        * Initial configuration
+        * About the project we'll build
+
+    3. Creating models
+
+        * What's a model?
+        * Defining the first model
+        * Installing models
+        * Playing with the basic Python CRUD API
+
+    4. The admin site
+
+        * What's the admin site?
+        * Playing with the auto-generated admin
+        * Adding admin options to our model
+
+    5. Writing views
+
+        * What's a view?
+        * Mapping URLs to views
+        * Writing a first view
+        * Handling 404s
+        * Handling unexpected errors
+
+    6. The template engine
+
+        * What's a template?
+        * Why use templates?
+        * Templating the first view
+
+    7. Form processing
+
+        * Manipulators, FormWrappers, and FormFields (oh my!)
+        * Using automatically generated manipulators
+        * A view for form processing
+
+Part 2: Django's sub-frameworks
+```````````````````````````````
+
+    8. Generic views
+
+        * What are generic views?
+        * List/detail generic views
+        * Date-based generic views
+        * Create/update/delete generic views
+
+    9. Extending the template engine
+
+        * Custom template tag/filter libraries
+
+    10. Outputting non-HTML content
+
+        * Creating an simple RSS feed
+        * Creating parameterized RSS feeds
+        * Creating images and PDFs
+        * Outputting other formats
+
+    11. Users, sessions, and registration
+
+        * Users, groups and permissions
+        * Accepting public registrations
+        * Views that require login
+        * The sessions framework
+
+    12. Comments
+
+        * The free-comments framework
+        * The registered-users comments framework
+        * Comment moderation
+
+    13. Caching
+
+        * Setting up the cache
+        * Caching entire sites
+        * Caching certain views
+        * The low-level cache API
+        * Cache-control with HTTP headers
+
+    14. Integrating with legacy databases
+
+        * Auto-generating models from a database
+
+    15. Customizing the Django admin
+
+        * Customizing the look and feel
+        * Customizing the functionality
+        * Using the admin functionality outside of the admin
+
+    16. Internationalization and localization
+
+        * Overview
+        * Internationalizing your Python code
+        * Internationalizing templates
+        * Switching languages
+        * Creating translation files
+
+    17. Deploying Django
+
+        * General deployment advice and options
+        * Deploying Django with mod_python
+        * Deploying Django with FCGI
+
+Part 3: Reference
+`````````````````
+
+(We're unsure of the order these should be in; each should be a complete
+reference as opposed to the narrative documentation in the chapters above.)
+
+    #. Model definition
+
+    #. Database API
+
+    #. Generic views
+
+    #. Built-in template
+
+    #. Settings
+
+    #. The django-admin utility
+
+    #. Middleware
+
+    #. Request and response objects
