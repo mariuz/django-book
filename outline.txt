@@ -1,21 +1,21 @@
 Part 1: getting started
 ```````````````````````
 
-    1. Introduction to Django
+    1. Introduction to Django (Adrian, by Wednesday, Jan. 11)
 
         * What is Django?
         * Why was Django developed?
         * Who uses Django?
         * Who should use Django?
 
-    2. Getting started
+    2. Getting started (Jacob, by Wednesday, Jan. 11)
 
         * Installing
         * Starting a project
         * Initial configuration
-        * About the project we'll build
+        * About the project we'll build -- a U.S. census database
 
-    3. Creating models
+    3. Creating models (Adrian/Jacob, by Tuesday, Jan. 17)
 
         * What's a model?
         * Defining the first model
