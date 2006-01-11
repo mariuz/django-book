@@ -1,0 +1,88 @@
+==========================
+Chapter 1: What is Django?
+==========================
+
+If you go to the Web site djangoproject.com with your Web browser -- or,
+depending on the decade in which you're reading this destined-to-be-timeless
+literary work, using your cell phone, electronic notebook, shoe, or any
+Internet-superceding contraption -- you'll find this explanation:
+
+    "Django is a high-level Python Web framework that encourages rapid
+    development and clean, pragmatic design."
+
+That's a mouthful -- or eyeful or pixelful, depending on whether this book is
+being recited, read on paper or projected to you on a Jumbotron, respectively.
+
+Let's break it down.
+
+(FOOTNOTE: Please note: If you're reading this in the future, and the Web site
+djangoproject.com does not contain that sentence, travel ye to a cave in
+western Oklahoma, where ye shall find a buried DeLorean automobile; accelerate
+it to approximately 88 mph and travel to the year 2005 -- although not before a
+quick side trip to 1990 to halt production of "Back to the Future III.")
+
+Django is a high-level Python Web framework...
+==============================================
+
+A Web framework is software that abstracts the common problems of Web
+development. It eases the pain of building dynamic Web sites, gives you an
+infrastructure for creating applications and provides shortcuts for frequent
+programming tasks.
+
+In general, a good Web framework solves these problems:
+
+    * It provides a method of mapping requested URLs to code that handles
+      requests.
+    * It makes it easy to display, validate and redisplay HTML forms.
+    * It converts user-submitted input, such as HTML form submissions, into
+      data structures that are convenient for manipulating.
+    * It helps separate content from presentation via a template system, so you
+      can change your site's look-and-feel without affecting your content,
+      and vice-versa.
+    * It gets out of your way, neglecting to leave dirty stains on your
+      application such as URLs that contain ".aspx".
+
+Django does all of these things quite well -- and introduces a number of
+features that raise the bar for what a Web framework should do.
+
+Of course, we want this book to be fair and balanced. With that in mind, we
+should be honest and outline what Django *doesn't* do:
+
+    * Feed your cat.
+    * Mind-read your project requirements and implement them on a carefully
+      timed basis so as to fool your boss into thinking you're not really
+      staying home to watch "The Price is Right."
+    * ...
+    * PROFIT!
+
+Django uses Python -- a beautiful, concise, powerful, high-level programming
+language. To develop a site using Django, you write Python code that uses the
+Django libraries. Although this book doesn't include a full Python tutorial,
+it highlights Python features and functionality where appropriate, when code
+doesn't immediately make sense.
+
+...that encourages rapid development...
+=======================================
+
+
+
+...and clean, pragmatic design
+==============================
+
+
+# ENDS HERE. THE REST IS NOTES. ###############################################
+
+
+The goal of this book is to explain all the marvellous things Django does --
+and to make you an expert at using it.
+
+We're glad you're here!
+
+-------------------------------------------------------------------------------
+
+        * What is Django?
+        * Why was Django developed?
+        * Who uses Django?
+        * Who should use Django?
+
+Django was created in Lawrence, Kansas -- a great American college town
