@@ -31,14 +31,19 @@ In general, a good Web framework solves these problems:
 
     * It provides a method of mapping requested URLs to code that handles
       requests.
+
     * It makes it easy to display, validate and redisplay HTML forms.
+
     * It converts user-submitted input, such as HTML form submissions, into
       data structures that are convenient for manipulating.
+
     * It helps separate content from presentation via a template system, so you
       can change your site's look-and-feel without affecting your content,
       and vice-versa.
+
     * It conveniently integrates with storage layers -- such as databases --
       but doesn't strictly require the use of a database.
+
     * It gets out of your way, neglecting to leave dirty stains on your
       application such as URLs that contain ".aspx".
 
@@ -65,18 +70,16 @@ let us count the bullet points:
     * Python is an **interpreted language**, which means there's no need to
       compile code.
 
-    * Python is **dynamically typed**, which means you don't have to worry about
-      declaring data types for your variables.
+    * Python is **dynamically typed**, which means you don't have to worry
+      about declaring data types for your variables.
 
-    * Python syntax is **concise yet expressive**, which means it takes less code
-      to accomplish the same task than in other, more verbose, languages such
-      as Java. One line of python usually equals 10 lines of Java.
+    * Python syntax is **concise yet expressive**, which means it takes less
+      code to accomplish the same task than in other, more verbose, languages
+      such as Java. One line of python usually equals 10 lines of Java. (This
+      has a convenient side benefit: Fewer lines of code means fewer bugs.)
 
-    * Python enables **powerful introspection and metaprogramming**, which
-      makes it possible to examine and add behavior to objects at runtime.
-
-Python encourages less code. And this has a convenient side benefit: Fewer
-lines of code means fewer bugs.
+    * Python offers **powerful introspection and metaprogramming** features,
+      which make it possible to inspect and add behavior to objects at runtime.
 
 Beyond the productivity advantages implicit in Python, Django itself takes
 every measure to encourage rapid development. Every part of the framework was
@@ -85,20 +88,37 @@ designed with productivity in mind.
 ...and clean, pragmatic design
 ==============================
 
-Finally,
+Finally, Django strictly maintains a clean design throughout its own code and
+the applications you create.
+
+
+
+
+
+
+
+What Django doesn't do
+======================
+
+Of course, we want this book to be fair and balanced. With that in mind, we
+should be honest and outline what Django *doesn't* do:
+
+    * Feed your cat.
+
+    * Mind-read your project requirements and implement them on a carefully
+      timed basis so as to fool your boss into thinking you're not really
+      staying home to watch "The Price is Right."
+
+On a serious note, Django does not yet reverse the effects of global warming.
+
+Why was Django developed?
+=========================
 
 
 # ENDS HERE. THE REST IS NOTES. ###############################################
 
 
 
-Of course, we want this book to be fair and balanced. With that in mind, we
-should be honest and outline what Django *doesn't* do:
-
-    * Feed your cat.
-    * Mind-read your project requirements and implement them on a carefully
-      timed basis so as to fool your boss into thinking you're not really
-      staying home to watch "The Price is Right."
 
 
 
