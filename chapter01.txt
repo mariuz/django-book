@@ -15,19 +15,17 @@ being recited, read on paper or projected to you on a Jumbotron, respectively.
 
 Let's break it down.
 
-(FOOTNOTE: Please note: If you're reading this in the future, and the Web site
-djangoproject.com does not contain that sentence, travel ye to a cave in
-western Oklahoma, where ye shall find a buried DeLorean automobile; accelerate
-it to approximately 88 mph and travel to the year 2005 -- although not before a
-quick side trip to 1990 to halt production of "Back to the Future III.")
+(FOOTNOTE: If the Web site djangoproject.com doesn't contain that sentence,
+find the nearest DeLorean automobile; accelerate it to approximately 88 mph and
+travel to the year 2005 -- although not before a quick side trip to 1990 to
+halt production of "Back to the Future III.")
 
 Django is a high-level Python Web framework...
 ==============================================
 
-A Web framework is software that abstracts the common problems of Web
-development. It eases the pain of building dynamic Web sites, gives you an
-infrastructure for creating applications and provides shortcuts for frequent
-programming tasks.
+A Web framework is software that eases the pain of building dynamic Web sites.
+It abstracts common problems of Web development and provides shortcuts for
+frequent programming tasks.
 
 In general, a good Web framework solves these problems:
 
@@ -52,8 +50,6 @@ should be honest and outline what Django *doesn't* do:
     * Mind-read your project requirements and implement them on a carefully
       timed basis so as to fool your boss into thinking you're not really
       staying home to watch "The Price is Right."
-    * ...
-    * PROFIT!
 
 Django uses Python -- a beautiful, concise, powerful, high-level programming
 language. To develop a site using Django, you write Python code that uses the
