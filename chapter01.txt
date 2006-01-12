@@ -37,19 +37,13 @@ In general, a good Web framework solves these problems:
     * It helps separate content from presentation via a template system, so you
       can change your site's look-and-feel without affecting your content,
       and vice-versa.
+    * It conveniently integrates with storage layers -- such as databases --
+      but doesn't strictly require the use of a database.
     * It gets out of your way, neglecting to leave dirty stains on your
       application such as URLs that contain ".aspx".
 
 Django does all of these things quite well -- and introduces a number of
 features that raise the bar for what a Web framework should do.
-
-Of course, we want this book to be fair and balanced. With that in mind, we
-should be honest and outline what Django *doesn't* do:
-
-    * Feed your cat.
-    * Mind-read your project requirements and implement them on a carefully
-      timed basis so as to fool your boss into thinking you're not really
-      staying home to watch "The Price is Right."
 
 Django uses Python -- a beautiful, concise, powerful, high-level programming
 language. To develop a site using Django, you write Python code that uses the
@@ -60,13 +54,53 @@ doesn't immediately make sense.
 ...that encourages rapid development...
 =======================================
 
+Regardless of how many powerful features it has, a Web framework is worthless
+if it doesn't save you time. Django's philosophy is to do all it can to
+facilitate hyper-fast development. With Django, you build Web sites in a matter
+of hours, not days; weeks, not years.
 
+This is possible largely thanks to Python itself. Oh, Python, how we love thee,
+let us count the bullet points:
+
+    * Python is an **interpreted language**, which means there's no need to
+      compile code.
+
+    * Python is **dynamically typed**, which means you don't have to worry about
+      declaring data types for your variables.
+
+    * Python syntax is **concise yet expressive**, which means it takes less code
+      to accomplish the same task than in other, more verbose, languages such
+      as Java. One line of python usually equals 10 lines of Java.
+
+    * Python enables **powerful introspection and metaprogramming**, which
+      makes it possible to examine and add behavior to objects at runtime.
+
+Python encourages less code. And this has a convenient side benefit: Fewer
+lines of code means fewer bugs.
+
+Beyond the productivity advantages implicit in Python, Django itself takes
+every measure to encourage rapid development. Every part of the framework was
+designed with productivity in mind.
 
 ...and clean, pragmatic design
 ==============================
 
+Finally,
+
 
 # ENDS HERE. THE REST IS NOTES. ###############################################
+
+
+
+Of course, we want this book to be fair and balanced. With that in mind, we
+should be honest and outline what Django *doesn't* do:
+
+    * Feed your cat.
+    * Mind-read your project requirements and implement them on a carefully
+      timed basis so as to fool your boss into thinking you're not really
+      staying home to watch "The Price is Right."
+
+
 
 
 The goal of this book is to explain all the marvellous things Django does --
