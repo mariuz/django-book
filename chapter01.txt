@@ -27,7 +27,7 @@ A Web framework is software that eases the pain of building dynamic Web sites.
 It abstracts common problems of Web development and provides shortcuts for
 frequent programming tasks.
 
-In general, a good Web framework solves these problems:
+A good Web framework solves these problems:
 
     * It provides a method of mapping requested URLs to code that handles
       requests.
@@ -44,17 +44,21 @@ In general, a good Web framework solves these problems:
     * It conveniently integrates with storage layers -- such as databases --
       but doesn't strictly require the use of a database.
 
+    * It lets you work more productively, at a higher level of abstraction,
+      but doesn't restrict you from going "down" one conceptual level when
+      needed.
+
     * It gets out of your way, neglecting to leave dirty stains on your
       application such as URLs that contain ".aspx".
 
 Django does all of these things quite well -- and introduces a number of
 features that raise the bar for what a Web framework should do.
 
-Django uses Python -- a beautiful, concise, powerful, high-level programming
-language. To develop a site using Django, you write Python code that uses the
-Django libraries. Although this book doesn't include a full Python tutorial,
-it highlights Python features and functionality where appropriate, when code
-doesn't immediately make sense.
+The framework is written in Python, a beautiful, concise, powerful, high-level
+programming language. To develop a site using Django, you write Python code
+that uses the Django libraries. Although this book doesn't include a full
+Python tutorial, it highlights Python features and functionality where
+appropriate, when code doesn't immediately make sense.
 
 ...that encourages rapid development...
 =======================================
@@ -68,7 +72,9 @@ This is possible largely thanks to Python itself. Oh, Python, how we love thee,
 let us count the bullet points:
 
     * Python is an **interpreted language**, which means there's no need to
-      compile code.
+      compile code. Just write your program and execute it. In Web development,
+      this means you can develop code and immediately see results by refreshing
+      your Web browser.
 
     * Python is **dynamically typed**, which means you don't have to worry
       about declaring data types for your variables.
@@ -83,19 +89,22 @@ let us count the bullet points:
 
 Beyond the productivity advantages implicit in Python, Django itself takes
 every measure to encourage rapid development. Every part of the framework was
-designed with productivity in mind.
+designed with productivity in mind; we'll see examples throughout this
+book.
 
 ...and clean, pragmatic design
 ==============================
 
 Finally, Django strictly maintains a clean design throughout its own code and
-the applications you create.
+makes it easy to follow best Web-development practices in the applications you
+create.
 
+That means, if you think of Django as a car, it'd not only be an elegant sports
+car capable of high speeds and sharp turns -- but it'd also maintain high
+emissions standards and make excellent mileage.
 
-
-
-
-
+The philosophy here is: Django makes it easy to do things the "right" way.
+Again, we'll see examples throughout this book.
 
 What Django doesn't do
 ======================
@@ -114,6 +123,18 @@ On a serious note, Django does not yet reverse the effects of global warming.
 Why was Django developed?
 =========================
 
+Django is deeply rooted in the problems and solutions of the Real World. It
+wasn't created to be marketed and sold to developers, nor was it created as an
+academic exercise in somebody's spare time. It was built from Day One to solve
+daily problems for an intense, industry-leading Web-development team.
+
+It started in fall 2003, at -- wait for it -- a small-town newspaper in
+Lawrence, Kansas.
+
+For one reason or another, The Lawrence Journal-World newspaper managed to
+attract a talented bunch of Web designers and developers in 2003. The
+newspaper's Web operation, called World Online,
+
 
 # ENDS HERE. THE REST IS NOTES. ###############################################
 
@@ -130,7 +151,6 @@ We're glad you're here!
 
 -------------------------------------------------------------------------------
 
-        * What is Django?
         * Why was Django developed?
         * Who uses Django?
         * Who should use Django?
