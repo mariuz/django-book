@@ -126,14 +126,122 @@ Why was Django developed?
 Django is deeply rooted in the problems and solutions of the Real World. It
 wasn't created to be marketed and sold to developers, nor was it created as an
 academic exercise in somebody's spare time. It was built from Day One to solve
-daily problems for an intense, industry-leading Web-development team.
+daily problems for an industry-leading Web-development team.
 
 It started in fall 2003, at -- wait for it -- a small-town newspaper in
 Lawrence, Kansas.
 
 For one reason or another, The Lawrence Journal-World newspaper managed to
-attract a talented bunch of Web designers and developers in 2003. The
-newspaper's Web operation, called World Online,
+attract a talented bunch of Web designers and developers in the early 2000s.
+The newspaper's Web operation, World Online, quickly turned into one of the
+most innovative newspaper Web operations in the world. Its three main sites,
+LJWorld.com (news), Lawrence.com (entertainment/music) and KUsports.com
+(college sports), began winning award after award in the online-journalism
+industry. Its innovations were many, including:
+
+    * The most in-depth local entertainment site in the world, Lawrence.com,
+      which merges databases of local events, bands, restaurants, drink
+      specials, downloadable songs and traditional-format news stories.
+
+    * A summer section of LJWorld.com that treated local Little League players
+      like they were the New York Yankees -- giving each team and league its
+      own page, hooking into weather data to display forecasts for games,
+      providing 360-degree panoramas of every playing field in the vicinity and
+      alerting parents via cell-phone text messages when games were cancelled.
+
+    * Cell-phone game alerts for University of Kansas basketball and football
+      games, which let fans get notified of scores and key stats during games,
+      and a second system that used artificial-intelligence algorithms to let
+      fans send plain-English text messages to the system to query the database
+      ("how many points does giddens have" or "pts giddens").
+
+    * A deep database of all the college football and basketball stats you'd
+      ever want, including a way to compare any two players or teams in the
+      NCAA.
+
+    * Scheduled, real-time chats, which let members of the public ask questions
+      directly to public figures such as the University of Kansas football
+      coach and the governor of Kansas.
+
+    * Giving out blogs to community members and featuring community writing
+      prominently -- back before blogs were trendy.
+
+Journalism pundits worldwide pointed to World Online as an example of the
+future of journalism. The New York Times did a front-page business-section
+story on the company; National Public Radio did a two-day series on it. World
+Online's head editor, Rob Curley, spoke nearly *weekly* at journalism
+conferences across the globe, showcasing World Online's innovative ideas and
+site features. In a bleak, old-fashioned industry resistant to change, World
+Online was a rare exception.
+
+Much of World Online's success was due to the technology behind its sites, and
+the philosophy that computer programmers are just as important in creating
+quality 21st Century journalism than are journalists themselves.
+
+This is why Django was developed: World Online's developers needed a framework
+that made it painless and easy to develop complex database-driven Web sites, on
+journalism deadlines.
+
+In fall 2003, World Online's two developers, Adrian Holovaty and Simon
+Willison, set about creating this framework. They decided to use Python, a
+language with which they'd recently fallen in love. After exploring (and being
+disappointed by) the available Python offerings, they began creating Django.
+
+Two years later, in summer 2005, after having developed Django to a point where
+it was efficiently powering most of World Online's sites, the World Online
+team, which now included Jacob Kaplan-Moss, decided it'd be a good idea to
+open-source the framework. That way, they could give back to the open-source
+community, get free improvements from outside developers, and generate some
+buzz for their commercial Django-powered content-management system, Ellington.
+Django was open-sourced in July 2005 and quickly became popular.
+
+Although Django is now an open-source project with contributors across the
+planet, the original World Online developers still provide central guidance for
+the framework's growth, and World Online contributes other important aspects
+such as marketing materials and hosting/bandwidth for the framework's Web site
+(http://www.djangoproject.com/).
+
+Who uses Django?
+================
+
+Web developers around the world use Django.
+
+    * World Online, of course, continues to use Django for all its Web sites,
+      both internal and for commercial clients. Some of its Django-powered
+      sites are:
+
+        * http://www.ljworld.com/
+        * http://www.lawrence.com/
+        * http://www.6newslawrence.com/
+        * http://www.visitlawrence.com/
+        * http://www.lawrencechamber.com/
+        * http://www2.kusports.com/stats/
+
+    * The Washington Post's Web site, washingtonpost.com, uses Django for
+      special database projects and various bits of functionality across the
+      site. Some examples:
+
+        * The U.S. Congress votes database, http://projects.washingtonpost.com/congress/ .
+        * TODO: More to come.
+
+    * Grono.net, a Polish social-networking site, started replacing its Java
+      code with Django. It found that Django not only was faster (and more fun)
+      to develop in -- it performed better than Java and required less
+      hardware.
+
+    * Chicagocrime.org, a freely browsable database of crime reported in
+      Chicago, was developed in Django. In 2005, the site won the $10,000
+      Batten Award for Innovations in Journalism.
+
+    * TODO: Greenpeace
+
+    * TODO: The Boston Flickr site
+
+    * TODO: More
+
+Who should use Django?
+======================
+
 
 
 # ENDS HERE. THE REST IS NOTES. ###############################################
@@ -148,11 +256,3 @@ The goal of this book is to explain all the marvellous things Django does --
 and to make you an expert at using it.
 
 We're glad you're here!
-
--------------------------------------------------------------------------------
-
-        * Why was Django developed?
-        * Who uses Django?
-        * Who should use Django?
-
-Django was created in Lawrence, Kansas -- a great American college town
