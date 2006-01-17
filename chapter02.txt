@@ -1,0 +1,158 @@
+==========================
+Chapter 2: Getting started
+==========================
+
+.. XXX Need an intro to this section
+
+Installing Django
+=================
+
+Install Python
+--------------
+
+Django is 100% pure unfiltered Python, so you'll need it installed. Django
+supports Python 2.3 or better. If you are on Linux or Mac OS X, you probably
+already have Python installed. Otherwise, see http://www.python.org/download/ to
+get started.
+
+Get your database running
+-------------------------
+
+Django's perfectly happy running without a database, but since we think
+databases are the greatest thing since sliced bread, we'll assume in the rest of
+this you've got one up and running.
+
+Speaking of sliced bread, what do you think sliced bread was the best thing
+since?
+
+When this book was published, Django supported four database engines:
+
+    * PostgreSQL (http://www.postgresql.org/)
+    * SQLite 3 (http://www.sqlite.com/)
+    * MySQL (http://www.mysql.com/)
+    * Microsoft SQL Server (http://www.microsoft.com/).
+
+We're Postgres fanboys, so we mention it first, but all those engines -- and any
+that Django may have grown since we wrote this list -- will work equally well.
+SQLite is especially nice for just "playing around" since it doesn't require any
+sort of server configuration or anything.
+
+Using Django with PostgreSQL
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you're using PostgreSQL, you'll need the ``psycopg`` package available from
+http://initd.org/projects/psycopg1. Make sure you use version 1, not version 2
+(which is still in beta).
+
+If you're using PostgreSQL on Windows, you can find precompiled binaries of
+``psycopg`` at http://stickpeople.com/projects/python/win-psycopg/.
+
+Using Django with SQLite 3
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You'll need SQLite 3 -- not version 2 -- and the ``psysqlite`` package from
+http://initd.org/tracker/pysqlite. Make sure you have ``pysqlite`` version 2.0.3
+or higher.
+
+Using Django with MySQL
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Django requires MySQL 4.0 or above; the 3.x versions don't support transactions,
+nested procedures, and some other fairly standard SQL statements.  You'll also need
+the ``MySQLdb`` package from http://sourceforge.net/projects/mysql-python.
+
+Using Django with MSSQL
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. XXX Is there a guide for this somewhere?
+
+Using Django without a database
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As mentioned above, Django doesn't actually require a database, although you'll
+obviously not be able to take advantage of the cool data abstraction layer.  If
+you are not going to use a database, you'll probably want to skip ahead to 
+Chapter XXX when we start talking about views.
+
+Install Django
+--------------
+
+Installing an official release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Most people will want to install the latest official release from
+http://www.djangoproject.com/download/. Django uses the standard Python
+``distutils`` installation method, which in Linux-land looks like:
+
+    #. Download the tarball, which will be named something like ``Django-1.0.tar.gz``.
+    #. ``tar xzvf Django-1.0.tar.gz``
+    #. ``cd Django-1.0``.
+    #. ``sudo python setup.py install``.
+    
+.. XXX Do we want to spend more space on installation? Is there a distutils
+.. XXX guide we can point to that covers Windows and all the other
+.. XXX permutations?
+
+If everything worked, you should be able to do::
+
+    >>> import django
+    >>> django.__version__
+    '1.0'
+
+Starting a project
+==================
+
+- django-admin startproject
+- talk about PYTHONPATH here?
+
+Initial configuration
+=====================
+
+- what db are you going to use?
+- ...
+- django-admin runserver
+	(assume we've got the nice "Welcome" page by the time this prints)
+	
+About the rest of the book
+==========================
+
+The rest of this book will focus on a building a single project, a complete web
+site. Since Django's perfect for building so many different kinds of sites, we
+had quite a bit of trouble figuring out what to build in this book.
+
+We thought about building a blog, but (a) that's boring and (b) since Django
+makes boring tasks so easy we were afraid that we'd be done before we even
+started to clear our throats.
+
+We thought about riding the "Web 2.0" wave -- we almost registered the domain
+name "e.pl.urbib.us" hoping that Yahoo! would give us $1 million us on the
+strength of the domain name alone -- but publishing schedules being what they
+are we decided that we'd already be working on Web 3.1 by the time these words
+see the printer.
+
+We even thought about building a [CENSORED] until until a nice gentleman from
+the NSA paid us a visit and [CENSORED] to [CENSORED] our [CENSORED] if we
+[CENSORED].
+
+In the end, though, we remembered the cardinal rule that "content is king," and
+that led us to the US Census Bureau.
+
+The US Census' web site (http://www.census.gov) has an overwhelming amount of
+information about every facet of the United States population. There's
+population information broken down by race, age, gender and every other
+imaginable way; there's information on every medium-sized or larger city in the
+country including data like computer ownership, average commute times, and
+percentage of residents with health insurance.
+
+You can find out all sorts of amazing details about the place you live; a number
+of companies use this data to produce "where to live" guides that people
+contemplating a relocation use to compare and contrast cities.
+
+However, the amount of raw data the census provides is literally so overwhelming
+it's impossible to know where to start.  On top of that, most of the data is in 
+"dumb" formats like plain text or CSV, making sophisticated comparisons 
+and analysis difficult.
+
+.. XXX wrap up the intro and give an overview of the site to build.
+
+
