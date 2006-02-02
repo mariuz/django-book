@@ -98,25 +98,169 @@ If everything worked, you should be able to do::
     >>> import django
     >>> django.__version__
     '1.0'
+    
+Installing Django from Subversion
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want to work on the bleeding edge, or if you want to hack on Django
+itself, you'll want to install Django from its Subversion repository:
+
+    #. Make sure you have Subversion (http://subversion.tigris.org/) installed.
+       
+    #. Check out the trunk: ``svn co
+       http://code.djangoproject.com/svn/django/trunk django_src``
+       
+    #. Symlink ``django_src/django`` so that ``django`` is within your Python
+       ``site-packages`` directory, or update your PYTHONPATH to point to it.
+       
+You don't need to run ``python setup.py install``. When you want to update your
+code, just run ``svn update`` from within the ``django_src`` directory.
 
 Starting a project
 ==================
 
-- django-admin startproject
-- talk about PYTHONPATH here?
+.. The below (down to "The rest of this section") is copied from "Initial setup"
+.. in tutorial01.txt.
 
-Initial configuration
-=====================
+If this is your first time using Django, you'll have to take care of some
+initial setup.
 
-- what db are you going to use?
-- ...
-- django-admin runserver
-	(assume we've got the nice "Welcome" page by the time this prints)
-	
-About the rest of the book
-==========================
+Run the command ``django-admin.py startproject myproject``. That'll create a
+``myproject`` directory in your current directory.
 
-The rest of this book will focus on a building a single project, a complete web
+(``django-admin.py`` should be on your system path if you installed Django via
+its setup.py utility. If it's not on your path, you can find it in
+``site-packages/django/bin``; consider symlinking to it from some place
+on your path, such as /usr/local/bin.)
+
+.. admonition:: Where should this code live?
+
+    If your background is in PHP, you're probably used to putting code under the
+    Web server's document root (in a place such as ``/var/www``). With Django,
+    you don't do that. It's not a good idea to put any of this Python code within
+    your Web server's document root, because it risks the possibility that
+    people may be able to view your code over the Web. That's not good for
+    security.
+
+    Put your code in some directory **outside** of the document root, such as
+    ``/home/mycode``.
+
+A project is a collection of settings for an instance of Django -- including
+database configuration, Django-specific options and application-specific
+settings. Let's look at what ``startproject`` created::
+
+    myproject/
+        __init__.py
+        manage.py
+        settings.py
+        urls.py
+
+These files are:
+
+    ``manage.py``
+        A command-line utility that lets you interact with this Django project
+        in various ways.
+    
+    ``settings.py``
+        Settings/configuration for this Django project.
+        
+    ``urls.py``
+        The URL declarations for this Django project; a "table of contents" of
+        your Django-powered site.
+
+The development server
+----------------------
+
+Change into the ``myproject`` directory, if you haven't already, and run the
+command ``python manage.py runserver``. You'll see the following output on the
+command line::
+
+    Validating models...
+    0 errors found.
+
+    Starting server on port 8000 with settings module 'myproject.settings'.
+    Go to http://127.0.0.1:8000/ for Django.
+    Quit the server with CONTROL-C (Unix) or CTRL-BREAK (Windows).
+
+(If you get an error about ``DATABASE_ENGINE``, edit your ``settings.py`` file
+to change the ``DATABASE_ENGINE`` setting to point to the correct database, and
+make sure you have the right database libraries installed -- such as PostgreSQL's
+psycopg or MySQL's MySQLdb.)
+
+You've started the Django development server, a lightweight, pure-Python Web
+server that builds on the HTTP server included in Python's standard library.
+We've included this with Django so you can develop things rapidly, without
+having to deal with configuring Apache until you're ready for production.
+
+DON'T use this server in anything resembling a production environment. It's
+intended only for use while developing.
+
+.. admonition:: Changing the port
+
+    By default, the ``runserver`` command starts the development server on port
+    8000. If you want to change the server's port, pass it as a command-line
+    argument::
+
+        python manage.py runserver 8080
+
+Now that the server's running, visit http://127.0.0.1:8000/ with your Web
+browser. You'll see a "Welcome to Django" page, in pleasant, light-blue pastel.
+It worked!
+
+Database setup
+--------------
+
+Now, edit ``settings.py``. It's a normal Python module with module-level
+variables representing Django settings. Change these settings to match your
+database's connection parameters:
+
+    ``DATABASE_ENGINE``
+        Either 'postgresql', 'mysql', 'sqlite3', or `ado_mssql`. See `Get your
+        database running` for more information about each database Django
+        supports
+        
+    ``DATABASE_NAME``
+        The name of your database, or the full (absolute) path to the database
+        file if you're using SQLite.
+        
+    ``DATABASE_USER``
+        Your database username (not used for SQLite).
+        
+    ``DATABASE_PASSWORD``
+        Your database password (not used for SQLite).
+        
+    ``DATABASE_HOST``
+        The host your database is on. Leave this as an empty string if your
+        database server is on the same physical machine (not used for SQLite).
+
+.. admonition:: Note
+
+    Make sure you've created a database within PostgreSQL or MySQL by this
+    point. Do that with "``CREATE DATABASE database_name;``" within your
+    database's interactive prompt.
+
+Run the following command to initialize your database with Django's core
+database tables::
+
+    python manage.py init
+
+If you don't see any errors, it worked.
+
+If you're interested, run the command-line client for your database and type
+``\dt`` (PostgreSQL), ``SHOW TABLES;`` (MySQL), or ``.schema`` (SQLite) to
+display the tables Django created.
+
+.. admonition:: About those database tables
+
+    The tables created by ``manage.py init`` are for sessions, authentication
+    and other features Django provides. The next release of Django will have
+    a "lite" version of the ``init`` command that won't install any database
+    tables if you don't want them.
+
+About the rest of this section
+==============================
+
+The rest of this section will focus on a building a single project, a complete web
 site. Since Django's perfect for building so many different kinds of sites, we
 had quite a bit of trouble figuring out what to build in this book.
 
@@ -153,6 +297,27 @@ it's impossible to know where to start.  On top of that, most of the data is in
 "dumb" formats like plain text or CSV, making sophisticated comparisons 
 and analysis difficult.
 
-.. XXX wrap up the intro and give an overview of the site to build.
+Luckily for us, we have Ted on our side.
 
+.. admonition:: Ted?
 
+    Yes: Edgar F. "Ted" Codd invented the relational theory of database
+    management while working for IBM. Read more about him at
+    http://en.wikipedia.org/wiki/Edgar_F._Codd.
+
+In the next XXX chapters, we'll use Django to build a site seeded with 
+this data from the US Census.  When we're done, this site will have a page
+dedicated to every major city in the US and a whole host of nifty features:
+
+    * Comments on *everything* using Django's included comment framework.
+
+    * Tools to compare cities by all of the data taken from the Census.
+    
+    * Recent news stories about each city taken from Google News RSS feeds.
+    
+    * Tools for readers to submit recommendations and reviews of places
+      to go and each in each city.
+      
+.. XXX More?
+
+Shall we get started?
