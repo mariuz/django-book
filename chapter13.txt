@@ -17,7 +17,7 @@ sites, it's essential to cut as much overhead as possible.
 That's where caching comes in.
 
 Django comes with a robust cache system that lets you save dynamic pages in
-memory or in a database. You can cache the output of entire pages, you can
+memory or in a database. You can cache the output of specific views, you can
 cache only the pieces that are difficult to produce, or you can cache your
 entire site.
 
@@ -201,7 +201,7 @@ in each ``HttpResponse``:
 * Sets the ``Cache-Control`` header to give a max age for the page -- again,
   from the ``CACHE_MIDDLEWARE_SECONDS`` setting.
 
-The per-page cache
+The per-view cache
 ==================
 
 A more granular way to use the caching framework is by caching the output of
@@ -231,8 +231,8 @@ The low-level cache API
 
 Sometimes, however, caching an entire rendered page doesn't gain you very much.
 For example, you may find it's only necessary to cache the result of an
-intensive database. In cases like this, you can use the low-level cache API to
-store objects in the cache with any level of granularity you like.
+intensive database query. In cases like this, you can use the low-level cache
+API to store objects in the cache with any level of granularity you like.
 
 The cache API is simple::
 
