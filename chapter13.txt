@@ -49,8 +49,8 @@ Memcached
 By far the fastest, most efficient type of cache available to Django, Memcached
 is an entirely memory-based cache framework originally developed to handle high
 loads at LiveJournal.com and subsequently open-sourced by Danga Interactive.
-It's used by sites such as Slashdot and (TODO: Other example) to reduce
-database access and dramatically increase site performance.
+It's used by sites such as Slashdot and Wikipedia to reduce database access and
+dramatically increase site performance.
 
 Memcached is available for free at http://danga.com/memcached/ . It runs as a
 daemon and is allotted a specified amount of RAM. All it does is provide an
