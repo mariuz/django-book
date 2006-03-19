@@ -16,6 +16,17 @@ sites, it's essential to cut as much overhead as possible.
 
 That's where caching comes in.
 
+To cache something is to save the result of an expensive calculation so that
+you don't have to perform the calculation next time. Here's some pseudocode
+explaining how this would work for a dynamically generated Web page:
+
+    cached_page = get_cached_page(url)
+    if cached_page:
+        return cached_page
+    page = calculate_page()
+    save_page_to_cache(page)
+    return page
+
 Django comes with a robust cache system that lets you save dynamic pages in
 memory or in a database. You can cache the output of specific views, you can
 cache only the pieces that are difficult to produce, or you can cache your
@@ -43,9 +54,11 @@ database access and dramatically increase site performance.
 
 Memcached is available for free at http://danga.com/memcached/ . It runs as a
 daemon and is allotted a specified amount of RAM. All it does is provide an
-interface -- a *super-lightning-fast* interface --for adding, retrieving and
+interface -- a *super-lightning-fast* interface -- for adding, retrieving and
 deleting arbitrary data in the cache. All data is stored directly in memory,
 so there's no overhead of database or filesystem usage.
+
+TODO: Add link to Python memcached bindings.
 
 To use Memcached with Django, set ``CACHE_BACKEND`` to
 ``memcached://ip:port/``, where ``ip`` is the IP address of the Memcached
@@ -56,9 +69,10 @@ In this example, Memcached is running on localhost (127.0.0.1) port 11211::
     CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
 
 One excellent feature of Memcached is its ability to share cache over multiple
-servers. To take advantage of this feature, separate the servers with
-semicolons. In this example, the cache is shared over Memcached instances
-running on IP address 172.19.26.240 and 172.19.26.242, both on port 11211::
+servers. To take advantage of this feature, include all server addresses in
+``CACHE_BACKEND``, separated by semicolons. In this example, the cache is
+shared over Memcached instances running on IP address 172.19.26.240 and
+172.19.26.242, both on port 11211::
 
     CACHE_BACKEND = 'memcached://172.19.26.240:11211;172.19.26.242:11211/'
 
@@ -98,7 +112,7 @@ directory path, ``/var/tmp/django_cache``.
 
 The directory path should be absolute -- that is, it should start at the root
 of your filesystem. It doesn't matter whether you put a slash at the end of the
-setting or not.
+setting.
 
 Make sure the directory pointed-to by this setting exists and is readable and
 writable by the system user under which your Web server runs. Continuing the
@@ -134,13 +148,14 @@ just implements the cache interface without doing anything.
 This is useful if you have a production site that uses heavy-duty caching in
 various places but a development/test environment on which you don't want to
 cache. In that case, set ``CACHE_BACKEND`` to ``"dummy:///"`` in the settings
-file for your development environment.
+file for your development environment. As a result, your development
+environment won't use caching and your production environment still will.
 
 Cache arguments
 ---------------
 
-All caches may take arguments -- they're given in query-string style. Valid
-arguments are:
+All caches may take arguments. They're given in query-string style on the
+``CACHE_BACKEND`` setting. Valid arguments are:
 
     timeout
         Default timeout, in seconds, to use for the cache. Defaults to 5
@@ -148,7 +163,7 @@ arguments are:
 
     max_entries
         For the simple and database backends, the maximum number of entries
-        allowed in the cache before it is cleaned.  Defaults to 300.
+        allowed in the cache before it is cleaned. Defaults to 300.
 
     cull_percentage
         The percentage of entries that are culled when max_entries is reached.
@@ -159,9 +174,13 @@ arguments are:
         dumped when max_entries is reached. This makes culling *much* faster
         at the expense of more cache misses.
 
-For example::
+In this example, ``timeout`` is set to ``60``::
 
     CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=60"
+
+In this example, ``timeout`` is ``30`` and ``max_entries`` is ``400``::
+
+    CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=30&max_entries=400"
 
 Invalid arguments are silently ignored, as are invalid values of known
 arguments.
@@ -234,42 +253,55 @@ For example, you may find it's only necessary to cache the result of an
 intensive database query. In cases like this, you can use the low-level cache
 API to store objects in the cache with any level of granularity you like.
 
-The cache API is simple::
+The cache API is simple. The cache module, ``django.core.cache``, exports a
+``cache`` object that's automatically created from the ``CACHE_BACKEND``
+setting::
 
-    # The cache module exports a cache object that's automatically
-    # created from the CACHE_BACKEND setting.
     >>> from django.core.cache import cache
 
-    # The basic interface is set(key, value, timeout_seconds) and get(key).
+The basic interface is ``set(key, value, timeout_seconds)`` and ``get(key)``::
+
     >>> cache.set('my_key', 'hello, world!', 30)
     >>> cache.get('my_key')
     'hello, world!'
 
-    # (Wait 30 seconds...)
-    >>> cache.get('my_key')
+The ``timeout_seconds`` argument is optional and defaults to the ``timeout``
+argument in the ``CACHE_BACKEND`` setting (explained above).
+
+If the object doesn't exist in the cache, ``cache.get()`` returns ``None``::
+
+    >>> cache.get('some_other_key')
     None
 
-    # get() can take a default argument.
-    >>> cache.get('my_key', 'has_expired')
-    'has_expired'
+    # Wait 30 seconds for 'my_key' to expire...
 
-    # There's also a get_many() interface that only hits the cache once.
-    # Also, note that the timeout argument is optional and defaults to what
-    # you've given in the settings file.
+    >>> ccahe.get('my_key')
+    None
+
+get() can take a ``default`` argument::
+
+    >>> cache.get('my_key', 'has expired')
+    'has expired'
+
+There's also a get_many() interface that only hits the cache once. get_many()
+returns a dictionary with all the keys you asked for that actually exist in the
+cache (and haven't expired)::
+
     >>> cache.set('a', 1)
     >>> cache.set('b', 2)
     >>> cache.set('c', 3)
-
-    # get_many() returns a dictionary with all the keys you asked for that
-    # actually exist in the cache (and haven't expired).
     >>> cache.get_many(['a', 'b', 'c'])
     {'a': 1, 'b': 2, 'c': 3}
 
-    # There's also a way to delete keys explicitly.
+Finally, you can delete keys explicitly with ``delete()``. This is an easy way
+of clearing the cache for a particular object::
+
     >>> cache.delete('a')
 
 That's it. The cache has very few restrictions: You can cache any object that
 can be pickled safely, although keys must be strings.
+
+    TODO: Sidebar: What's pickling?
 
 Controlling cache: Using Vary headers
 =====================================
@@ -433,14 +465,3 @@ the ``Vary`` header. The following middlewares do so:
 
     * ``SessionMiddleware`` adds ``Cookie``
     * ``GZipMiddleware`` adds ``Accept-Encoding``
-
-
-
-==== ENDS HERE. THE REST IS NOTES =============================================
-
-Possible paragraph:
-
-Although Django developers have taken precautions to make each piece of the
-stack -- the URL dispatcher, the database layer, the template system -- as
-efficient as possible, sometimes you just gotta cache.
-
