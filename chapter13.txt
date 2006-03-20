@@ -82,18 +82,27 @@ shared over Memcached instances running on IP address 172.19.26.240 and
 
     CACHE_BACKEND = 'memcached://172.19.26.240:11211;172.19.26.242:11211/'
 
+Memory-based caching has one disadvantage: Because the cached data is stored in
+memory, the data will be lost if your server crashes. Clearly, memory isn't
+intended for permanent data storage, so don't rely on memory-based caching as
+your only data storage. Actually, none of the Django caching backends should be
+used for permanent storage -- they're all intended to be solutions for caching,
+not storage -- but we point this out here because memory-based caching is
+particularly temporary.
+
 Database caching
 ----------------
 
-To store cache items in a database table, first create a cache table in your
-database by running this command::
+To use a database table as your cache backend, first create a cache table in
+your database by running this command::
 
     python manage.py createcachetable [cache_table_name]
 
 ...where ``[cache_table_name]`` is the name of the database table to create.
-(This name can be whatever you want, as long as it's not already being used in
-your database.) This command creates a single table in your database that is in
-the proper format that Django's database-cache system expects.
+(This name can be whatever you want, as long as it's a valid table name that's
+not already being used in your database.) This command creates a single table
+in your database that is in the proper format that Django's database-cache
+system expects.
 
 Once you've created that database table, set your ``CACHE_BACKEND`` setting to
 ``"db://tablename/"``, where ``tablename`` is the name of the database table.
@@ -194,7 +203,7 @@ arguments.
 The per-site cache
 ==================
 
-Once the cache is set up, the simplest way to use the cache is to cache your
+Once the cache is set up, the simplest way to use caching is to cache your
 entire site. Just add ``django.middleware.cache.CacheMiddleware`` to your
 ``MIDDLEWARE_CLASSES`` setting, as in this example::
 
@@ -281,7 +290,7 @@ If the object doesn't exist in the cache, ``cache.get()`` returns ``None``::
 
     # Wait 30 seconds for 'my_key' to expire...
 
-    >>> ccahe.get('my_key')
+    >>> cache.get('my_key')
     None
 
 get() can take a ``default`` argument::
@@ -306,8 +315,6 @@ of clearing the cache for a particular object::
 
 That's it. The cache has very few restrictions: You can cache any object that
 can be pickled safely, although keys must be strings.
-
-    TODO: Sidebar: What's pickling?
 
 Controlling cache: Using Vary headers
 =====================================
