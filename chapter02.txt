@@ -2,83 +2,38 @@
 Chapter 2: Getting started
 ==========================
 
-.. XXX Need an intro to this section
+Let's get started, shall we?
+
+Fortunatly for you (but not for us), installing Django is far easier than
+explaining how to install it. Because Django runs anywhere Python does, there
+are a lot of possibilities when it comes to Django set ups.  We've tried to
+cover the common scenarios for Django installations below.
+
+Installing Python
+-----------------
+
+Django is 100% pure unfiltered Python, so you'll need it installed. Django
+supports Python 2.3 or better. 
+
+If you are on Linux or Mac OS X, you probably
+already have Python installed; type ``python`` at a shell (or in Terminal for OS X folks);
+if you see something like::
+
+    Python 2.4.1 (#2, Mar 31 2005, 00:05:10) 
+    [GCC 3.3 20030304 (Apple Computer, Inc. build 1666)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>>
+    
+then you're good to go.
+
+Otherwise, see http://www.python.org/download/ to get started.  In most cases, 
+installing Python is as easy as downloading a package for your operating system.
 
 Installing Django
 =================
 
-Install Python
---------------
-
-Django is 100% pure unfiltered Python, so you'll need it installed. Django
-supports Python 2.3 or better. If you are on Linux or Mac OS X, you probably
-already have Python installed. Otherwise, see http://www.python.org/download/ to
-get started.
-
-Get your database running
--------------------------
-
-Django's perfectly happy running without a database, but since we think
-databases are the greatest thing since sliced bread, we'll assume in the rest of
-this you've got one up and running.
-
-Speaking of sliced bread, what do you think sliced bread was the best thing
-since?
-
-When this book was published, Django supported four database engines:
-
-    * PostgreSQL (http://www.postgresql.org/)
-    * SQLite 3 (http://www.sqlite.com/)
-    * MySQL (http://www.mysql.com/)
-    * Microsoft SQL Server (http://www.microsoft.com/).
-
-We're Postgres fanboys, so we mention it first, but all those engines -- and any
-that Django may have grown since we wrote this list -- will work equally well.
-SQLite is especially nice for just "playing around" since it doesn't require any
-sort of server configuration or anything.
-
-Using Django with PostgreSQL
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you're using PostgreSQL, you'll need the ``psycopg`` package available from
-http://initd.org/projects/psycopg1. Make sure you use version 1, not version 2
-(which is still in beta).
-
-If you're using PostgreSQL on Windows, you can find precompiled binaries of
-``psycopg`` at http://stickpeople.com/projects/python/win-psycopg/.
-
-Using Django with SQLite 3
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You'll need SQLite 3 -- not version 2 -- and the ``psysqlite`` package from
-http://initd.org/tracker/pysqlite. Make sure you have ``pysqlite`` version 2.0.3
-or higher.
-
-Using Django with MySQL
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Django requires MySQL 4.0 or above; the 3.x versions don't support transactions,
-nested procedures, and some other fairly standard SQL statements.  You'll also need
-the ``MySQLdb`` package from http://sourceforge.net/projects/mysql-python.
-
-Using Django with MSSQL
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. XXX Is there a guide for this somewhere?
-
-Using Django without a database
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-As mentioned above, Django doesn't actually require a database, although you'll
-obviously not be able to take advantage of the cool data abstraction layer.  If
-you are not going to use a database, you'll probably want to skip ahead to 
-Chapter XXX when we start talking about views.
-
-Install Django
---------------
-
 Installing an official release
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 Most people will want to install the latest official release from
 http://www.djangoproject.com/download/. Django uses the standard Python
@@ -100,7 +55,7 @@ If everything worked, you should be able to do::
     '1.0'
     
 Installing Django from Subversion
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 If you want to work on the bleeding edge, or if you want to hack on Django
 itself, you'll want to install Django from its Subversion repository:
@@ -116,10 +71,79 @@ itself, you'll want to install Django from its Subversion repository:
 You don't need to run ``python setup.py install``. When you want to update your
 code, just run ``svn update`` from within the ``django_src`` directory.
 
+Setting up a database
+=====================
+
+Django's only required prerequisite is a working installation of Python.  However,
+since we're developing websites, at some point you'll need somewhere to store
+your data, and that's where databases come in.  
+
+If you just want to get started playing with Django, skip ahead to `Starting a
+project`, but trust us -- you'll want to install a database eventually.  All
+the examples in the book assume you've got a database set up.
+
+As of version 1.0, Django supports five database engines:
+
+    * PostgreSQL (http://www.postgresql.org/)
+    * SQLite 3 (http://www.sqlite.com/)
+    * MySQL (http://www.mysql.com/)
+    * Microsoft SQL Server (http://www.microsoft.com/).
+    * Oracle (http://www.oracle.com/)
+
+We're quite fond of PostgreSQL ourselves, so we mention it first. However all
+those engines will work equally well.
+
+SQLite also deserves special notice: it's an extremely simple in-process
+database engine that doesn't require any sort of server set up or
+configuration. It's by far the easiest to set up if you just want to play
+around with Django.
+
+Using Django with PostgreSQL
+----------------------------
+
+If you're using PostgreSQL, you'll need the ``psycopg`` package available from
+http://initd.org/projects/psycopg1. Make sure you use version 1, not version 2
+(which is still in beta).
+
+If you're using PostgreSQL on Windows, you can find precompiled binaries of
+``psycopg`` at http://stickpeople.com/projects/python/win-psycopg/.
+
+Using Django with SQLite 3
+--------------------------
+
+You'll need SQLite 3 -- not version 2 -- and the ``psysqlite`` package from
+http://initd.org/tracker/pysqlite. Make sure you have ``pysqlite`` version 2.0.3
+or higher.
+
+Using Django with MySQL
+-----------------------
+
+Django requires MySQL 4.0 or above; the 3.x versions don't support transactions,
+nested procedures, and some other fairly standard SQL statements.  You'll also need
+the ``MySQLdb`` package from http://sourceforge.net/projects/mysql-python.
+
+Using Django with MSSQL
+-----------------------
+
+.. XXX To be completed when this actually works.
+
+Using Django with Oracle
+------------------------
+
+.. XXX To be completed when this actually works.
+
+Using Django without a database
+-------------------------------
+
+As mentioned above, Django doesn't actually require a database, although you'll
+obviously not be able to take advantage of the cool data abstraction layer.  If
+you are not going to use a database, you'll probably want to skip ahead to 
+Chapter XXX when we start talking about views.
+
 Starting a project
 ==================
 
-.. The below (down to "The rest of this section") is copied from "Initial setup"
+.. The below (down to "The rest of this section") is adapted from "Initial setup"
 .. in tutorial01.txt.
 
 If this is your first time using Django, you'll have to take care of some
@@ -128,22 +152,12 @@ initial setup.
 Run the command ``django-admin.py startproject myproject``. That'll create a
 ``myproject`` directory in your current directory.
 
-(``django-admin.py`` should be on your system path if you installed Django via
-its setup.py utility. If it's not on your path, you can find it in
-``site-packages/django/bin``; consider symlinking to it from some place
-on your path, such as /usr/local/bin.)
-
-.. admonition:: Where should this code live?
-
-    If your background is in PHP, you're probably used to putting code under the
-    Web server's document root (in a place such as ``/var/www``). With Django,
-    you don't do that. It's not a good idea to put any of this Python code within
-    your Web server's document root, because it risks the possibility that
-    people may be able to view your code over the Web. That's not good for
-    security.
-
-    Put your code in some directory **outside** of the document root, such as
-    ``/home/mycode``.
+..note ::
+    
+    ``django-admin.py`` should be on your system path if you installed Django
+    via its setup.py utility. If it's not on your path, you can find it in
+    ``site-packages/django/bin``; consider symlinking to it from some place on
+    your path, such as /usr/local/bin.
 
 A project is a collection of settings for an instance of Django -- including
 database configuration, Django-specific options and application-specific
@@ -168,6 +182,18 @@ These files are:
         The URL declarations for this Django project; a "table of contents" of
         your Django-powered site.
 
+.. admonition:: Where should this code live?
+
+    If your background is in PHP, you're probably used to putting code under the
+    Web server's document root (in a place such as ``/var/www``). With Django,
+    you don't do that. It's not a good idea to put any of this Python code within
+    your Web server's document root, because it risks the possibility that
+    people may be able to view your code over the Web. That's not good for
+    security.
+
+    Put your code in some directory **outside** of the document root, such as
+    ``/home/mycode``.
+
 The development server
 ----------------------
 
@@ -182,27 +208,37 @@ command line::
     Go to http://127.0.0.1:8000/ for Django.
     Quit the server with CONTROL-C (Unix) or CTRL-BREAK (Windows).
 
-(If you get an error about ``DATABASE_ENGINE``, edit your ``settings.py`` file
-to change the ``DATABASE_ENGINE`` setting to point to the correct database, and
-make sure you have the right database libraries installed -- such as PostgreSQL's
-psycopg or MySQL's MySQLdb.)
-
 You've started the Django development server, a lightweight, pure-Python Web
 server that builds on the HTTP server included in Python's standard library.
 We've included this with Django so you can develop things rapidly, without
-having to deal with configuring Apache until you're ready for production.
+having to deal with configuring Apache until you're ready for production. This
+development server watches your code for changes and automatically reloads,
+helping you make many rapid changes to your project without needing to restart
+anything.
 
-DON'T use this server in anything resembling a production environment. It's
-intended only for use while developing.
+Although the development server is extremely nice for, well, development,
+resist the temptation to use this server in anything resembling a production
+environment. The development server will only handle a single request at a
+time, and is likely totally insecure. When it comes time to launch your site,
+see Chapter XXX for information on how to deploy Django.
 
-.. admonition:: Changing the port
+.. admonition:: Changing the host or the port
 
-    By default, the ``runserver`` command starts the development server on port
-    8000. If you want to change the server's port, pass it as a command-line
-    argument::
+    By default, the ``runserver`` command starts the development server on
+    port 8000, listening only for local connections. If you want to change the
+    server's port,  pass it as a command-line argument::
 
         python manage.py runserver 8080
-
+        
+    You can also change the IP address that the server listens on.  This
+    is especially helpful if you'd like to share a development site with
+    other developers::
+    
+        python mange.py runserver 0.0.0.0:8080
+        
+    will make Django listen on any network interface, thus allowing other
+    computers to connect to the development server.
+    
 Now that the server's running, visit http://127.0.0.1:8000/ with your Web
 browser. You'll see a "Welcome to Django" page, in pleasant, light-blue pastel.
 It worked!
@@ -215,9 +251,9 @@ variables representing Django settings. Change these settings to match your
 database's connection parameters:
 
     ``DATABASE_ENGINE``
-        Either 'postgresql', 'mysql', 'sqlite3', or `ado_mssql`. See `Get your
-        database running` for more information about each database Django
-        supports
+        Either 'postgresql', 'mysql', 'sqlite3', `ado_mssql`, or `oracle`. See
+        `Setting up a database` for more information about each database
+        Django supports
         
     ``DATABASE_NAME``
         The name of your database, or the full (absolute) path to the database
@@ -233,34 +269,30 @@ database's connection parameters:
         The host your database is on. Leave this as an empty string if your
         database server is on the same physical machine (not used for SQLite).
 
-.. admonition:: Note
+.. note::
 
     Make sure you've created a database within PostgreSQL or MySQL by this
     point. Do that with "``CREATE DATABASE database_name;``" within your
     database's interactive prompt.
 
-Run the following command to initialize your database with Django's core
-database tables::
+Run the following command to initialize your database with Django's default
+installed apps::
 
-    python manage.py init
+    python manage.py syncdb
 
-If you don't see any errors, it worked.
+The ``syncdb`` command takes care of initalizing your database with any tables
+not yet defined. You'll run it any time you add new models to your project;
+see Chapter 3 for more information on the ``manage.py`` utility and the
+``syncdb`` command.
 
 If you're interested, run the command-line client for your database and type
 ``\dt`` (PostgreSQL), ``SHOW TABLES;`` (MySQL), or ``.schema`` (SQLite) to
 display the tables Django created.
 
-.. admonition:: About those database tables
+About the rest of this book
+===========================
 
-    The tables created by ``manage.py init`` are for sessions, authentication
-    and other features Django provides. The next release of Django will have
-    a "lite" version of the ``init`` command that won't install any database
-    tables if you don't want them.
-
-About the rest of this section
-==============================
-
-The rest of this section will focus on a building a single project, a complete web
+The rest of this section will focus on a building a single project: a complete web
 site. Since Django's perfect for building so many different kinds of sites, we
 had quite a bit of trouble figuring out what to build in this book.
 
@@ -278,46 +310,24 @@ We even thought about building a [CENSORED] until until a nice gentleman from
 the NSA paid us a visit and [CENSORED] to [CENSORED] our [CENSORED] if we
 [CENSORED].
 
-In the end, though, we remembered the cardinal rule that "content is king," and
-that led us to the US Census Bureau.
+In the end, though, we decided to take the path of least resistance and discuss
+a site that already exists: chicagocrime.org.
 
-The US Census' web site (http://www.census.gov) has an overwhelming amount of
-information about every facet of the United States population. There's
-population information broken down by race, age, gender and every other
-imaginable way; there's information on every medium-sized or larger city in the
-country including data like computer ownership, average commute times, and
-percentage of residents with health insurance.
+For those who aren't familier with  the site: chicagocrime.org is a non-profit,
+freely browseable database of crimes reported in Chicago.  It maps public
+data from the Chicago Police Department with the Google Maps API and provides
+many ways to browse and search the data.  You can sift through crimes by type,
+ZIP code, location, or date; you can search for crimes by keyword, and you can
+even plot crimes that occured along a given route.
 
-You can find out all sorts of amazing details about the place you live; a number
-of companies use this data to produce "where to live" guides that people
-contemplating a relocation use to compare and contrast cities.
+Chicagocrime.org was one of the first "mash-ups" to gain widespread attentions
+and has inspired countless similar projects. The site won the 2005 Batten
+Award for Innovations in Journalism, and was named one of 2005's "bnest ideas"
+by the New York Times.
 
-However, the amount of raw data the census provides is literally so overwhelming
-it's impossible to know where to start.  On top of that, most of the data is in 
-"dumb" formats like plain text or CSV, making sophisticated comparisons 
-and analysis difficult.
-
-Luckily for us, we have Ted on our side.
-
-.. admonition:: Ted?
-
-    Yes: Edgar F. "Ted" Codd invented the relational theory of database
-    management while working for IBM. Read more about him at
-    http://en.wikipedia.org/wiki/Edgar_F._Codd.
-
-In the next XXX chapters, we'll use Django to build a site seeded with 
-this data from the US Census.  When we're done, this site will have a page
-dedicated to every major city in the US and a whole host of nifty features:
-
-    * Comments on *everything* using Django's included comment framework.
-
-    * Tools to compare cities by all of the data taken from the Census.
-    
-    * Recent news stories about each city taken from Google News RSS feeds.
-    
-    * Tools for readers to submit recommendations and reviews of places
-      to go and each in each city.
-      
-.. XXX More?
+Throghout the rest of this book, we'll be using examples from the actual code
+that drives the site to illustrate how Django works. We also hope that by
+examining a real-world project you'll come away with a concrete feel for *why*
+Django works the way it does.
 
 Shall we get started?
