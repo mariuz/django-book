@@ -31,28 +31,32 @@ action based on user input.
 
 A good Web framework solves these problems:
 
-    * It provides a method of mapping requested URLs to code that handles
-      requests. In other words, it gives you a way of designating which code
-      should execute for which URL.
+    * **It provides a method of mapping requested URLs to code that handles
+      requests.** In other words, it gives you a way of designating which code
+      should execute for which URL. For instance, you could tell the framework,
+      "For URLs that looks like ``/users/joe/``, execute code that displays
+      the profile for the user with that username."
 
-    * It makes it easy to display, validate and redisplay HTML forms.
+    * **It makes it easy to display, validate and redisplay HTML forms.**
 
-    * It converts user-submitted input, such as HTML form submissions, into
-      data structures that are convenient for manipulating.
+    * **It converts user-submitted input into data structures that are
+      convenient for manipulating.** For example, the framework could convert
+      HTML form submissions into native data types of the programming language
+      you're using.
 
-    * It helps separate content from presentation via a template system, so you
-      can change your site's look-and-feel without affecting your content,
+    * **It helps separate content from presentation via a template system**, so
+      you can change your site's look-and-feel without affecting your content,
       and vice-versa.
 
-    * It conveniently integrates with storage layers -- such as databases --
+    * **It conveniently integrates with storage layers** -- such as databases --
       but doesn't strictly require the use of a database.
 
-    * It lets you work more productively, at a higher level of abstraction,
+    * **It lets you work more productively, at a higher level of abstraction**,
       than if you were coding against, say, HTTP. But it doesn't restrict you
       from going "down" one conceptual level when needed.
 
-    * It gets out of your way, neglecting to leave dirty stains on your
-      application such as URLs that contain ".aspx".
+    * **It gets out of your way**, neglecting to leave dirty stains on your
+      application such as URLs that contain ".aspx" or ".php".
 
 Django does all of these things well -- and introduces a number of features
 that raise the bar for what a Web framework should do.
@@ -92,8 +96,7 @@ let us count the bullet points:
 
 Beyond the productivity advantages implicit in Python, Django itself takes
 every measure to encourage rapid development. Every part of the framework was
-designed with productivity in mind; we'll see examples throughout this
-book.
+designed with productivity in mind. We'll see examples throughout this book.
 
 ...and clean, pragmatic design
 ==============================
@@ -107,7 +110,90 @@ car capable of high speeds and sharp turns -- but it'd also maintain high
 emissions standards and make excellent mileage.
 
 The philosophy here is: Django makes it easy to do things the "right" way.
-Again, we'll see examples throughout this book.
+
+Specifically, Django encourages loose coupling: the programming philosophy that
+different pieces of the application should be interchangeable and should
+communicate with each other via clear, concise APIs.
+
+For example, the template system knows nothing about the database-access
+system, which knows nothing about the HTTP request/response layer, which knows
+nothing about caching. Each one of these layers is distinct and loosely coupled
+to the rest.
+
+Django follows the "model-view-controller" architecture. Simply put, this is a
+way of developing software so that the code for defining and accessing data
+(the model) is separate from the business logic (the controller), which in turn
+is separate from the user interface (the view).
+
+MVC is best explained by an example of what *not* to do. For instance, look at
+the following PHP code, which retrieves a list of people from a MySQL database
+and outputs the list in a simple HTML page::
+
+    <html>
+    <head><title>Friends of mine</title></head>
+    <body>
+
+    <h1>Friends of mine</h1>
+
+    <ul>
+
+    <?php
+    $connection = @mysql_connect("localhost", "my_username", "my_pass");
+    mysql_select_db("my_database");
+    $people = mysql_query("SELECT name, age FROM friends");
+    while ( $person = mysql_fetch_array($people, MYSQL_ASSOC) ) {
+    ?>
+    <li>
+    <?php echo $person['name'] ?> is <?php echo $person['age'] ?> years old.</li>
+    </li>
+    <?php } ?>
+
+    </ul>
+
+    </body>
+    </html>
+
+While this code is conceptually simple for beginners -- because everything's in
+a single file -- it's bad practice for several reasons::
+
+    1. **The presentation is tied to the code.** If a designer wanted to edit the
+       HTML of this page, he or she would have to edit this code, because the
+       HTML and PHP core are intertwined.
+
+       By contrast, the Django/MVC approach encourages separation of code and
+       presentation, so that presentation is governed by templates and business
+       logic lives in Python modules.
+
+    2. **The database code is tied to the business logic.** This is a problem
+       of redundancy: If you rename your database tables or columns, you'll
+       have to rewrite your SQL.
+
+       By contrast, the Django/MVC approach encourages a single, abstracted
+       data-access layer that's responsible for all data access. In Django's
+       case, the data-access layer knows your database table and column names
+       and lets you execute SQL queries via Python instead of writing SQL
+       manually. This means, if database table names change, you can change it
+       in a single place -- your data-model definition -- instead of in each
+       SQL statement littered throughout your code.
+
+    3. **The URL is coupled to the code.** If this PHP file lives at
+       ``/foo/index.php``, it'll be executed for all requests to that address.
+       But what if you want this same code to execute for requests to ``/bar/``
+       and ``/baz/``? You'd have to set up some sort of includes or rewrite
+       rules, and those get unmanageable quickly.
+
+       By contrast, Django decouples URLs from callback code, so you can change
+       the URLs for a given piece of code.
+
+    4. **The database connection parameters and backend are hard-coded.**
+       It's messy to have to specify connection information -- the
+       server, username and password -- within this code, because that's
+       configuration, not programming logic. Also, this example hard-codes the
+       fact that the database engine is MySQL.
+
+       By contrast, Django has a single place for storing configuration, and
+       the database-access layer is abstracted so that switching database
+       servers (say, from MySQL to PostgreSQL) is easy.
 
 What Django doesn't do
 ======================
@@ -159,8 +245,8 @@ industry. Its innovations were many, including:
       ("how many points does giddens have" or "pts giddens").
 
     * A deep database of all the college football and basketball stats you'd
-      ever want, including a way to compare any two players or teams in the
-      NCAA.
+      ever want, including a way to compare any two or more players or teams in
+      the NCAA.
 
     * Giving out blogs to community members and featuring community writing
       prominently -- back before blogs were trendy.
@@ -192,8 +278,9 @@ it was efficiently powering most of World Online's sites, the World Online
 team, which now included Jacob Kaplan-Moss, decided it'd be a good idea to
 open-source the framework. That way, they could give back to the open-source
 community, get free improvements from outside developers, and generate some
-buzz for their commercial Django-powered content-management system, Ellington.
-Django was open-sourced in July 2005 and quickly became popular.
+buzz for their commercial Django-powered content-management system, Ellington
+(http://www.ellingtoncms.com/). Django was open-sourced in July 2005 and
+quickly became popular.
 
 Although Django is now an open-source project with contributors across the
 planet, the original World Online developers still provide central guidance for
@@ -204,7 +291,7 @@ framework's Web site (http://www.djangoproject.com/).
 Who uses Django?
 ================
 
-Web developers around the world use Django.
+Web developers around the world use Django. Some specific examples:
 
     * World Online, of course, continues to use Django for all its Web sites,
       both internal and for commercial clients. Some of its Django-powered
@@ -215,29 +302,34 @@ Web developers around the world use Django.
         * http://www.6newslawrence.com/
         * http://www.visitlawrence.com/
         * http://www.lawrencechamber.com/
-        * http://www2.kusports.com/stats/ # TODO: Use kusports proper when it switches.
+        * http://www2.kusports.com/stats/
 
     * The Washington Post's Web site, washingtonpost.com, uses Django for
-      special database projects and various bits of functionality across the
-      site. Some examples:
+      database projects and various bits of functionality across the site. Some
+      examples:
 
         * The U.S. Congress votes database, http://projects.washingtonpost.com/congress/ .
-        * TODO: More to come.
-
-    * Grono.net, a Polish social-networking site, started replacing its Java
-      code with Django. It found that Django not only was faster (and more fun)
-      to develop in -- it performed better than Java and required less
-      hardware. TODO: Update this with more info as Grono uses Django more.
+        * The staff directory and functionality that lets readers contact
+          reporters, http://projects.washingtonpost.com/staff/email/ and most
+          article pages.
 
     * Chicagocrime.org, a freely browsable database of crime reported in
       Chicago, was developed in Django. In 2005, the site won the $10,000
       Batten Award for Innovations in Journalism.
 
-    * TODO: Greenpeace
+    * Texasgigs.com, a local music site in Dallas, Texas, is written in Django.
 
-    * TODO: The Boston Flickr site
+    * Grono.net, a Polish social-networking site, started replacing its Java
+      code with Django. It found that Django not only was faster (and more fun)
+      to develop in -- it performed better than Java and required less
+      hardware.
 
-    * TODO: More
+    * Traincheck.com was developed in Django. The site lets you send
+      text-messages from your cell phone to get subway train schedules for your
+      immediate location.
+
+An up-to-date list of dozens of sites that use Django is located at
+http://code.djangoproject.com/wiki/DjangoPoweredSites .
 
 About this book
 ===============
