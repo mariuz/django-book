@@ -28,10 +28,11 @@ explaining how this would work for a dynamically generated Web page:
         save the generated page in the cache (for next time)
         return the generated page
 
-Django comes with a robust cache system that lets you save dynamic pages in
-memory or in a database. You can cache the output of specific views, you can
-cache only the pieces that are difficult to produce, or you can cache your
-entire site.
+Django comes with a robust cache system that lets you save dynamic pages so
+they don't have to be calculated for each request. For convenience, Django
+offers different levels of cache granularity: You can cache the output of
+specific views, you can cache only the pieces that are difficult to produce, or
+you can cache your entire site.
 
 Setting up the cache
 ====================
@@ -156,8 +157,8 @@ cache. In that case, set ``CACHE_BACKEND`` to ``"dummy:///"`` in the settings
 file for your development environment. As a result, your development
 environment won't use caching and your production environment still will.
 
-Cache arguments
----------------
+CACHE_BACKEND arguments
+-----------------------
 
 All caches may take arguments. They're given in query-string style on the
 ``CACHE_BACKEND`` setting. Valid arguments are:
