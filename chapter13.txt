@@ -20,12 +20,13 @@ To cache something is to save the result of an expensive calculation so that
 you don't have to perform the calculation next time. Here's some pseudocode
 explaining how this would work for a dynamically generated Web page:
 
-    cached_page = get_cached_page(url)
-    if cached_page:
-        return cached_page
-    page = calculate_page()
-    save_page_to_cache(page)
-    return page
+    given a URL, try finding that page in the cache
+    if the page is in the cache:
+        return the cached page
+    else:
+        generate the page
+        save the generated page in the cache (for next time)
+        return the generated page
 
 Django comes with a robust cache system that lets you save dynamic pages in
 memory or in a database. You can cache the output of specific views, you can
