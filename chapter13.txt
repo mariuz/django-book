@@ -34,6 +34,11 @@ offers different levels of cache granularity: You can cache the output of
 specific views, you can cache only the pieces that are difficult to produce, or
 you can cache your entire site.
 
+Django also works well with "upstream" caches, such as Squid
+(http://www.squid-cache.org/) and browser-based caches. These are the types of
+caches that you don't directly control but to which you can provide hints (via
+HTTP headers) about which parts of your site should be cached, and how.
+
 Setting up the cache
 ====================
 
@@ -316,15 +321,52 @@ of clearing the cache for a particular object::
 That's it. The cache has very few restrictions: You can cache any object that
 can be pickled safely, although keys must be strings.
 
-Controlling cache: Using Vary headers
-=====================================
+Upstream caches
+===============
 
-The Django cache framework works with HTTP Vary headers to allow developers
-to instruct caching mechanisms to differ their cache contents depending on
-request HTTP headers.
+So far, this chapter has focused on caching your *own* data. But another type
+of caching is relevant to Web development, too: caching performed by "upstream"
+caches. These are systems that cache pages for users even before the request
+reaches your Web site.
 
-Essentially, the ``Vary`` response HTTP header defines which request headers a
-cache mechanism should take into account when building its cache key.
+Here are a few examples of upstream caches:
+
+    * Your ISP may cache certain pages, so if you requested a page from
+      somedomain.com, your ISP would send you the page without having to access
+      somedomain.com directly.
+
+    * Your Django Web site may site behind a Squid Web proxy
+      (http://www.squid-cache.org/) that caches pages for performance. In this
+      case, each request first would be handled by Squid, and it'd only be
+      passed to your application if needed.
+
+    * Your Web browser caches pages, too. If a Web page sends out the right
+      headers, your browser will use the local (cached) copy for subsequent
+      requests to that page.
+
+Upstream caching is a nice efficiency boost, but there's a danger to it:
+Many Web pages' contents differ based on authentication and a host of other
+variables, and cache systems that blindly save pages based purely on URLs could
+expose incorrect or sensitive data to subsequent visitors to those pages.
+
+For example, say you operate a Web e-mail system, and the contents of the
+"inbox" page obviously depend on which user is logged in. If an ISP blindly
+cached your site, then the first user who logged in through that ISP would have
+his user-specific inbox page cached for subsequent visitors to the site. That's
+not cool.
+
+Fortunately, HTTP provides a solution to this problem: A set of HTTP headers
+exist to instruct caching mechanisms to differ their cache contents depending
+on designated variables, and to tell caching mechanisms not to cache particular
+pages.
+
+Using Vary headers
+==================
+
+One of these headers is ``Vary``. It defines which request headers a cache
+mechanism should take into account when building its cache key. For example, if
+the contents of a Web page depend on a user's language preference, the page is
+said to "vary on language."
 
 By default, Django's cache system creates its cache keys using the requested
 path -- e.g., ``"/stories/2005/jun/23/bank_robbed/"``. This means every request
@@ -361,7 +403,7 @@ setting the ``Vary`` header (using something like
 ``response['Vary'] = 'user-agent'``) is that the decorator adds to the ``Vary``
 header (which may already exist) rather than setting it from scratch.
 
-Note that you can pass multiple headers to ``vary_on_headers()``::
+You can pass multiple headers to ``vary_on_headers()``::
 
     @vary_on_headers('User-Agent', 'Cookie')
     def my_view(request):
@@ -381,7 +423,8 @@ decorator. These two views are equivalent::
 Also note that the headers you pass to ``vary_on_headers`` are not case
 sensitive. ``"User-Agent"`` is the same thing as ``"user-agent"``.
 
-You can also use a helper function, ``patch_vary_headers()``, directly::
+You can also use a helper function, ``django.utils.cache.patch_vary_headers``,
+directly::
 
     from django.utils.cache import patch_vary_headers
     def my_view(request):
@@ -435,22 +478,25 @@ cache on every access and to store cached versions for, at most, 3600 seconds::
     def my_view(request):
         ...
 
-Any valid ``Cache-Control`` directive is valid in ``cache_control()``. For a
-full list, see the `Cache-Control spec`_. Just pass the directives as keyword
-arguments to ``cache_control()``, substituting underscores for hyphens. For
-directives that don't take an argument, set the argument to ``True``.
+Any valid ``Cache-Control`` HTTP directive is valid in ``cache_control()``.
+Here's a full list:
 
-Examples:
+    * ``public=True``
+    * ``private=True``
+    * ``no_cache=True``
+    * ``no_transform=True``
+    * ``must_revalidate=True``
+    * ``proxy_revalidate=True``
+    * ``max_age=num_seconds``
+    * ``s_maxage=num_seconds``
 
-    * ``@cache_control(max_age=3600)`` turns into ``max-age=3600``.
-    * ``@cache_control(public=True)`` turns into ``public``.
+For explanation of Cache-Control HTTP directives, see the spec at
+http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
 
 (Note that the caching middleware already sets the cache header's max-age with
 the value of the ``CACHE_MIDDLEWARE_SETTINGS`` setting. If you use a custom
 ``max_age`` in a ``cache_control`` decorator, the decorator will take
 precedence, and the header values will be merged correctly.)
-
-.. _`Cache-Control spec`: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
 
 Other optimizations
 ===================
