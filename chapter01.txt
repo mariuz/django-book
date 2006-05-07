@@ -340,4 +340,4 @@ you an expert at using it.
 By the time you've finished it, you'll have the skills it takes to develop
 powerful Web sites quickly, with code that's clean and easy to maintain.
 
-We're glad you're here!
+Let's get started!
