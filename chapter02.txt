@@ -6,7 +6,7 @@ Let's get started, shall we?
 
 Fortunatly for you (but not for us), installing Django is far easier than
 explaining how to install it. Because Django runs anywhere Python does, there
-are a lot of possibilities when it comes to Django set ups.  We've tried to
+are a lot of possibilities when it comes to Django configurations.  We've tried to
 cover the common scenarios for Django installations below.
 
 Installing Python
@@ -40,15 +40,16 @@ http://www.djangoproject.com/download/. Django uses the standard Python
 ``distutils`` installation method, which in Linux-land looks like:
 
     #. Download the tarball, which will be named something like ``Django-1.0.tar.gz``.
-    #. ``tar xzvf Django-1.0.tar.gz``
-    #. ``cd Django-1.0``.
+    #. ``tar xzvf Django-*.tar.gz``
+    #. ``cd Django-*``.
     #. ``sudo python setup.py install``.
     
 .. XXX Do we want to spend more space on installation? Is there a distutils
 .. XXX guide we can point to that covers Windows and all the other
 .. XXX permutations?
+.. XXX JGD I'll cover Windows install, but I'll probably use ActiveState's.
 
-If everything worked, you should be able to do::
+If everything worked, you should be able to import django and verify the version::
 
     >>> import django
     >>> django.__version__
@@ -67,16 +68,22 @@ itself, you'll want to install Django from its Subversion repository:
        
     #. Symlink ``django_src/django`` so that ``django`` is within your Python
        ``site-packages`` directory, or update your PYTHONPATH to point to it.
+
+.. XXX JGD No such thing as symlink in most Windows setups.  
+.. XXX JGD You -can- use a utility called Junction (made by Sys Internals, 
+.. XXX JGD and free), but what's the downside of just using a .pth?
+
+.. XXX JGD Also, it might be useful to recommend a book on svn (or link to 
+.. XXX JGD the free one on red-bean.org (sorry, can't verify link right now)).
        
-You don't need to run ``python setup.py install``. When you want to update your
-code, just run ``svn update`` from within the ``django_src`` directory.
+When installing from Subversion, you don't need to run ``python setup.py install``.  To update django, just run ``svn update`` from within the ``django_src`` directory.
 
 Setting up a database
 =====================
 
-Django's only required prerequisite is a working installation of Python.  However,
-since we're developing websites, at some point you'll need somewhere to store
-your data, and that's where databases come in.  
+Django's only prerequisite is a working installation of Python.  However,
+since we're developing websites, at some point you'll need to store
+your data somewhere, and that's where databases come in.  
 
 If you just want to get started playing with Django, skip ahead to `Starting a
 project`, but trust us -- you'll want to install a database eventually.  All
@@ -89,6 +96,9 @@ As of version 1.0, Django supports five database engines:
     * MySQL (http://www.mysql.com/)
     * Microsoft SQL Server (http://www.microsoft.com/).
     * Oracle (http://www.oracle.com/)
+
+.. XXX JGD As of 0.92, DJ doesn't support SQL Server or Oracle.  
+.. XXX JGD Make sure it does before publishing, or remove the last 2 points.
 
 We're quite fond of PostgreSQL ourselves, so we mention it first. However all
 those engines will work equally well.
@@ -104,6 +114,8 @@ Using Django with PostgreSQL
 If you're using PostgreSQL, you'll need the ``psycopg`` package available from
 http://initd.org/projects/psycopg1. Make sure you use version 1, not version 2
 (which is still in beta).
+
+.. XXX JGD Verify psycopg 2 still in beta when book is finished.
 
 If you're using PostgreSQL on Windows, you can find precompiled binaries of
 ``psycopg`` at http://stickpeople.com/projects/python/win-psycopg/.
@@ -138,7 +150,9 @@ Using Django without a database
 As mentioned above, Django doesn't actually require a database, although you'll
 obviously not be able to take advantage of the cool data abstraction layer.  If
 you are not going to use a database, you'll probably want to skip ahead to 
-Chapter XXX when we start talking about views.
+Chapter XXX where we start talking about views.
+
+.. XXX JGD do steps on latest trunk (ancient mr on laptop)
 
 Starting a project
 ==================
@@ -158,6 +172,8 @@ Run the command ``django-admin.py startproject myproject``. That'll create a
     via its setup.py utility. If it's not on your path, you can find it in
     ``site-packages/django/bin``; consider symlinking to it from some place on
     your path, such as /usr/local/bin.
+
+.. XXX JGD again, the symlink issue on Windows.  Junction, or add to path?
 
 A project is a collection of settings for an instance of Django -- including
 database configuration, Django-specific options and application-specific
@@ -234,7 +250,7 @@ see Chapter XXX for information on how to deploy Django.
     is especially helpful if you'd like to share a development site with
     other developers::
     
-        python mange.py runserver 0.0.0.0:8080
+        python manage.py runserver 0.0.0.0:8080
         
     will make Django listen on any network interface, thus allowing other
     computers to connect to the development server.
@@ -313,19 +329,19 @@ the NSA paid us a visit and [CENSORED] to [CENSORED] our [CENSORED] if we
 In the end, though, we decided to take the path of least resistance and discuss
 a site that already exists: chicagocrime.org.
 
-For those who aren't familier with  the site: chicagocrime.org is a non-profit,
+For those who aren't familiar with the site: chicagocrime.org is a non-profit,
 freely browseable database of crimes reported in Chicago.  It maps public
 data from the Chicago Police Department with the Google Maps API and provides
 many ways to browse and search the data.  You can sift through crimes by type,
 ZIP code, location, or date; you can search for crimes by keyword, and you can
-even plot crimes that occured along a given route.
+even plot crimes that occurred along a given route.
 
-Chicagocrime.org was one of the first "mash-ups" to gain widespread attentions
+Chicagocrime.org was one of the first "mash-ups" to gain widespread attention
 and has inspired countless similar projects. The site won the 2005 Batten
-Award for Innovations in Journalism, and was named one of 2005's "bnest ideas"
+Award for Innovations in Journalism, and was named one of 2005's "best ideas"
 by the New York Times.
 
-Throghout the rest of this book, we'll be using examples from the actual code
+Throughout the rest of this book, we'll be using examples from the actual code
 that drives the site to illustrate how Django works. We also hope that by
 examining a real-world project you'll come away with a concrete feel for *why*
 Django works the way it does.

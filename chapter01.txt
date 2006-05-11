@@ -98,6 +98,9 @@ Beyond the productivity advantages implicit in Python, Django itself takes
 every measure to encourage rapid development. Every part of the framework was
 designed with productivity in mind. We'll see examples throughout this book.
 
+.. XXX JGD This section seems to expect little knowledge of Python, yet later 
+.. XXX JGD sections seem to expect a fair bit of experience.
+
 ...and clean, pragmatic design
 ==============================
 
@@ -340,4 +343,4 @@ you an expert at using it.
 By the time you've finished it, you'll have the skills it takes to develop
 powerful Web sites quickly, with code that's clean and easy to maintain.
 
-Let's get started!
+We're glad you're here!
