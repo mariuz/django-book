@@ -1,0 +1,196 @@
+=========================
+Chapter 3: Writing models
+=========================
+
+Although databases were first concieved of in the 19XXs and have been around in some form or another for XXX years, the web has really taken database use to a whole new level.  Almost every web site is backed by one database or another.
+
+When done right, database-backed websites are extremely useful.  Instead of the top-down style that dominates in print, databased websites let readers "choose their own adventures" as they move through the site.  
+
+Sites like chicagocrime.org take this to an extreme by providing tools that let readers sift through mountains of information they'd otherwise be unable to process.  Helping developers build those tools is the primary purpose of Django.
+
+It makes sense, then, to start our discussion of Django development by focusing on data models.
+
+What's a model?
+===============
+
+In a nutshell, a model describes your data.  They're like a blueprint: they explain what types of objects you'll use, what fields those objects have, and how it all fits together.  In Django, models definitions also contain metadata about your models that Django uses to build APIs -- more on that later.
+
+In Django, you define these models as Python modules and then use tools to turn those models into SQL data definitions that create tables in your database.
+
+Now, many web development platforms want you to define your models using SQL.  After all, the data will eventually be stored in a database, so why not simply define your models there first?  While this logic makes sense on the surface, we disagree:
+
+    * Writing SQL can be tough.  Different databases require you to do things
+      differently, and having to write three different versions of your 
+      data definitions is the opposite of elegant.
+      
+    * Having your data definitions stored in the database instead of in
+      code means it's harder to keep your models under version control.
+      Django does its best to enforce best development practices which
+      use of source control definitally falls under.
+      
+    * Writing Python is fun! Django does its best to keep you writing Python
+      all the time.
+      
+Creating models
+===============
+     
+Right, enough propaganda.  What does a model look like?
+
+::
+
+    from django.db import models
+    
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        description = models.TextField()
+
+This describes a super-simple ``Crime`` model (which we'll expand over the course of the next few chapters).  Each ``Crime`` object has 
+
+    * a ``when`` field which is a date/time object
+    * a ``location`` field which is a character field with a maximum length of 
+      300 characters, 
+    * and a ``description`` field which is a (unlimited length) text field.
+    
+Unless you instruct it otherwise (see XXX), Django will also automatically create an interger primary key field called ``id``.    
+    
+At this point, this is pretty much the same as the following SQL::
+
+    CREATE TABLE "crimes_crime" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "when" timestamp with time zone NOT NULL,
+        "location" varchar(300) NOT NULL,
+        "description" text NOT NULL
+    );
+    
+In fact, we can generate that SQL above using Django itself.
+
+Installing models
+=================
+
+First, though, we'll need to put this code into the place that Django expects it to be.  We'll put this code inside the first project you created in Chapter 2 (so go back and do that if you haven't already).  You'll want to drop into a shell, and in the project directory you created before, do::
+
+    $ python manage.py startapp crimes
+    
+This will create a ``crimes`` package for you to put your code in.  This directory now contains two files, ``models.py`` and ``views.py``; you'll want to put the model above into the ``models.py`` file.
+
+..note::
+
+    We'll ignore the ``views.py`` file for a few chapters.  Turn to Chapter
+    XXX when you're ready to  see what that file does.
+    
+You've now created a model, but there's one more step to getting this model "registered" with Django.  In your ``settings.py`` file, you'll see a list called ``INSTALLED_APPS``.  This list tells a given Django instance which apps should be considered "active" for that instance.  This lets you have a large library of models and select which ones you want enabled on a site-by-site basis.  So, you'll want to modify ``INSTALLED_APPS`` so that it looks like::
+
+    INSTALLED_APPS = (
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.sites',
+        'myproject.crimes',         # <-- add this line
+    )
+
+Now your app is registered with this Django project.  The first thing you'll want to do to celeberate is to make sure you've got the model defined correctly.  Try this::
+
+    $ python manage.py validate
+    
+Django should spit out  ``0 errors found``; if it doesn't, it means you've got errors defined in your model somewhere.  Check that you've coppied the code above correctly.
+
+From here, you'll probably want to install this model into you database so you can start reading/writing data to/from the database.  Run::
+
+    $ python mange.py syncdb
+    
+To automatically create the tables for this model in the database.  You'll re-run ``syncdb`` every time you add new models to your project and Django will automatically add those models to the database.
+
+If you want to see the SQL that Django is running against your database, you can run::
+
+    $ python manage.py sql crimes
+    
+to have Django print the SQL for the ``crimes`` model to the console (with pretty syntax highlighting on *nix).  There's also quite a number of other things you can do with ``manage.py``; see Chapter XXX for a complete reference.
+
+Playing with the Python API
+===========================
+
+Once you've created a model, Django automatically provides a high-level Python API for working with those models.  Let's try it out -- try the following::
+
+    $ python mange.py shell
+
+    >>> from crimes.models import Crime
+    >>> from datetime import datetime
+    
+    >>> c = Crime(when=datetime.now(), location="1137 Vermont St", 
+    ...           description="Breaking and Entering")
+    ...
+    >>> c.save()
+
+    >>> c2 = Crime(when=datetime.now(), location="1208 Florida St", 
+    ...           description="Reckless driving")
+    ...
+    >>> c2.save()
+
+    >>> crime_list = Crime.objects.all()
+    >>> print crime_list
+    [<Crime: Crime object>, <Crime: Crime object>]
+    
+Although its only a few lines of code, this actually does quite a bit.  You can see how objects are created (Django objects are simply Python classes) and saved to the database (all Django objects have a ``save()`` method which saves the object to the database).
+
+You can also see how objects are retrieved from the database: ``Crime.objects`` lets you interact with the objects already stored in the database.  ``Crime.objects.all()`` is how you fetch a list of already-created ``Crime`` objects from the database.
+
+..note::
+
+    Technically, ``Crime.objects`` is a "manager" object; see Chapter XXX for
+    more information about managers.
+    
+There's quite a lot more you can do here -- and in fact Chapter XXX has a complete reference to this object API -- but first lets take care of a small annoyance.
+
+As you can see above, when we printed out the list of crimes, all we got was the unhelpful::
+
+    [<Crime: Crime object>, <Crime: Crime object>]
+    
+We can fix that easily by adding a method to our ``Crime`` object that handles conversion to a string.  This takes the shape of a Python "magic method" called ``__str__``; you can see it in action by adding one to your ``Crime`` class::
+
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        description = models.TextField()
+
+        def __str__(self):
+            return "Crime at %s on %s" % \
+                (self.location, self.when.strftime("%Y-%m-%d"))
+
+Now, printing the list of crimes looks a lot better::
+
+    >>> Crime.objects.all()
+    [<Crime: Crime at 1137 Vermont St on 2006-05-16>, 
+     <Crime: Crime at 1208 Florida St on 2006-05-16>]
+
+You'll want to make sure that any model you define has the ``__str__`` method.  Django uses this method anywhere a human-readable version of the object needs to be displayed.
+
+Customizing object metadata
+===========================
+
+XXX 
+
+Modifying models
+================
+
+XXX
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
