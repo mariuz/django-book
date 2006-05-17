@@ -1,0 +1,8 @@
+==============================
+Chapter 4: The admin interface
+==============================
+
+There's one part of web development we've always hated: writing administration interfaces.  Developing the parts of the site that the general public sees is always different and interesting, but the bits that the administrators use to modify the site always are the same.  You've got to deal with authenticating users to make sure that they are allowed to edit the content, display and handle forms, deal with tricky validation issues... it's boring, and it's repetitive.
+
+Django's approach to this boring, repetitive task? Do it all for you -- in just a couple of lines of code, no less.
+
