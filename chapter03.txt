@@ -10,6 +10,13 @@ Sites like chicagocrime.org take this to an extreme by providing tools that let 
 
 It makes sense, then, to start our discussion of Django development by focusing on data models.
 
+.. note::
+
+    This chapter is a high-level overview of all the steps involved in
+    creating and customizing models.  It's in no way a complete reference,
+    but Chapter XXX has a complete reference to all the permutations
+    avaialble when defining models.
+
 What's a model?
 ===============
 
@@ -74,11 +81,6 @@ First, though, we'll need to put this code into the place that Django expects it
     
 This will create a ``crimes`` package for you to put your code in.  This directory now contains two files, ``models.py`` and ``views.py``; you'll want to put the model above into the ``models.py`` file.
 
-..note::
-
-    We'll ignore the ``views.py`` file for a few chapters.  Turn to Chapter
-    XXX when you're ready to  see what that file does.
-    
 You've now created a model, but there's one more step to getting this model "registered" with Django.  In your ``settings.py`` file, you'll see a list called ``INSTALLED_APPS``.  This list tells a given Django instance which apps should be considered "active" for that instance.  This lets you have a large library of models and select which ones you want enabled on a site-by-site basis.  So, you'll want to modify ``INSTALLED_APPS`` so that it looks like::
 
     INSTALLED_APPS = (
@@ -105,7 +107,7 @@ If you want to see the SQL that Django is running against your database, you can
 
     $ python manage.py sql crimes
     
-to have Django print the SQL for the ``crimes`` model to the console (with pretty syntax highlighting on *nix).  There's also quite a number of other things you can do with ``manage.py``; see Chapter XXX for a complete reference.
+to have Django print the SQL for the ``crimes`` model to the console (with pretty syntax highlighting on \*nix).  There's also quite a number of other things you can do with ``manage.py``; see Chapter XXX for a complete reference.
 
 Playing with the Python API
 ===========================
@@ -168,12 +170,143 @@ You'll want to make sure that any model you define has the ``__str__`` method.  
 Customizing object metadata
 ===========================
 
-XXX 
+To save you time, Django automatically derives the name of the database table from the name of your model class and the app that contains it. A model's database table name is constructed by joining the model's "app label" -- the name you used in ``manage.py startapp`` -- to the model's class name, with an underscore between them.
 
+So, if you examine your database now (or the output of ``manage.py sql crimes``) you'll see that Django has automatically named the ``Crime`` table ``crimes_crime``.  
+
+So what if you're sharing a database with other users and you need to be careful about table names, or what if you just don't like the automatic name?  Well, each Django model can define metadata about that object; this is done by definiing an inner class called ``Meta``::
+
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        description = models.TextField()
+
+        class Meta:
+            db_table = "crimes"
+
+The ``db_table`` option overrides the default table name that Django uses.  There's erally no reason to use this option now, so for the rest of this walkthrough we'll assume you removed it.
+
+.. admonition:: Philosophy
+
+    You'll see this pattern repeated everywhere in Django.  The framework 
+    provides sensible defaults, but always lets you override them if you
+    need more fine grained control.
+    
+Of course, there other ``Meta`` options available; refer to Chapter XXX for a complete reference.
+
+Relations
+=========
+
+Of course, what's the point of using a relational database if we don't use relations?  Let's refine our ``Crime`` object to be somwhat better designed.  Right now, we're simply stuffing a description of the crime into the ``description`` field, but that will quickly fill up with duplicate values like "carjacking" and "distributing cigarettes to minors".  Let's break those crime types out into a related object::
+
+    class CrimeType(models.Model):
+        name        = models.CharField(maxlength=250)
+        is_felony   = models.BooleanField()
+        
+        def __str__(self):
+            return self.name
+            
+Here we've defined a "crime type" object which we'll populate with all the possible crimes on the books.  Now we'll modify the exiting ``Crime`` object to replace the ``description`` field with a relation to this one::
+
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        type        = models.ForeignKey(CrimeType)
+
+This defines a foreign key on the ``type`` field which points to a ``CrimeType``.
+
+.. admonition:: Huh?
+
+    What's a "foreign key"?  If you're not familier with database terminology,
+    XXX what should they do??? XXX
+    
 Modifying models
 ================
 
-XXX
+If you actually try to use these models at this point, you'll quickly find problems.  Although you've changed the ``Crime`` model, those changes can't automatically be transfered into the database.  You've got to inform the database that you've changed the model, and you've got two options::
+
+    1. Use SQL to modify the database tables.  That is, use ``ALTER TABLE`` 
+       commands to modify the database directly to match the model. 
+       
+       This is the approach you have to take if you've already got important
+       data stored in the database.
+       
+    2. If, however, you don't care about the data in the database, you can
+       "reset" a given model, dropping and restoring the tables involved.
+       
+Since we've just started, we'll take the second route.  Run::
+
+    $ python manage.py reset crimes
+    
+Django will ask you if you're *sure* that this is something you want to do; say "yes" and the old tables will be dropped and new ones created.
+
+.. admonition:: Philosophy:
+
+    Yes, you're right to think that option 1 looks pretty difficult.  If
+    you've got to make a schema change in an application with a bunch of
+    existing data it can indeed be time-consuming.  
+    
+    However, automated tools could be very dangerous here. Django won't     
+    automatically modify your database for you; that could lead to 
+    catestrophic data loss.
+    
+    So, spend a little extra time up front making sure your models are
+    well-defined and future-proof.  You'll recover that time in spades
+    in the future -- trust us!
+    
+Using relations in the Python API
+=================================
+
+Here's a sample interactive session that shows what the Python API looks like for foreign keys::
+
+    >>> show_interesting_code_here()
+    
+XXX explain intesting code here    
+    
+.. XXX: talk about M2M next, or leave that for the ref?
+
+What's next?
+============
+
+At this point you know enough (with the help of the reference in Chapter XXX) to start writing your own models.  However, in the next chapter we'll step aside to look at the best-looking piece of Django: the automatic admin interface.
+
+So what are you wating for? Turn the page!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
