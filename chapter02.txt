@@ -329,6 +329,8 @@ the NSA paid us a visit and [CENSORED] to [CENSORED] our [CENSORED] if we
 In the end, though, we decided to take the path of least resistance and discuss
 a site that already exists: chicagocrime.org.
 
+.. XXX JGD Really doing chi crime?  I heard from APress that it'd be something similar, but not the same.  
+
 For those who aren't familiar with the site: chicagocrime.org is a non-profit,
 freely browseable database of crimes reported in Chicago.  It maps public
 data from the Chicago Police Department with the Google Maps API and provides

@@ -39,6 +39,7 @@ Django also works well with "upstream" caches, such as Squid
 caches that you don't directly control but to which you can provide hints (via
 HTTP headers) about which parts of your site should be cached, and how.
 
+
 Setting up the cache
 ====================
 
@@ -65,6 +66,11 @@ interface -- a *super-lightning-fast* interface -- for adding, retrieving and
 deleting arbitrary data in the cache. All data is stored directly in memory,
 so there's no overhead of database or filesystem usage.
 
+.. XXX JGD it'd be good to explain why django can't or doesn't include these 
+.. XXX JGD libs in its dist.  maybe not right here, but somewhere within the 
+.. XXX JGD book.  perhaps explain that source control can do external refs, 
+.. XXX JGD giving a short example with svn's support?
+
 After installing Memcached itself, you'll need to install the Memcached Python
 bindings. They're in a single Python module, memcache.py, available at
 ftp://ftp.tummy.com/pub/python-memcached/ . If that URL is no longer valid,
@@ -87,10 +93,14 @@ shared over Memcached instances running on IP address 172.19.26.240 and
 
     CACHE_BACKEND = 'memcached://172.19.26.240:11211;172.19.26.242:11211/'
 
+.. XXX JGD So, this is a single unified cache spread across multiple machines?
+.. XXX JGD If so is the DSN semi-colon thing explained because its django-specific?
+.. XXX JGD I guess I mean, it may make sense to explain more what the feature is
+.. XXX JGD or exclude the mention altogether.
+
 Memory-based caching has one disadvantage: Because the cached data is stored in
-memory, the data will be lost if your server crashes. Clearly, memory isn't
-intended for permanent data storage, so don't rely on memory-based caching as
-your only data storage. Actually, none of the Django caching backends should be
+memory, the cached data will be lost if your server crashes. Clearly, memory mustn't
+be your primary data storage. Actually, none of the Django caching backends should be
 used for permanent storage -- they're all intended to be solutions for caching,
 not storage -- but we point this out here because memory-based caching is
 particularly temporary.
@@ -165,6 +175,8 @@ Dummy caching (for development)
 Finally, Django comes with a "dummy" cache that doesn't actually cache -- it
 just implements the cache interface without doing anything.
 
+.. XXX JGD In patterns, this sort of thing is called Null Object.  Maybe call it Null Cache?
+
 This is useful if you have a production site that uses heavy-duty caching in
 various places but a development/test environment on which you don't want to
 cache. In that case, set ``CACHE_BACKEND`` to ``"dummy:///"`` in the settings
@@ -185,6 +197,8 @@ All caches may take arguments. They're given in query-string style on the
         For the simple and database backends, the maximum number of entries
         allowed in the cache before it is cleaned. Defaults to 300.
 
+.. XXX JGD It seems like this applies to locmem as well, since it uses Simple's backend + synchronization.
+
     cull_percentage
         The percentage of entries that are culled when max_entries is reached.
         The actual percentage is 1/cull_percentage, so set cull_percentage=3 to
@@ -193,6 +207,9 @@ All caches may take arguments. They're given in query-string style on the
         A value of 0 for cull_percentage means that the entire cache will be
         dumped when max_entries is reached. This makes culling *much* faster
         at the expense of more cache misses.
+
+.. XXX JGD This book would be an appropriate time to rename the param to be sensible.  ;)
+.. XXX JGD Are you concerned about breaking kwargs?
 
 In this example, ``timeout`` is set to ``60``::
 
@@ -205,9 +222,10 @@ In this example, ``timeout`` is ``30`` and ``max_entries`` is ``400``::
 Invalid arguments are silently ignored, as are invalid values of known
 arguments.
 
+
 The per-site cache
 ==================
-
+>>>>
 Once the cache is set up, the simplest way to use caching is to cache your
 entire site. Just add ``django.middleware.cache.CacheMiddleware`` to your
 ``MIDDLEWARE_CLASSES`` setting, as in this example::
