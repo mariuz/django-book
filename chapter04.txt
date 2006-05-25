@@ -6,3 +6,67 @@ There's one part of web development we've always hated: writing administration i
 
 Django's approach to this boring, repetitive task? Do it all for you -- in just a couple of lines of code, no less.
 
+One of the oldest and most powerful parts of Django is the automatic admin interface.  It hooks off of metadata in your model to provide a powerful and production-ready interface that content producers can immediately use to start adding content to the site.
+
+Activating the admin interface
+==============================
+
+We think the admin interface is the coolest part of Django -- and most Djangonauts aggree -- but since not everyone actually needs it, it's an optional piece.  That means there are three steps you'll need to follow to activate the admin interface:
+
+    1.  Add admin metadata to your models.
+    
+        Not all models can (or should) be editable by admin users, so you need
+        to "mark" models that should have an admin interface. You do that be
+        adding an inner ``Admin`` class to your model (alongside the ``Meta``
+        class, if you have one).  Extending our previous example::
+       
+            class Crime(models.Model):
+                when        = models.DateTimeField()
+                location    = models.CharField(maxlength=300)
+                type        = models.ForeignKey(CrimeType)
+
+                class Admin:
+                    pass
+                   
+        The ``Admin`` declaration flags the class as having an admin
+        interface. There are a number of options that you can put beneath
+        ``Admin``; for now we're sticking with all the defaults, so we put
+        ``pass`` in there to signify to Python that the ``Admin`` class is
+        empty.
+       
+    2.  Install the admin models.  Simply add ``"django.contrib.admin"`` to 
+        your ``INSTALLED_APPS`` setting and run ``python manage.py syncdb``.
+       
+.. note::
+       
+        When you first ran ``syncdb``, you were probably asked about creating
+        a superuser.  If you didn't that time, you'll need to run 
+        ``django/contrib/auth/bin/create_superuser.py`` to create an admin
+        user.  Otherwise you won't be able to log into the admin interface.
+        
+    3.  Add the URL pattern to your ``urls.py``.  If you're still using the
+        one created by ``startproject``, the admin URL pattern should be 
+        already there, but commented out.  Either way, your URL patterns
+        should look like::
+        
+            from django.conf.urls.defaults import *
+
+            urlpatterns = patterns('',
+                (r'^admin/', include('django.contrib.admin.urls')),
+            )
+            
+That's it.  Now run ``python manage.py runserver`` to start the development server; you'll see something like::
+
+    Validating models...
+    0 errors found.
+
+    Django version 0.95 (post-magic-removal), using settings 'myproject.settings'
+    Development server is running at http://127.0.0.1:8000/
+    Quit the server with CONTROL-C.
+
+Now you can visit the URL given to you by Django (http://127.0.0.1:8000/ in the example above), log in, and play around.
+
+Using the admin interface
+=========================
+
+The admin interface is designed to be used by non-technical users, and as such should be pretty self-explanatory.
