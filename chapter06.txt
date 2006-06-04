@@ -5,11 +5,17 @@ Chapter 6: Templates
 .. About 50% of this chapter is taken from Django's template.txt doc.
 
 If a view describes *what* data is displayed on a given page, the template
-describes *how* that data looks.  This distinction is important since it will easily let you change how your site looks without having to change how it behaves.  Most web development teams already have different people who develop the code who design the templates; this division in Django strives to match that natural division of labor.
+describes *how* that data looks. This distinction is important since it will
+easily let you change how your site looks without having to change how it
+behaves. Most web development teams already have different people who develop
+the code who design the templates; this division in Django strives to match
+that natural division of labor.
 
 Django's template language is designed to strike a balance between power and
 ease. It's designed to feel comfortable to those used to working with HTML. If
-you have any exposure to other text-based template languages, such as Smarty (http://smarty.php.net) or CheetahTemplate (http://www.cheetahtemplate.org/), you should feel right at home with Django's templates.
+you have any exposure to other text-based template languages, such as Smarty
+(http://smarty.php.net) or CheetahTemplate (http://www.cheetahtemplate.org/),
+you should feel right at home with Django's templates.
 
 .. admonition:: Ick, I hate it!
 
@@ -19,12 +25,16 @@ you have any exposure to other text-based template languages, such as Smarty (ht
     of your choice. You can simply write views that render content using
     your favorite engine instead.
 
-Django's template language has particularly been designed to be designer-friendly.  We think most programmers -- us included -- have the design sense of a color-blind three-year-old, so we prefer to leave the designing to the professionals by giving them a template language they can understand.
+Django's template language has particularly been designed to be
+designer-friendly. We think most programmers -- us included -- have the design
+sense of a color-blind three-year-old, so we prefer to leave the designing to
+the professionals by giving them a template language they can understand.
 
 Tying up loose ends
 ===================
 
-Let's get started by wrapping up the index template we started in the last chapter.  You'll recall that the view we're dealing with looks like::
+Let's get started by wrapping up the index template we started in the last
+chapter. You'll recall that the view we're dealing with looks like::
 
     from django import template
     from django.http import HttpResponse
@@ -38,7 +48,10 @@ Let's get started by wrapping up the index template we started in the last chapt
             'type_list': CrimeType.objects.all(),
         })
         
-Right now, the template is set up to only display the list of latest crimes and doesn't display the list of crime types.  On top of that, the template we have so far isn't valid HTML at all; just a small snippet.  Here's our take on fixing both those problems::
+Right now, the template is set up to only display the list of latest crimes
+and doesn't display the list of crime types. On top of that, the template we
+have so far isn't valid HTML at all; just a small snippet. Here's our take on
+fixing both those problems::
 
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
     <html lang="en">
@@ -69,12 +82,15 @@ Right now, the template is set up to only display the list of latest crimes and 
     </body>
     </html>
     
-That's better.  Now we've got a complete (if still minimal) HTML page displaying all the data available on the page.  Let's focus on this template and explain all the bits and peices that go into making it.
+That's better. Now we've got a complete (if still minimal) HTML page
+displaying all the data available on the page. Let's focus on this template
+and explain all the bits and peices that go into making it.
 
 What's a template
 =================
 
-First, though, what do we mean when we call the above a **template**?  Well, a template is simply a text file. It can generate any text-based format (HTML,
+First, though, what do we mean when we call the above a **template**? Well, a
+template is simply a text file. It can generate any text-based format (HTML,
 XML, CSV, etc.).
 
 To do anything useful, template contains **variables**, which get replaced
@@ -113,10 +129,13 @@ Use a dot (``.``) to access attributes of a variable.
 In the above example, ``{{ crime.location }}`` will be replaced with the
 ``location`` attribute of the ``crime`` object.
 
-Where did that ``crime`` object come from?  It came from the context you created in the view and passed into the template.  All variables are evaluated against the context that view creates.
+Where did that ``crime`` object come from? It came from the context you
+created in the view and passed into the template. All variables are evaluated
+against the context that view creates.
 
 If you use a variable that doesn't exist, the template system will insert
-the value of the ``TEMPLATE_STRING_IF_INVALID`` setting which is set to an empty string by default.
+the value of the ``TEMPLATE_STRING_IF_INVALID`` setting which is set to an
+empty string by default.
 
 See "Using the built-in reference", below, for help on finding what variables
 are available in a given template.
@@ -138,7 +157,11 @@ Some filters take arguments. A filter argument looks like this:
 ``{{ bio|truncatewords:"30" }}``. This will display the first 30 words of the
 ``bio`` variable. Filter arguments always are in double quotes.
 
-So, in the example above, ``{{ crime.when|date:"F j, P" }}`` outputs the value of the ``crime``'s ``when`` attribute, formatted with the ``date`` filter which is given the format string ``F j, P``.  This ``date`` filter is based on PHP's ``date()`` function and is described fully along with all the other standard Django filters in Chapter XXX.
+So, in the example above, ``{{ crime.when|date:"F j, P" }}`` outputs the value
+of the ``crime``'s ``when`` attribute, formatted with the ``date`` filter
+which is given the format string ``F j, P``. This ``date`` filter is based on
+PHP's ``date()`` function and is described fully along with all the other
+standard Django filters in Chapter XXX.
 
 Tags
 ====
@@ -149,7 +172,8 @@ some load external information into the template to be used by later
 variables.
 
 Some tags require beginning and ending tags (i.e. ``{% tag %} ... tag contents
-... {% endtag %}``).  In the example above, both ``{% if %}`` and ``{% for %}`` are tags, and both require ending tags.
+... {% endtag %}``). In the example above, both ``{% if %}`` and ``{% for %}``
+are tags, and both require ending tags.
 
 The built-in tag reference in Chapter XXX describes these and all the other
 built-in tags, and Chapter 9 explains how to create your own tags.
@@ -162,7 +186,10 @@ engine is template inheritance. Template inheritance allows you to build a
 base "skeleton" template that contains all the common elements of your site
 and defines **blocks** that child templates can override.
 
-Understanding inheritance begins with understanding the problem it solves.  The template we designed above looks just fine, but what happens when we go to create a template for the ``crimes_by_type`` view?  If we want again to make a nice valid HTML template, we'd start out something like::
+Understanding inheritance begins with understanding the problem it solves. The
+template we designed above looks just fine, but what happens when we go to
+create a template for the ``crimes_by_type`` view? If we want again to make a
+nice valid HTML template, we'd start out something like::
 
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
     <html lang="en">
@@ -174,13 +201,22 @@ Understanding inheritance begins with understanding the problem it solves.  The 
     
     ...
         
-But wait a minute -- we've just duplicated a lot of HTML!  Imagine if we had a few stylesheets included on each page, maybe a navigation bar, perhaps some JavaScript... We'd end up putting all sorts of redundant HTML into each and every template.
+But wait a minute -- we've just duplicated a lot of HTML! Imagine if we had a
+few stylesheets included on each page, maybe a navigation bar, perhaps some
+JavaScript... We'd end up putting all sorts of redundant HTML into each and
+every template.
 
-Clearly, this won't do -- what if you want to change all your templates to XHTML 2 when it comes out?  OK, so you probably won't want to do that, but what about changing the included stylesheets?  Can you imagine going into hundreds of templates and changing all of them?
+Clearly, this won't do -- what if you want to change all your templates to
+XHTML 2 when it comes out? OK, so you probably won't want to do that, but what
+about changing the included stylesheets? Can you imagine going into hundreds
+of templates and changing all of them?
 
 Ugh.
 
-Template inheritance solves this problem (and a few others).  You'll start out by defining what's called a **base template** -- a skeleton of your page that other templates will later fill in.  Here's what a base template derived from our ongoing example might look like::
+Template inheritance solves this problem (and a few others). You'll start out
+by defining what's called a **base template** -- a skeleton of your page that
+other templates will later fill in. Here's what a base template derived from
+our ongoing example might look like::
 
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
     <html lang="en">
@@ -210,7 +246,8 @@ In this example, the ``{% block %}`` tag defines three blocks that child
 templates can fill in. All the ``block`` tag does is to tell the template
 engine that a child template may override those portions of the template.
 
-Now that we've got this base template, we can modify our existing index template to use it::
+Now that we've got this base template, we can modify our existing index
+template to use it::
 
     {% extends "base.html" %}
 
@@ -244,7 +281,10 @@ this template, first it locates the parent -- in this case, "base.html".
 
 At that point, the template engine will notice the three ``{% block %}`` tags
 in ``base.html`` and replace those blocks with the contents of the child
-template.  So the title we've defined here will be used, as will all the template code to loop over and display the crime list and list of crime types.  The skeleton from the base template will be filled in with the content from the child one.
+template. So the title we've defined here will be used, as will all the
+template code to loop over and display the crime list and list of crime types.
+The skeleton from the base template will be filled in with the content from
+the child one.
 
 Note that since the child template didn't define the ``footer`` block, the
 value from the parent template is used instead. Content within a ``{% block
@@ -367,9 +407,14 @@ This is a feature for the sake of maintainability and sanity.
 What's next?
 ============
 
-At this point, you should understand enough about how templates work to create the crimes-by-type template yourself and retrofit the ``base.html`` we created onto the exsitng crime detail template.  Consider that your homework.
+At this point, you should understand enough about how templates work to create
+the crimes-by-type template yourself and retrofit the ``base.html`` we created
+onto the exsitng crime detail template. Consider that your "homework".
 
-At this point we've also covered nearly all the basics, and you're probably ready to go out and create the Next Big Thing™.  There's still one thing missing, though -- a way to let the site interact with readers.  In the next chapter we'll plug that gap by explaining how Django does form processing.  
+At this point we've also covered nearly all the basics, and you're probably
+ready to go out and create the Next Big Thing™. There's still one thing
+missing, though -- a way to let the site interact with readers. In the next
+chapter we'll plug that gap by explaining how Django does form processing.
 
 Care to join us?
 
