@@ -4,7 +4,7 @@ Chapter 2: Getting started
 
 Let's get started, shall we?
 
-Fortunatly for you (but not for us), installing Django is far easier than
+Fortunately for you (but not for us), installing Django is far easier than
 explaining how to install it. Because Django runs anywhere Python does, there
 are a lot of possibilities when it comes to Django configurations.  We've tried to
 cover the common scenarios for Django installations below.

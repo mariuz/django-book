@@ -91,7 +91,7 @@ let us count the bullet points:
       such as Java. One line of python usually equals 10 lines of Java. (This
       has a convenient side benefit: Fewer lines of code means fewer bugs.)
 
-    * Python offers **powerful introspection and metaprogramming** features,
+    * Python offers **powerful introspection and meta-programming** features,
       which make it possible to inspect and add behavior to objects at
       runtime.
 
@@ -157,7 +157,7 @@ and outputs the list in a simple HTML page::
     </body>
     </html>
 
-While this code is conceptually simple for beginners -- because everything's in
+While this code is conceptually simple for beginners -- because everything is in
 a single file -- it's bad practice for several reasons::
 
     1. **The presentation is tied to the code.** If a designer wanted to edit

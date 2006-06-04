@@ -159,3 +159,21 @@ The order for these is still TBD.
 
     #. Request and response objects (docs/request_response.txt)
     
+Things without a home
+`````````````````````
+
+A few topics that the book needs to address that don't have a home in this outline:
+
+    * Security issues:
+    
+        * Protection against SQL injection
+        * Preventing XSS
+        * Dealing with 'bots, spiders, and other malicious browsers
+        * Techniques for dealing with user submitted content
+        * ...
+        
+      Perhaps this should go in the "deployment" chapter? Or after? I'm not 
+      too happy about leaving it towards the end of the book, though...
+      
+    * Validators.  Not enough here to really warrant its own chapter... so 
+      where?

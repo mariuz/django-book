@@ -2,15 +2,24 @@
 Chapter 3: Writing models
 =========================
 
-Although relational databases were first conceived of in the 1960s and have been around in some form or another for many years, the web has really taken database use to a whole new level.  Almost every web site is backed by one database or another.
+Although relational databases were first conceived of in the 1960s and have
+been around in some form or another for many years, the web has really taken
+database use to a whole new level. Almost every web site is backed by one
+database or another.
 
 .. XXX JGD 1960s date based on http://en.wikipedia.org/w/index.php?title=Edgar_F._Codd&oldid=50335573
 
-When done right, database-backed websites are extremely useful.  Instead of the top-down style that dominates in print, databased websites let readers "choose their own adventures" as they move through the site.  
+When done right, database-backed websites are extremely useful. Instead of the
+top-down style that dominates in print, databased websites let readers "choose
+their own adventures" as they move through the site.
 
-Sites like chicagocrime.org take this to an extreme by providing tools that let readers sift through mountains of information they'd otherwise be unable to process.  Helping developers build those tools is the primary purpose of Django.
+Sites like chicagocrime.org take this to an extreme by providing tools that
+let readers sift through mountains of information they'd otherwise be unable
+to process. Helping developers build those tools is the primary purpose of
+Django.
 
-It makes sense, then, to start our discussion of Django development by focusing on data models.
+It makes sense, then, to start our discussion of Django development by
+focusing on data models.
 
 .. note::
 
@@ -22,11 +31,19 @@ It makes sense, then, to start our discussion of Django development by focusing 
 What's a model?
 ===============
 
-In a nutshell, a model describes your data.  They're like a blueprint: they explain what types of objects you'll use, what fields those objects have, and how it all fits together.  In Django, models definitions also contain metadata about your models that Django uses to build APIs -- more on that later.
+In a nutshell, a model describes your data. They're like a blueprint: they
+explain what types of objects you'll use, what fields those objects have, and
+how it all fits together. In Django, models definitions also contain metadata
+about your models that Django uses to build APIs -- more on that later.
 
-In Django, you define these models as Python modules and then use tools to turn those models into SQL data definitions that create tables in your database.
+In Django, you define these models as Python modules and then use tools to
+turn those models into SQL data definitions that create tables in your
+database.
 
-Now, many web development platforms want you to define your models using SQL.  After all, the data will eventually be stored in a database, so why not simply define your models there first?  While this logic makes sense on the surface, we disagree:
+Now, many web development platforms want you to define your models using SQL.
+After all, the data will eventually be stored in a database, so why not simply
+define your models there first? While this logic makes sense on the surface,
+we disagree:
 
     * Writing SQL can be tough.  Different databases require you to do things
       differently, and having to write three different versions of your 
@@ -60,16 +77,19 @@ Right, enough propaganda.  What does a model look like?
         location    = models.CharField(maxlength=300)
         description = models.TextField()
 
-This describes a super-simple ``Crime`` model (which we'll expand over the course of the next few chapters).  Each ``Crime`` object has 
+This describes a super-simple ``Crime`` model (which we'll expand over the
+course of the next few chapters). Each ``Crime`` object has
 
     * a ``when`` field which is a date/time object
     * a ``location`` field which is a character field with a maximum length of 
       300 characters, 
     * and a ``description`` field which is a (unlimited length) text field.
     
-Unless you instruct it otherwise (see XXX), Django will also automatically create an integer primary key field called ``id``.    
-    
-At this point, this is pretty much equivalent to the following SQL when using PostgreSQL as the backend.  ::
+Unless you instruct it otherwise (see XXX), Django will also automatically
+create an integer primary key field called ``id``.
+
+At this point, this is pretty much equivalent to the following SQL when using
+PostgreSQL as the backend. ::
 
     CREATE TABLE "crimes_crime" (
         "id" serial NOT NULL PRIMARY KEY,
@@ -83,13 +103,23 @@ In fact, we can generate that SQL above using Django itself.
 Installing models
 =================
 
-First, though, we'll need to put this code into the place that Django expects it to be.  We'll put this code inside the first project you created in Chapter 2 (so go back and do that if you haven't already).  You'll want to drop into a shell, and in the project directory you created before, do::
+First, though, we'll need to put this code into the place that Django expects
+it to be. We'll put this code inside the first project you created in Chapter
+2 (so go back and do that if you haven't already). You'll want to drop into a
+shell, and in the project directory you created before, do::
 
     $ python manage.py startapp crimes
     
-This will create a ``crimes`` package for you to put your code in.  This directory now contains two files, ``models.py`` and ``views.py``; you'll want to put the model code above into the ``models.py`` file.
+This will create a ``crimes`` package for you to put your code in. This
+directory now contains two files, ``models.py`` and ``views.py``; you'll want
+to put the model code above into the ``models.py`` file.
 
-You've now created a model, but there's one more step to getting this model registered with Django.  In your ``settings.py`` file, you'll see a list called ``INSTALLED_APPS``.  This list tells a given Django instance which apps should be considered "active" for that instance.  This lets you have a large library of models and select which ones you want enabled on a site-by-site basis.  You'll want to modify ``INSTALLED_APPS`` so that it looks like::
+You've now created a model, but there's one more step to getting this model
+registered with Django. In your ``settings.py`` file, you'll see a list called
+``INSTALLED_APPS``. This list tells a given Django instance which apps should
+be considered "active" for that instance. This lets you have a large library
+of models and select which ones you want enabled on a site-by-site basis.
+You'll want to modify ``INSTALLED_APPS`` so that it looks like::
 
     INSTALLED_APPS = (
         'django.contrib.auth',
@@ -99,30 +129,42 @@ You've now created a model, but there's one more step to getting this model regi
         'myproject.crimes',         # <-- add this line
     )
 
-Now your app is registered with this Django project.  The first thing you'll want to do to celebrate is to make sure you've got the model defined correctly.  Try this::
+Now your app is registered with this Django project. The first thing you'll
+want to do to celebrate is to make sure you've got the model defined
+correctly. Try this::
 
     $ python manage.py validate
     
-Django should spit out  ``0 errors found``; if it doesn't, it means you've got errors defined in your model somewhere.  Check that you've copied the code above correctly.
+Django should spit out ``0 errors found``; if it doesn't, it means you've got
+errors defined in your model somewhere. Check that you've copied the code
+above correctly.
 
-From here, you'll probably want to install this model into you database so you can start reading and writing data from and to the database.  Run::
+From here, you'll probably want to install this model into you database so you
+can start reading and writing data from and to the database. Run::
 
     $ python manage.py syncdb
     
-This automatically creates the tables for this model in the database.  You'll re-run ``syncdb`` every time you add new models to your project so that Django creates the related tables in the database.
+This automatically creates the tables for this model in the database. You'll
+re-run ``syncdb`` every time you add new models to your project so that Django
+creates the related tables in the database.
 
-If you want to see the SQL that Django is running against your database, you can run::
+If you want to see the SQL that Django is running against your database, you
+can run::
 
     $ python manage.py sql crimes
     
-to have Django print the SQL for the ``crimes`` model to the console (with pretty syntax highlighting on \*nix).  There's also quite a number of other things you can do with ``manage.py``; see Chapter XXX for a complete reference.
+to have Django print the SQL for the ``crimes`` model to the console (with
+pretty syntax highlighting on \*nix). There's also quite a number of other
+things you can do with ``manage.py``; see Chapter XXX for a complete
+reference.
 
 .. XXX JGD This command shows nothing after running syncdb.  It should be noted that the output changes depending on whether your DB's already been synced for a given installed app.
 
 Playing with the Python API
 ===========================
 
-Once you've created a model, Django automatically provides a high-level Python API for working with those models.  Let's try it out -- try the following::
+Once you've created a model, Django automatically provides a high-level Python
+API for working with those models. Let's try it out -- try the following::
 
     $ python manage.py shell
 
@@ -144,22 +186,33 @@ Once you've created a model, Django automatically provides a high-level Python A
     [<Crime: Crime object>, <Crime: Crime object>]
 
 
-Although it's only a few lines of code, this actually does quite a bit.  You can see how objects are created (Django objects are simply Python classes) and saved to the database (all Django objects have a ``save()`` method which saves the object to the database).
+Although it's only a few lines of code, this actually does quite a bit. You
+can see how objects are created (Django objects are simply Python classes) and
+saved to the database (all Django objects have a ``save()`` method which saves
+the object to the database).
 
-You can also see how objects are retrieved from the database: ``Crime.objects`` lets you interact with the objects already stored in the database.  ``Crime.objects.all()`` is how you fetch a list of already-created ``Crime`` objects from the database.
+You can also see how objects are retrieved from the database:
+``Crime.objects`` lets you interact with the objects already stored in the
+database. ``Crime.objects.all()`` is how you fetch a list of already-created
+``Crime`` objects from the database.
 
 ..note::
 
     Technically, ``Crime.objects`` is a "manager" object; see Chapter XXX for
     more information about managers.
     
-There's quite a lot more you can do here -- and in fact Chapter XXX has a complete reference to this object API -- but first let's take care of a small annoyance.
+There's quite a lot more you can do here -- and in fact Chapter XXX has a
+complete reference to this object API -- but first let's take care of a small
+annoyance.
 
-As you can see above, when we printed out the list of crimes, all we got was the unhelpful::
+As you can see above, when we printed out the list of crimes, all we got was
+the unhelpful::
 
     [<Crime: Crime object>, <Crime: Crime object>]
     
-We can fix that easily by adding a method to our ``Crime`` object that handles conversion to a string.  This takes the shape of a Python "magic method" called ``__str__``; you can see it in action by adding one to your ``Crime`` class::
+We can fix that easily by adding a method to our ``Crime`` object that handles
+conversion to a string. This takes the shape of a Python "magic method" called
+``__str__``; you can see it in action by adding one to your ``Crime`` class::
 
     class Crime(models.Model):
         when        = models.DateTimeField()
@@ -180,7 +233,9 @@ Now, printing the list of crimes looks a lot better::
 .. XXX JGD show it by doing from crimes import models and referring to models.Crime, 
 .. XXX JGD so you can reload(models).  Or am I being stupid?
 
-You'll want to make sure that any model you define has the ``__str__`` method.  Django uses this method anywhere a human-readable version of the object needs to be displayed.
+You'll want to make sure that any model you define has the ``__str__`` method.
+Django uses this method anywhere a human-readable version of the object needs
+to be displayed.
 
 .. XXX JGD A note explaining that user-facing pages generally won't be relying on __str__
 .. XXX JGD would be good.  __str__ is mostly helpful terminal and admin, right?  Or, put
@@ -192,11 +247,20 @@ You'll want to make sure that any model you define has the ``__str__`` method.  
 Customizing object metadata
 ===========================
 
-To save you time, Django automatically derives the name of the database table from the name of your model class and the app that contains it. A model's database table name is constructed by joining the model's "app label" -- the name you used in ``manage.py startapp`` -- to the model's class name, with an underscore between them.
+To save you time, Django automatically derives the name of the database table
+from the name of your model class and the app that contains it. A model's
+database table name is constructed by joining the model's "app label" -- the
+name you used in ``manage.py startapp`` -- to the model's class name, with an
+underscore between them.
 
-So, if you examine your database now (or the output of ``manage.py sql crimes``) you'll see that Django has automatically named the ``Crime`` table ``crimes_crime``.  
+So, if you examine your database now (or the output of ``manage.py sql
+crimes``) you'll see that Django has automatically named the ``Crime`` table
+``crimes_crime``.
 
-So what if you're sharing a database with other users and you need to be careful about table names, or what if you just don't like the automatic name?  Well, each Django model can define metadata about that object; this is done by defining an inner class called ``Meta``::
+So what if you're sharing a database with other users and you need to be
+careful about table names, or what if you just don't like the automatic name?
+Well, each Django model can define metadata about that object; this is done by
+defining an inner class called ``Meta``::
 
     class Crime(models.Model):
         when        = models.DateTimeField()
@@ -206,7 +270,9 @@ So what if you're sharing a database with other users and you need to be careful
         class Meta:
             db_table = "crimes"
 
-The ``db_table`` option overrides the default table name that Django uses.  There's really no reason to use this option now, so for the rest of this walkthrough we'll assume you removed it.
+The ``db_table`` option overrides the default table name that Django uses.
+There's really no reason to use this option now, so for the rest of this
+walkthrough we'll assume you removed it.
 
 .. admonition:: Philosophy
 
@@ -216,12 +282,18 @@ The ``db_table`` option overrides the default table name that Django uses.  Ther
 
 .. XXX JGD No nod/snark to "convention over configuration"?
 
-Of course, there are other ``Meta`` options available; refer to Chapter XXX for a complete reference.
+Of course, there are other ``Meta`` options available; refer to Chapter XXX
+for a complete reference.
 
 Relations
 =========
 
-Of course, what's the point of using a relational database if we don't use relations?  Let's refine our ``Crime`` object to be somewhat better designed.  Right now, we're simply stuffing a description of the crime into the ``description`` field, but that will quickly fill up with duplicate values like "carjacking" and "distributing cigarettes to minors".  Let's break those crime types out into a related object::
+Of course, what's the point of using a relational database if we don't use
+relations? Let's refine our ``Crime`` object to be somewhat better designed.
+Right now, we're simply stuffing a description of the crime into the
+``description`` field, but that will quickly fill up with duplicate values
+like "carjacking" and "distributing cigarettes to minors". Let's break those
+crime types out into a related object::
 
     class CrimeType(models.Model):
         name        = models.CharField(maxlength=250)
@@ -232,7 +304,9 @@ Of course, what's the point of using a relational database if we don't use relat
 
 .. XXX JGD This has to be in the models.py file before Crime, right?  It'd be good to note it.
             
-Here we've defined a "crime type" object which we'll populate with all the possible crimes on the books.  Now we'll modify the exiting ``Crime`` object to replace the ``description`` field with a relation to this one::
+Here we've defined a "crime type" object which we'll populate with all the
+possible crimes on the books. Now we'll modify the exiting ``Crime`` object to
+replace the ``description`` field with a relation to this one::
 
     class Crime(models.Model):
         when        = models.DateTimeField()
@@ -260,7 +334,10 @@ This defines a foreign key on the ``type`` field which points to a ``CrimeType``
 Modifying models
 ================
 
-If you actually try to use these models at this point, you'll quickly find problems.  Although you've changed the ``Crime`` model, those changes can't automatically be transfered into the database.  You've got to inform the database that you've changed the model, and you've got two options::
+If you actually try to use these models at this point, you'll quickly find
+problems. Although you've changed the ``Crime`` model, those changes can't
+automatically be transfered into the database. You've got to inform the
+database that you've changed the model, and you've got two options::
 
     1. Use SQL to modify the database tables.  That is, use ``ALTER TABLE`` 
        commands to modify the database directly to match the model. 
@@ -275,7 +352,8 @@ Since we've just started, we'll take the second route.  Run::
 
     $ python manage.py reset crimes
     
-Django will ask you if you're *sure* that this is something you want to do; say "yes" and the old tables will be dropped and new ones created.
+Django will ask you if you're *sure* that this is something you want to do;
+say "yes" and the old tables will be dropped and new ones created.
 
 .. admonition:: Philosophy:
 
@@ -305,7 +383,8 @@ Django will ask you if you're *sure* that this is something you want to do; say 
 Using relations in the Python API
 =================================
 
-Set up a few example Crimes using the new CrimeType to explore the Django API for foreign keys::
+Set up a few example Crimes using the new ``CrimeType`` to explore the Django
+API for foreign keys::
 
     >>> jaywalking = CrimeType(name="Jaywakling", is_felony=False)
     >>> jaywalking.save()
@@ -319,7 +398,8 @@ Now you can retrieve all Crimes of the same CrimeType for any given Crime::
     >>> fortysecond_jaywalking.type.crime_set.all()
     [<Crime: Crime at 1211 Florida St on 2006-05-17>, <Crime: Crime at 1301 W. 42nd St on 2006-05-17>]
 
-Those Crimes refer to the same CrimeType object so that changes in the CrimeType are reflected in all Crimes::
+Those Crimes refer to the same CrimeType object so that changes in the
+CrimeType are reflected in all Crimes::
 
     >>> jaywalking.crime_set.all()[0].type
     <CrimeType: Jaywakling>
@@ -343,7 +423,10 @@ XXX explain interesting code here
 What's next?
 ============
 
-At this point you know enough (with the help of the reference in Chapter XXX) to start writing your own models.  However, in the next chapter we'll step aside to look at the best-looking piece of Django: the automatic admin interface.
+At this point you know enough (with the help of the reference in Chapter XXX)
+to start writing your own models. However, in the next chapter we'll step
+aside to look at the best-looking piece of Django: the automatic admin
+interface.
 
 So what are you waiting for? Turn the page!
 

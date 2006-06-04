@@ -84,7 +84,7 @@ fixing both those problems::
     
 That's better. Now we've got a complete (if still minimal) HTML page
 displaying all the data available on the page. Let's focus on this template
-and explain all the bits and peices that go into making it.
+and explain all the bits and pieces that go into making it.
 
 What's a template
 =================
@@ -105,7 +105,7 @@ logic of the template.
     JavaScript and CSV. You can use the template language for any text-based
     format.
 
-    Oh, and one more thing: Making humans edit XML is just sadisti!
+    Oh, and one more thing: Making humans edit XML is just sadistic!
 
 Variables
 =========
@@ -409,7 +409,7 @@ What's next?
 
 At this point, you should understand enough about how templates work to create
 the crimes-by-type template yourself and retrofit the ``base.html`` we created
-onto the exsitng crime detail template. Consider that your "homework".
+onto the existing crime detail template. Consider that your "homework".
 
 At this point we've also covered nearly all the basics, and you're probably
 ready to go out and create the Next Big Thing™. There's still one thing

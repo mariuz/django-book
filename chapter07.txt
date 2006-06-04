@@ -4,7 +4,7 @@ Chapter 7: Forms, Formfields, and Manipulators (oh my!)
 
 If you did your "homework" from last chapter, you should now have a fully
 functioning if somewhat simple site. In this chapter, we'll deal with the last
-peice of the puzzle: building views that take input from readers.
+piece of the puzzle: building views that take input from readers.
 
 We'll start by making a simple search form "by hand" and looking at how to
 handle data submitted from the browser, and move from there to using Django's
@@ -114,7 +114,7 @@ Hopefully by now what this does is fairly obvious. However, there are a few
 subtleties worth pointing out::
 
     * The form's action is ``.``, which means "the current URL".  This is a
-      standard best practice: don't have seperate views for the form page and
+      standard best practice: don't have separate views for the form page and
       the result page; use a single one which serves the form and possibly the
       results if they've been searched for.
       
@@ -576,7 +576,7 @@ Some possible directions you might travel in:
     * If you'd like to find out about all the other "goodies" that Django 
       includes, those are covered in Chapters 11 through 15.
       
-    * Chapters 16 through 18 cover some relativly esoteric tasks: integrating
+    * Chapters 16 through 18 cover some relatively esoteric tasks: integrating
       with existing databases, extending and customizing the admin interface,
       and Django's internationalization/localization framework.
       
@@ -584,7 +584,7 @@ Some possible directions you might travel in:
       19 has all the details about how to deploy and scale Django 
       applications.
 
-    * Finally, Chapters 20 and above contain exhastive reference material on
+    * Finally, Chapters 20 and above contain exhaustive reference material on
       the model API, database API, and others.
       
 Whatever you do, we hope you'll join the Django community. Visit
