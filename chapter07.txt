@@ -2,9 +2,13 @@
 Chapter 7: Forms, Formfields, and Manipulators (oh my!)
 =======================================================
 
-If you did your "homework" from last chapter, you should now have a fully functioning if somewhat simple site.  In this chapter, we'll deal with the last peice of the puzzle: building views that take input from readers.  
+If you did your "homework" from last chapter, you should now have a fully
+functioning if somewhat simple site. In this chapter, we'll deal with the last
+peice of the puzzle: building views that take input from readers.
 
-We'll start by making a simple search form "by hand" and looking at how to handle data submitted from the browser, and move from there to using Django's form and "manipulator" frameworks.
+We'll start by making a simple search form "by hand" and looking at how to
+handle data submitted from the browser, and move from there to using Django's
+form and "manipulator" frameworks.
 
 Search
 ======
@@ -15,11 +19,15 @@ Nearly every site sees a large percentage of traffic coming to and from its
 search pages. Often the difference between the success or failure of a site is
 the quality of its search.
 
-So it looks like we'd better add some searching to our fledgling crime site, no?
+So it looks like we'd better add some searching to our fledgling crime site,
+no?
 
-We'll start with by adding the search view to our URLconf (``myproject.crimes.urls``).  Recall that this means adding something like `` (r'^search/$', 'search')`` to the set of URL patterns.
+We'll start with by adding the search view to our URLconf
+(``myproject.crimes.urls``). Recall that this means adding something like ``
+(r'^search/$', 'search')`` to the set of URL patterns.
 
-Next, we'll write this ``search`` view into our view module (``myproject.crimes.views``)::
+Next, we'll write this ``search`` view into our view module
+(``myproject.crimes.views``)::
 
     from django.db.models import Q
 
@@ -37,7 +45,10 @@ Next, we'll write this ``search`` view into our view module (``myproject.crimes.
         
 There's a couple of things going on here you've not seen yet.
 
-First, there's this ``request.GET`` business.  This is how you access GET data from Django; POST data is accessed through a similar ``request.POST`` object.  These objects behave exactly like standard Python dictionaries with some extra features covered in Chapter XXX.
+First, there's this ``request.GET`` business. This is how you access GET data
+from Django; POST data is accessed through a similar ``request.POST`` object.
+These objects behave exactly like standard Python dictionaries with some extra
+features covered in Chapter XXX.
 
 .. admonition:: What's GET and POST data?
     
@@ -57,13 +68,20 @@ So the line::
 
     query = request.GET.get('q', '')
     
-looks for a GET parameter named ``q`` and returns an empty string if that parameter wasn't submitted.
+looks for a GET parameter named ``q`` and returns an empty string if that
+parameter wasn't submitted.
 
-Second, what about this ``Q`` business?  ``Q`` objects are used to build up complex queries -- in this case, we're searching for any crimes with a location that matches the query or a type that matches.  This lets someone search for either a street name or a crime type and "does the right thing" in each circumstance.
+Second, what about this ``Q`` business? ``Q`` objects are used to build up
+complex queries -- in this case, we're searching for any crimes with a
+location that matches the query or a type that matches. This lets someone
+search for either a street name or a crime type and "does the right thing" in
+each circumstance.
 
-Technically, these ``Q`` objects comprise a **QuerySet**, and you can read more about them in Chapter XXX.
+Technically, these ``Q`` objects comprise a **QuerySet**, and you can read
+more about them in Chapter XXX.
 
-There's still no template for this search view, however.  This should do the trick::
+There's still no template for this search view, however. This should do the
+trick::
 
     {% extends "base.html" %}
     
@@ -92,7 +110,8 @@ There's still no template for this search view, however.  This should do the tri
       {% endif %}
     {% endblock %}
     
-Hopefully by now what this does is fairly obvious.  However, there are a few subtleties worth pointing out::
+Hopefully by now what this does is fairly obvious. However, there are a few
+subtleties worth pointing out::
 
     * The form's action is ``.``, which means "the current URL".  This is a
       standard best practice: don't have seperate views for the form page and
@@ -114,21 +133,28 @@ Hopefully by now what this does is fairly obvious.  However, there are a few sub
       lookups, we can simply pass the query into the lookup as-is.  This is
       because Django's database layer handles this aspect of security for you.
       
-Now we've got working search.  A further improvement would be putting a search form on every page (i.e. in the base template); we'll let you handle that one yourself.
+Now we've got working search. A further improvement would be putting a search
+form on every page (i.e. in the base template); we'll let you handle that one
+yourself.
 
 User-submitted content
 ======================
 
-Search is great all, but what about letting users submit crimes themselves? After all, the great innovation of the so-called "Web 2.0" movement is the realization of the read-write Web.
+Search is great all, but what about letting users submit crimes themselves?
+After all, the great innovation of the so-called "Web 2.0" movement is the
+realization of the read-write Web.
 
 .. admonition:: Dear O'Reilly:
 
     Please don't sue us. we mean the "other" Web 2.0, not the one you  
     trademarked.
 
-So why not build a form that lets readers submit their own data? Since this is just a tutorial, we'll pretend there aren't any problems with this idea and forge ahead with a submission view.
+So why not build a form that lets readers submit their own data? Since this is
+just a tutorial, we'll pretend there aren't any problems with this idea and
+forge ahead with a submission view.
 
-To do that, we'll need to dive into the wild and wooly world of manipulators...
+To do that, we'll need to dive into the wild and wooly world of
+manipulators...
 
 .. admonition:: A note to the lazy
 
@@ -529,7 +555,10 @@ one. Here's a simple function that might drive the above form::
 What's next?
 ============
 
-Congratulations -- you've finished the introductory section of this book!  You'll probably want to wire the functions we've written above up to some URLs and play with modifying them. Where you go from there is up to you; thus endith ye olde guided toure.
+Congratulations -- you've finished the introductory section of this book!
+You'll probably want to wire the functions we've written above up to some URLs
+and play with modifying them. Where you go from there is up to you; thus
+endith ye olde guided toure.
 
 Some possible directions you might travel in:
 
@@ -558,7 +587,9 @@ Some possible directions you might travel in:
     * Finally, Chapters 20 and above contain exhastive reference material on
       the model API, database API, and others.
       
-Whatever you do, we hope you'll join the Django community. Visit http://www.djangoproject.com/ and get involved; you'll find that Django's managed to attract one of the best open source communities around.
+Whatever you do, we hope you'll join the Django community. Visit
+http://www.djangoproject.com/ and get involved; you'll find that Django's
+managed to attract one of the best open source communities around.
 
 We'll see you there!
 
