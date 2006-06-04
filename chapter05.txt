@@ -67,7 +67,11 @@ In our simplistic crime database example, we'll want a few views:
 (We'll also extend this short list in Chapter 7 by adding forms for readers to
 submit corrections and/or additional information for each crime.)
 
-In essance, a view is responsible for pulling together all the information accessible at a given URL.  It's where you look up data from a database, read it in from a file, aggregate or summarize it, etc.  Note that a view is *not* where you define how this data *looks*; that's up to a template, which we'll cover in the next chapter.
+In essance, a view is responsible for pulling together all the information
+accessible at a given URL. It's where you look up data from a database, read
+it in from a file, aggregate or summarize it, etc. Note that a view is *not*
+where you define how this data *looks*; that's up to a template, which we'll
+cover in the next chapter.
 
 Design your URLs
 ================
@@ -289,7 +293,8 @@ directory. Within that, create a file called ``index.html``.   The line::
 
     template.loader.get_template('crimes/index.html')
     
-from above maps to ``<template_directory>/crimes/index.html`` on the filesystem.
+from above maps to ``<template_directory>/crimes/index.html`` on the
+filesystem.
 
 Put this code in that template::
 
@@ -347,7 +352,8 @@ argument and a dictionary as its optional second argument. It returns an
 Raising 404
 ===========
 
-Now, let's tackle the crime detail view -- the page that displays detailed information for a single crime
+Now, let's tackle the crime detail view -- the page that displays detailed
+information for a single crime::
 
     from django.http import Http404
     from django.shortcuts import render_to_response
@@ -433,7 +439,8 @@ Write a 500 (server error) view
 
 Similarly, URLconfs may define a ``handler500``, which points to a view to
 call in case of server errors. Server errors happen when you have runtime
-errors in view code.  Also like the 404 view, you'll want to create a ``500.html`` template for public consumption when ``DEBUG`` is off.
+errors in view code. Also like the 404 view, you'll want to create a
+``500.html`` template for public consumption when ``DEBUG`` is off.
 
 Use the template system
 =======================
@@ -473,7 +480,8 @@ first argument to ``patterns()``, like so::
     )
 
 This is functionally identical to the previous formatting. It's just a bit
-tidier, and if you ever decide to relocate those views into a different module you've only got one line of code to change.
+tidier, and if you ever decide to relocate those views into a different module
+you've only got one line of code to change.
 
 Decoupling the URLconfs
 =======================
@@ -530,7 +538,11 @@ All the crime app cares about is its relative URLs, not its absolute URLs.
 Wrapping up
 ===========
 
-Let's wrap this up by finishing off all our views.  So far we've written a simple index and detail view, but not the ``crimes_by_type`` view.  We also wanted to show a list of all crime types on the index page.  So, here's a complete ``views.py`` with those changes that we'll carry into the next chapter::
+Let's wrap this up by finishing off all our views. So far we've written a
+simple index and detail view, but not the ``crimes_by_type`` view. We also
+wanted to show a list of all crime types on the index page. So, here's a
+complete ``views.py`` with those changes that we'll carry into the next
+chapter::
 
     from django import template
     from django.http import HttpResponse
@@ -557,8 +569,11 @@ Let's wrap this up by finishing off all our views.  So far we've written a simpl
 What's next?
 ============
 
-With those last few changes, our simple set of views is done.  We've now loadded all the data we want to present at each view, but we've only just touched on how to format the data using the template system.
+With those last few changes, our simple set of views is done. We've now
+loadded all the data we want to present at each view, but we've only just
+touched on how to format the data using the template system.
 
-So, in the next chapter we'll finish the templates for these three views and explain the template engine in all its glory.
+So, in the next chapter we'll finish the templates for these three views and
+explain the template engine in all its glory.
 
 Ready?
