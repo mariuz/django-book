@@ -2,6 +2,8 @@
 Chapter 6: Templates
 ====================
 
+.. About 50% of this chapter is taken from Django's template.txt doc.
+
 If a view describes *what* data is displayed on a given page, the template
 describes *how* that data looks.  This distinction is important since it will easily let you change how your site looks without having to change how it behaves.  Most web development teams already have different people who develop the code who design the templates; this division in Django strives to match that natural division of labor.
 
