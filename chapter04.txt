@@ -69,4 +69,266 @@ Now you can visit the URL given to you by Django (http://127.0.0.1:8000/ in the 
 Using the admin interface
 =========================
 
-The admin interface is designed to be used by non-technical users, and as such should be pretty self-explanatory.
+The admin interface is designed to be used by non-technical users, and as such should be pretty self-explanatory.  Nevertheless, a few notes about the 
+features of the admin are in order.
+
+    * Each object given an ``Admin`` declaration shows up on the main index
+      page. Links to add and change objects lead to two pages we refer to as
+      object "change lists" and "edit forms".
+
+      .. image:: images/chapter04/admin_index.png
+
+    * Change lists are essentially index pages of objects in the system. There
+      are a number of options that can control which fields appear on these
+      lists and the appearance of extra features like date drill downs, search
+      fields, and filter interfaces. There's more about these features below.
+
+      .. image:: images/chapter04/changelist.png
+
+    * Edit forms are used to edit existing objects and create new ones. Each
+      field definied in your model appears here, and you'll notice that fields
+      of different types get different widgets (i.e. date/time fields have
+      calendar controls; foreign keys use a select box, etc.). 
+      
+      .. image:: images/chapter04/editform.png
+      
+      You'll notice that the admin also handles input validation for you; try
+      leaving a required field blank, or putting an invalid time into a time
+      field and you'll see those errors when you try to save.
+
+      This validation actually is done with a powerful and flexible validation
+      framework which is discussed in Chapter XXX.
+
+    .. image:: images/chapter04/editform_errors.png
+
+    * When editing an existing object, you'll notice a "history" link in the
+      upper-right. Every change made through the admin is logged, and you can
+      examine this log by clicking the history
+
+      .. image:: images/chapter04/history.png
+
+    * Deletions in the admin cascade. That is, when deleting an existing
+      object, you'll see that the admin asks you to confirm the delete action
+      to avoid costly mistakes. What might not be instantly obvious is that
+      this page will show you all the related objects that will be deleted as
+      well. For example, if you go to delete a ``CrimeType``, you'll see that
+      the related ``Crime`` objects are scheduled for deletion as well.
+      
+      .. image:: images/chapter04/delete_confirm.png
+      
+Users, groups, and permissions
+------------------------------
+
+Since you're logged in as a superuser, you have access to create, edit, and delete any object.  However, the admin has a user permissions system that you can use to give other users access only to the portions of the admin they need.  
+
+You edit these users and permissions through the admin just like any other object; the link to the ``User`` and ``Group`` models is there on the admin index along with all the objects you've defined yourself.
+
+User objects have the standard username, password, email, and real name fields you might expect, along with a set of fields that define what the user is allowed to do in the admin.  First, there's a set of three flags::
+
+    * The "is active" flag controls weather the account is active at all.  
+      If this flag is off, the user is considered "inactive" and has no
+      access at all.
+      
+    * The "is staff" flag controls weather the user is allowed to log into
+      the admin (i.e. is considered a "staff member" in your organization).
+      Since this same user system can be used to control access to public
+      (i.e. non-admin) sites (see Chapter XXX), this flag differentiates
+      between public users and administrators.
+      
+    * The "is superuser" flag gives the user full unfettered access to 
+      every item in the admin; regular permissions are ignored.
+      
+For "normal" admin users -- active, non-superuser staff members -- the set of permissions controls what access they are granted.  Each object editable through the admin has three permissions: a "create" permission, an "edit" permission, and a "delete" permission.  Assigning permissions to a user grants the user access to do what is described by those permissions.
+
+.. note::
+
+    Notice that access to edit users and permissions is also controled by this
+    permission system. If you give a user permission to edit users, she will
+    be able to edit her own permissions, which might not be what you want!
+    
+You can also assign users to groups.  A group is simply a set of permissions to apply to all members of that group.  Groups are extremely useful for granting a large number of users identical permissions.
+
+Customizing the admin interface
+===============================
+
+There are a number of ways to customize the way the admin interface looks and behaves.  We'll cover just a few of them below as they relate to our ``Crime`` model, but Chapter XXX covers customizing the admin interface in detail.
+
+As it stands now, the change list for our crimes shows only the string representation of the model we added to its ``__str__`` method in Chapter 3.  This works fine for just a few crimes, but if we had hundreds or thousands of crimes, it would be very hard to locate a single needle amoung the haystack.  However, we can easily add some display, searching, and filtering functions to this interface.  Change the ``Admin`` declaration to::
+
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        type        = models.ForeignKey(CrimeType)
+        
+        class Admin:
+            ordering      = ['-when']
+            list_display  = ['location', 'type', 'when']
+            list_filter   = ['when', 'type']
+            search_fields = ['location']
+            
+These four lines of code dramatically change our list interface:
+
+.. image:: images/chapter04/changelist2.png
+    
+Each of those lines instructed the admin to construct a different piece of this interface::
+
+    * The ``ordering`` option controls what order the objects are presented in
+      the admin.  It's simply a list of fields to order the results by; 
+      prefixing a field with a minus sign means to reverse the given order. So
+      in this example, we're ordering by when the crime occurred, most recent
+      crimes first.
+      
+    * The ``list_display`` option controls which columns appear in the change
+      list table.  By default, only a single column with the object's string
+      representation appears; here we've changed that to show the location,
+      type, and date of the crime all on the list page.
+      
+    * The ``list_filter`` option creates the filtering bar on the right side
+      of the list.  We've allowed filtering either by date (which allows you
+      to see only crimes occuring in the last week, month, etc.), and by type
+      (which allows you to see only crimes of a given type).
+      
+      You can instruct the admin to filter by any date field, any foreign key,
+      or any field with a ``choices`` attribute set (see XXX for more 
+      information about ``choices``).
+      
+    * Finally, the ``search_fields`` option creates a field that allows text
+      searches. This allows searches by the ``location`` field (so you could
+      type "Michigan" to show all crimes that occured on Michigan Ave.).
+
+Using these options -- and the other ones described in Chapter XXX -- you can with only a few lines of code make a very powerful, production-ready interface for data editing.
+
+Customize the admin look and feel
+=================================
+
+.. This and the next section is taken mostly verbatim from tutorial02.txt
+
+Clearly, having "Django administration" and "example.com" at the top of each
+admin page is ridiculous. It's just placeholder text.
+
+That's easy to change, though, using Django's template system. The Django
+admin is powered by Django itself, and its interfaces use Django's own
+template system. (How meta!)
+
+Open your settings file (``myproject/settings.py``, remember) and look at the
+``TEMPLATE_DIRS`` setting. ``TEMPLATE_DIRS`` is a tuple of filesystem
+directories to check when loading Django templates. It's a search path.
+
+By default, ``TEMPLATE_DIRS`` is empty. So, let's add a line to it, to tell
+Django where our templates live::
+
+    TEMPLATE_DIRS = (
+        "/home/mytemplates", # Change this to your own directory.
+    )
+
+Now copy the template ``admin/base_site.html`` from within the default Django
+admin template directory (``django/contrib/admin/templates``) into an
+``admin`` subdirectory of whichever directory you're using in
+``TEMPLATE_DIRS``. For example, if your ``TEMPLATE_DIRS`` includes
+``"/home/mytemplates"``, as above, then copy
+``django/contrib/admin/templates/admin/base_site.html`` to
+``/home/mytemplates/admin/base_site.html``. Don't forget that ``admin``
+subdirectory.
+
+Then, just edit the file and replace the generic Django text with your own
+site's name and URL as you see fit.
+
+Note that any of Django's default admin templates can be overridden. To
+override a template, just do the same thing you did with ``base_site.html`` --
+copy it from the default directory into your custom directory, and make
+changes.
+
+Astute readers will ask: But if ``TEMPLATE_DIRS`` was empty by default, how
+was Django finding the default admin templates? The answer is that, by
+default, Django automatically looks for a ``templates/`` subdirectory within
+each app package, for use as a fallback.  See "Template loaders" in Chapter 9 for more information about how this works.
+
+Customize the admin index page
+==============================
+
+On a similar note, you might want to customize the look and feel of the Django
+admin index page.
+
+By default, it displays all available apps, according to your
+``INSTALLED_APPS`` setting, sorted by the name of the application. You might,
+however, want to change this order to make it easier to find the apps you're
+looking for. After all, the index is probably the most important page of the
+admin, and it should be easy to use.
+
+The template to customize is ``admin/index.html``. (Do the same as with
+``admin/base_site.html`` in the previous section -- copy it from the default
+directory to your custom template directory.) Edit the file, and you'll see it
+uses a template tag called ``{% get_admin_app_list as app_list %}``. That's
+the magic that retrieves every installed Django app. Instead of using that,
+you can hard-code links to object-specific admin pages in whatever way you
+think is best.
+
+Django offers another shortcut in this department. Run the command ``python
+manage.py adminindex polls`` to get a chunk of template code for inclusion in
+the admin index template. It's a useful starting point.
+
+For full details on customizing the look and feel of the Django admin site in
+general, see Chapter 17.
+
+When and why to use the admin interface
+=======================================
+
+We think Django's admin interface is pretty spectacular. In fact, we'd call it
+one of Django's main "killer features". However, we often get asked questions
+about "use cases" for the admin -- when do *we* use it, and why? Over the
+years, we've discovered a number of patterns for using the admin interface
+that we think might be helpful.
+
+Obviously, it's extremely useful for -- duh -- editing data. If you have any
+sort of data entry tasks, the admin simply can't be beat. We suspect that the
+vast majority of readers of this book will have a whole host of data entry
+tasks.
+
+The Django community has put quite a bit of effort into making the admin fast,
+intuitive and user-friendly, and we think it shows.
+
+However, beyond the obvious data-entry tasks, we find the admin useful in a few other cases:
+
+    * Inspecting data models: the first think we do when we've defined a new
+      model is to call it up in the admin and enter some dummy data.  This is
+      usually when we find any data modelling errors; having a graphical
+      interface to a model quickly revels those mistakes.
+      
+    * Managing acquired data: there's little actual data entry associated with
+      a site like chicagocrime.org since most of the data comes from an 
+      automated source.  However, when problems with the automatically aquired
+      data crop up, it's very useful to be able to go in and edit that data
+      easily.
+     
+.. XXX I know there was one other pattern I watned to talk about here, but 
+.. XXX I've forgotten it now...
+
+What's next?
+============
+
+So far we've created a few models and configured a top-notch interface for editing that data.  However, most of what we've written so far isn't exactly "code" as much as declarative models and settings.  In the next chapter, we'll roll up our sleves and start on the most interesting and exciting part of programming in Django: writing the public-facing views.
+
+So grab another cup of your favorite beverage and let's get started.
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

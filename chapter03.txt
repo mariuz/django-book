@@ -32,14 +32,14 @@ Now, many web development platforms want you to define your models using SQL.  A
       differently, and having to write three different versions of your 
       data definitions is the opposite of elegant.
       
-    * Having your data definitions stored in the database instead of in
-      code means it's harder to keep your models under version control.
-      Django does its best to support development best practices, which certainly includes
+    * Having your data definitions stored in the database instead of in code
+      means it's harder to keep your models under version control. Django does
+      its best to support development best practices, which certainly includes
       the use of source control.
       
-    * Your application will need to work with the database design regardless of 
-      how you created it.  If you created it using SQL, you'd have to repeat yourself.
-      Don't Repeat Yourself.
+    * Your application will need to work with the database design regardless
+      of how you created it. If you created it using SQL, you'd have to repeat
+      yourself. Don't Repeat Yourself.
       
     * Writing Python is fun! Django does its best to keep you writing Python
       all the time.

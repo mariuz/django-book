@@ -157,8 +157,8 @@ Chapter XXX where we start talking about views.
 Starting a project
 ==================
 
-.. The below (down to "The rest of this section") is adapted from "Initial setup"
-.. in tutorial01.txt.
+.. The below (down to "The rest of this section") is adapted from "Initial    
+.. setup" in tutorial01.txt.
 
 If this is your first time using Django, you'll have to take care of some
 initial setup.

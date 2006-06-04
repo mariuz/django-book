@@ -1,21 +1,21 @@
 Part 1: getting started
 ```````````````````````
 
-    1. Introduction to Django (Adrian, by Wednesday, Jan. 11)
+    1. Introduction to Django
 
         * What is Django?
         * Why was Django developed?
         * Who uses Django?
         * Who should use Django?
 
-    2. Getting started (Jacob, by Wednesday, Jan. 11)
+    2. Getting started
 
         * Installing
         * Starting a project
         * Initial configuration
         * About the project we'll build -- a U.S. census database
 
-    3. Creating models (Adrian/Jacob, by Tuesday, Jan. 17)
+    3. Creating models
 
         * What's a model?
         * Defining the first model
@@ -54,6 +54,8 @@ Part 2: Django's sub-frameworks
     8. Generic views
 
         * What are generic views?
+        * "Simple" generic views
+        * Serving static files
         * List/detail generic views
         * Date-based generic views
         * Create/update/delete generic views
@@ -61,6 +63,8 @@ Part 2: Django's sub-frameworks
     9. Extending the template engine
 
         * Custom template tag/filter libraries
+        * Context processors
+        * Template loaders
 
     10. Outputting non-HTML content
 
@@ -68,6 +72,7 @@ Part 2: Django's sub-frameworks
         * Creating parameterized RSS feeds
         * Creating images and PDFs
         * Outputting other formats
+        * Sending and receiving email
 
     11. Users, sessions, and registration
 
@@ -89,18 +94,33 @@ Part 2: Django's sub-frameworks
         * Caching certain views
         * The low-level cache API
         * Cache-control with HTTP headers
+        
+    14. Other contributed sub-frameworks
+    
+        * Content-types
+        * CSRF
+        * Flatpages
+        * Redirects
+        * Markup
+        * Sites
+        
+    15. Middleware
+    
+        * What is middleware?
+        * Built-in middleware
+        * Writing custom middleware.
 
-    14. Integrating with legacy databases
+    16. Integrating with legacy databases
 
         * Auto-generating models from a database
 
-    15. Customizing the Django admin
+    17. Customizing the Django admin
 
         * Customizing the look and feel
         * Customizing the functionality
         * Using the admin functionality outside of the admin
 
-    16. Internationalization and localization
+    18. Internationalization and localization
 
         * Overview
         * Internationalizing your Python code
@@ -108,30 +128,34 @@ Part 2: Django's sub-frameworks
         * Switching languages
         * Creating translation files
 
-    17. Deploying Django
+    19. Deploying Django
 
         * General deployment advice and options
         * Deploying Django with mod_python
         * Deploying Django with FCGI
+        * How to scale up
 
 Part 3: Reference
 `````````````````
 
-(We're unsure of the order these should be in; each should be a complete
-reference as opposed to the narrative documentation in the chapters above.)
+Each of these chapters is basically a printed version of a single document from the only Django documentation, perhaps modified slightly to fit better with the book.
 
-    #. Model definition
+The order for these is still TBD.
 
-    #. Database API
+    #. Model definition reference (docs/model-api.txt)
 
-    #. Generic views
+    #. Database API reference (docs/db-api.txt)
+    
+    #. Transactions (docs/transactions.txt) -- should this perhaps get an 
+       actual chapter?
 
-    #. Built-in template
+    #. URL dispatch reference (docs/url_dispatch.txt)
 
-    #. Settings
+    #. Settings reference (docs/settings.txt)
 
-    #. The django-admin utility
+    #. Built-in template tag/filter reference (docs/templates.txt)
 
-    #. Middleware
+    #. The django-admin/manage.py utility (docs/django-admin.txt)
 
-    #. Request and response objects
+    #. Request and response objects (docs/request_response.txt)
+    
