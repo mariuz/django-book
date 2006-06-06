@@ -555,6 +555,8 @@ one. Here's a simple function that might drive the above form::
 What's next?
 ============
 
+.. JKM: I don't really like this ending; I think the generic views stuff is probably considered part of the "introductory" material.  The below should probably be replaced with a lead-in to generic views.
+
 Congratulations -- you've finished the introductory section of this book!
 You'll probably want to wire the functions we've written above up to some URLs
 and play with modifying them. Where you go from there is up to you; thus

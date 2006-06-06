@@ -177,3 +177,7 @@ A few topics that the book needs to address that don't have a home in this outli
       
     * Validators.  Not enough here to really warrant its own chapter... so 
       where?
+      
+    * An "advanced" model walkthrough.  We've got chapters set aside for model
+      and db references; is that enough or should we have an advanced models
+      chapter, perhaps between the current chapters 7 and 8?
