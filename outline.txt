@@ -47,7 +47,7 @@ Part 1: getting started
         * Manipulators, FormWrappers, and FormFields (oh my!)
         * Using automatically generated manipulators
         * A view for form processing
-
+        
 Part 2: Django's sub-frameworks
 ```````````````````````````````
 
