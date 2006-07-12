@@ -37,7 +37,10 @@ A good Web framework solves these problems:
       framework, "For URLs that looks like ``/users/joe/``, execute code that
       displays the profile for the user with that username."
 
-    * **It makes it easy to display, validate and redisplay HTML forms.**
+    * **It makes it easy to display, validate and redisplay HTML forms.** HTML
+      forms are the primary way of getting input data from Web users, so a Web
+      framework had better make it easy to display them and handle the tedious
+      code of form display and redisplay (with errors highlighted).
 
     * **It converts user-submitted input into data structures that are
       convenient for manipulating.** For example, the framework could convert
@@ -53,7 +56,8 @@ A good Web framework solves these problems:
 
     * **It lets you work more productively, at a higher level of
       abstraction**, than if you were coding against, say, HTTP. But it
-      doesn't restrict you from going "down" one conceptual level when needed.
+      doesn't restrict you from going "down" one level of abstraction when
+      needed.
 
     * **It gets out of your way**, neglecting to leave dirty stains on your
       application such as URLs that contain ".aspx" or ".php".
@@ -99,9 +103,6 @@ Beyond the productivity advantages implicit in Python, Django itself takes
 every measure to encourage rapid development. Every part of the framework was
 designed with productivity in mind. We'll see examples throughout this book.
 
-.. XXX JGD This section seems to expect little knowledge of Python, yet later 
-.. XXX JGD sections seem to expect a fair bit of experience.
-
 ...and clean, pragmatic design
 ==============================
 
@@ -122,7 +123,8 @@ communicate with each other via clear, concise APIs.
 For example, the template system knows nothing about the database-access
 system, which knows nothing about the HTTP request/response layer, which knows
 nothing about caching. Each one of these layers is distinct and loosely coupled
-to the rest.
+to the rest. In practice, this means you can mix and match the layers if need
+be.
 
 Django follows the "model-view-controller" architecture. Simply put, this is a
 way of developing software so that the code for defining and accessing data
@@ -163,15 +165,16 @@ a single file -- it's bad practice for several reasons::
     1. **The presentation is tied to the code.** If a designer wanted to edit
        the HTML of this page, he or she would have to edit this code, because
        the HTML and PHP core are intertwined.
-       
+
        By contrast, the Django/MVC approach encourages separation of code and
        presentation, so that presentation is governed by templates and
-       business logic lives in Python modules.
+       business logic lives in Python modules. Programmers deal with code, and
+       designers deal with HTML.
 
     2. **The database code is tied to the business logic.** This is a problem
        of redundancy: If you rename your database tables or columns, you'll
        have to rewrite your SQL.
-       
+
        By contrast, the Django/MVC approach encourages a single, abstracted
        data-access layer that's responsible for all data access. In Django's
        case, the data-access layer knows your database table and column names
@@ -185,7 +188,7 @@ a single file -- it's bad practice for several reasons::
        But what if you want this same code to execute for requests to
        ``/bar/`` and ``/baz/``? You'd have to set up some sort of includes or
        rewrite rules, and those get unmanageable quickly.
-       
+
        By contrast, Django decouples URLs from callback code, so you can
        change the URLs for a given piece of code.
 
@@ -194,7 +197,7 @@ a single file -- it's bad practice for several reasons::
        username and password -- within this code, because that's
        configuration, not programming logic. Also, this example hard-codes the
        fact that the database engine is MySQL.
-       
+
         By contrast, Django has a single place for storing configuration, and
        the database-access layer is abstracted so that switching database
        servers (say, from MySQL to PostgreSQL) is easy.
@@ -314,16 +317,20 @@ Web developers around the world use Django. Some specific examples:
       Some examples:
 
         * The U.S. Congress votes database,
-          http://projects.washingtonpost.com/congress/ . 
+          http://projects.washingtonpost.com/congress/ .
         * The staff directory and functionality that lets readers contact
           reporters, http://projects.washingtonpost.com/staff/email/ and most
           article pages.
+        * Faces of the Fallen, http://projects.washingtonpost.com/fallen/ .
 
     * Chicagocrime.org, a freely browsable database of crime reported in
       Chicago, was developed in Django. In 2005, the site won the $10,000
       Batten Award for Innovations in Journalism.
 
-    * Texasgigs.com, a local music site in Dallas, Texas, is written in
+    * Tabblo.com, an innovative photo-sharing site, uses Django. The site lets
+      you piece together your photos to create photo pages that tell stories.
+
+    * Texasgigs.com, a local music site in Dallas, Texas, was written with
       Django.
 
     * Grono.net, a Polish social-networking site, started replacing its Java
