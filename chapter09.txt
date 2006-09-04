@@ -39,7 +39,8 @@ Django contains generic views to do the following:
       without authorization.  We'll show how to replace the views
       from Chapter 7 with these views below.
 
-Taken together, these views provide easy interfaces to perform the most common tasks we encounter.
+Taken together, these views provide easy interfaces to perform the most common
+tasks we encounter.
 
 Using generic views
 ===================
@@ -154,55 +155,35 @@ Required arguments
 ``````````````````
 
     ``url``:
-        The URL to redirect to, as a string. Or ``None`` to return a 410 (Gone)
+        The URL to redirect to, as a string. Or ``None`` to return a 410 ("gone")
         HTTP response.
+        
+More complex generic views
+==========================
 
-List/detail generic views
-=========================
+Although the simple generic views certainly are useful, the real power in
+Django's generic views comes from the more complex views that allow you to
+build common CRUD (Create/Retrieve/Update/Delete) pages with a minimum amount
+of code.
 
-The list-detail generic views (in the module
-``django.views.generic.list_detail``) handles the common case of displaying a
-list of items at one view, and individual "detail" views of those items at
-another.
+These views break down into a few different types:
 
-Lists of objects
-----------------
+    * List/detail views, which provide flat lists of objects and individual
+      object detail pages (for example, a list of places and individual
+      place information pages).
+      
+    * Date-based views, which provide year/month/day drill-down pages of
+      date-centric information.
+      
+    * Create/update/delete views, which allow you to quickly create views
+      to create, modify, or delete objects.
+      
+Common optional arguments
+-------------------------
 
-The view ``django.views.generic.list_detail.object_list`` is used to create a
-page representing a list of objects.
-
-Example
-```````
-
-One view missing from the crime views developed in Chapter 5 is a simple list
-of all crimes to stand alongside to the crimes-by-type view (which we'll get
-to in a moment).  We can easily fill this gap with a generic view.
-
-First, we'll need to construct a info dictionary for the generic view. Add the
-following to the top of the ``mysite/crimes/urls.py`` file::
-
-    from mysite.crimes.models import Crime
-
-    crime_list_info = {
-        'queryset' :   Crime.objects.all(),
-        'allow_empty': True,
-    }
-
-Then, we need to register this view at a certain URL.  Add this to the bottom
-of that same file::
-
-    urlpatterns += patterns('django.views.generic.list_detail',
-        (r'^/crimes/all/$', 'object_list', crime_list_info),
-    )
-
-Required arguments
-``````````````````
-
-    ``queryset``
-        A ``QuerySet`` of objects to list
-
-Optional arguments
-``````````````````
+Most of these views take a large number of optional arguments that can control
+various bits of behavior.  Many of these arguments may be given to any of
+these views, so many of the views below refer back to this list of optional arguments:
 
     ``allow_empty``
         A boolean specifying whether to display the page if no objects are
@@ -222,6 +203,82 @@ Optional arguments
     ``mimetype``
         The MIME type to use for the resulting document. Defaults to the value
         of the ``DEFAULT_MIME_TYPE`` setting.
+        
+    ``template_loader``
+        The template loader to use when loading the template. By default, it's
+        ``django.template.loader``.  See Chapter XXX for information on
+        template loaders.
+
+    ``template_name``
+        The full name of a template to use in rendering the page. This lets
+        you override the default template name derived from the ``QuerySet``.
+
+    ``template_object_name``
+        Designates the name of the template variable to use in the template
+        context. By default, this is ``'object'``. Views list list more than
+        one objec will append ``'_list'`` to the value of this parameter.
+    
+List/detail generic views
+=========================
+
+The list-detail generic views (in the module
+``django.views.generic.list_detail``) handles the common case of displaying a
+list of items at one view, and individual "detail" views of those items at
+another.
+
+For the examples in this section, we'll be working with the simple ``Crime`` and 
+``CrimeType`` objects from Chapter XXX::
+
+    class CrimeType(models.Model):
+        name        = models.CharField(maxlength=250)
+        is_felony   = models.BooleanField()
+    
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        type        = models.ForeignKey(CrimeType)
+    
+
+Lists of objects
+----------------
+
+The view ``django.views.generic.list_detail.object_list`` is used to create a
+page representing a list of objects.
+
+Example
+```````
+
+We can use the ``object_list`` view to show a simple list of all crimes in the
+system. First, we'll need to construct a info dictionary for the generic view.
+Add the following to the top of the ``mysite/crimes/urls.py`` file::
+
+    from mysite.crimes.models import Crime
+
+    crime_list_info = {
+        'queryset' :   Crime.objects.all(),
+        'allow_empty': True,
+    }
+
+Then, we need to register this view at a certain URL.  Add this to the bottom
+of that same file::
+
+    urlpatterns += patterns('django.views.generic.list_detail',
+        (r'^/crimes/all/$', 'object_list', crime_list_info),
+    )
+
+From there, we just need to make a template for this generic view to render.
+Since we didn't provide the ``template_name`` paramater (see below), Django
+will guess the name of the template; here it'll use ``crimes/crime_list.html``.
+See below for more details on how this "guess" is made.
+
+Required arguments
+``````````````````
+
+    ``queryset``
+        A ``QuerySet`` of objects to list
+
+Optional arguments
+``````````````````
 
     ``paginate_by``
         An integer specifying how many objects should be displayed per page.
@@ -231,21 +288,15 @@ Optional arguments
         ``page`` variable specified in the URLconf. See "Notes on pagination"
         below.
 
-    ``template_loader``
-        The template loader to use when loading the template. By default, it's
-        ``django.template.loader``.  See Chapter XXX for information on
-        template loaders.
+Additionally, this view may take any of these common arguments decribed above:
 
-    ``template_name``
-        The full name of a template to use in rendering the page. This lets
-        you override the default template name derrived from the ``QuerySet``
-        (see below).
-
-    ``template_object_name``
-        Designates the name of the template variable to use in the template
-        context. By default, this is ``'object'``. The view will append
-        ``'_list'`` to the value of this parameter in determining the
-        variable's name.
+    * ``allow_empty``
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
 
 Template name
 `````````````
@@ -322,6 +373,7 @@ If the results are paginated, the context will contain these extra variables:
 
     In both cases, ``page`` is 1-based, not 0-based, so the first page would be
     represented as page ``1``.
+    
 
 Detail views
 ------------
@@ -332,8 +384,8 @@ of a single object.
 Example
 ```````
 
-Back in Chapter 5 we created a very simple crime detail view to display the
-information about a particular ``Crime`` object.  Given this info dict::
+Extending the example above, we could make a detail view for a given crime.
+Given an info dict like this::
 
     crime_detail_info = {
         "queryset" : Crime.objects.all(),
@@ -357,7 +409,6 @@ Required arguments
 
 Either:
 
-
     ``object_id``
         The value of the primary-key field for the object.
 
@@ -366,7 +417,6 @@ or:
     ``slug``
         The slug of the given object.  If you pass this field, then
         the ``slug_field`` argument (below) is also required.
-
 
 Optional arguments
 ``````````````````
@@ -387,23 +437,19 @@ Optional arguments
 
         It's a bit of a brain-bender, but it's useful in some cases.
 
-    ``context_processors``
+This view may also take these common arguments (documented above):
 
-    ``extra_context``
-
-    ``mimetype``
-
-    ``template_loader``
-
-    ``template_name``
-
-    ``template_object_name``
-        These arguments are as described above.
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
 
 Template name
 `````````````
 
-If ``template_name`` and ``template_name_field`` aren'ti specified, this view
+If ``template_name`` and ``template_name_field`` aren't specified, this view
 will use the template ``<app_label>/<model_name>_detail.html`` by default.
 
 Template context
@@ -419,6 +465,531 @@ In addition to ``extra_context``, the template's context will be:
 
 Date-based generic views
 ========================
+
+Date-based generic views are generally used to provide a set of "archive"
+pages for dated material. Think year/month/day archives for a newspaper, or a
+blog like the official Django blog described at the beginning of this chapter.
+
+We'll use this blog example through this section; here's a simple entry model
+to use for the examples::
+
+    class Entry(models.Model):
+        pub_date = models.DateTimeField()
+        title = models.CharField(maxlength=200)
+        slug = models.SlugField()
+        body = models.TextField()
+        
+The examples below will create a set of archives for this entry model.
+
+Notice that for each of these views, we have to tell Django the name of the
+date field we want to key off of. We have to provide this information ince
+models could contain multiple date or datetime fields.
+
+.. admonition:: Into the future...
+
+    By default, these views ignore objects with dates in the future.  
+    
+    This means that if you try to visit an archive page in the future, Django
+    will automatically show a 404 ("not found") error, even if there are
+    objects published that day.
+    
+    Thus, you can publish post-dated objects that don't appear publically
+    until after their publication date.
+        
+    However, for different types of date-based objects this isn't appropriate
+    (for example, a calendar of upcoming events). For these views, setting the
+    ``allow_future`` option to ``True`` will make the future objects appear
+    (and allow users to visit "future" archive pages).
+
+Archive index
+-------------
+
+The ``django.views.generic.date_based.archive_index`` view provides a
+top-level index page showing the "latest" objects, by date.
+
+Example
+```````
+
+On a typical blog, the index page provides a certain number of recent entries
+We can use the ``archive_index`` view for this common task.  Here's a info dict::
+
+    archive_index_info = {
+        "queryset"   : Entry.objects.all(),
+        "date_field" : "pub_date"
+    }
+    
+And the corresponding urlconf piece::
+
+    (r'^/?$', 'archive_index', archive_index_info),
+
+Required arguments
+`````````````````
+
+    ``date_field``: 
+        The name of the ``DateField`` or ``DateTimeField`` in the
+        ``QuerySet``'s model that the date-based archive should use to
+        determine the objects on the page.
+
+    ``queryset``
+        A ``QuerySet`` of objects for which the archive serves.
+
+Optional arguments
+``````````````````
+    
+    ``allow_future``
+        A boolean specifying whether to include "future" objects on this page,
+        as described in the note above.
+
+    ``num_latest``
+        The number of latest objects to send to the template context. By
+        default, it's 15.
+
+This view may also take these common arguments (documented above):
+
+    * ``allow_empty``
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+        
+Template name
+`````````````
+
+If ``template_name`` isn't specified, this view will use the template
+``<app_label>/<model_name>_archive.html`` by default.
+
+Template context
+````````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``date_list``
+        A list of ``datetime.date`` objects representing all years that have
+        objects available according to ``queryset``. These are ordered in
+        reverse. 
+        
+        For example, if you have blog entries from 2003 through 2006, this
+        list will contain four ``datetime.date`` objects: one for each of
+        those years.
+      
+    ``latest``
+        The ``num_latest`` objects in the system, ordered descending by
+        ``date_field``. For example, if ``num_latest`` is ``10``, then
+        ``latest`` will be a list of the latest 10 objects in ``queryset``.
+
+Year archives
+-------------
+
+The ``django.views.generic.date_based.archive_year`` view provides a yearly
+archive page showing all available months in a given year.
+
+Required arguments
+``````````````````
+
+    ``date_field``
+        As above.
+
+    ``queryset``
+        A ``QuerySet`` of objects for which the archive serves.
+
+    ``year``
+        The four-digit year for which the archive serves (usually taken
+        from URL parameters).
+   
+Optional arguments
+``````````````````
+
+    ``make_object_list``
+        A boolean specifying whether to retrieve the full list of objects for
+        this year and pass those to the template. If ``True``, this list of
+        objects will be made available to the template as ``object_list``.
+        (The name ``object_list`` may be different; see the docs for
+        ``object_list`` in the "Template context" section below.) By default,
+        this is ``False``.
+    
+    ``allow_future``
+        A boolean specifying whether to include "future" objects on this page,
+        as described in the note above.
+        
+This view may also take these common arguments (documented above):
+
+    * ``allow_empty``
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
+
+Template name
+`````````````
+
+If ``template_name`` isn't specified, this view will use the template
+``<app_label>/<model_name>_archive_year.html`` by default.
+
+Template context
+````````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``date_list``
+        A list of ``datetime.date`` objects representing all months that have
+        objects available in the given year, according to ``queryset``, in
+        ascending order.
+    
+    ``year``
+        The given year, as a four-character string.
+    
+    ``object_list``
+        If the ``make_object_list`` parameter is ``True``, this will be set to
+        a list of objects available for the given year, ordered by the date
+        field. This variable's name depends on the ``template_object_name``
+        parameter, which is ``'object'`` by default. If
+        ``template_object_name`` is ``'foo'``, this variable's name will be
+        ``foo_list``.
+        
+        If ``make_object_list`` is ``False``, ``object_list`` will be passed
+        to the template as an empty list.
+
+Monthly archives
+----------------
+
+The ``django.views.generic.date_based.archive_month`` views provides a monthly
+archive page showing all objects in a given month.
+
+Required arguments
+``````````````````
+
+    ``year``
+        The four-digit year for which the archive serves (a string).
+    
+    ``month``
+        The month for which the archive serves, formatted according to the
+        ``month_format`` argument.
+    
+    ``queryset``
+        A ``QuerySet`` of objects for which the archive serves.
+    
+    ``date_field``
+        The name of the ``DateField`` or ``DateTimeField`` in the
+        ``QuerySet``'s model that the date-based archive should use to
+        determine the objects on the page.
+
+Optional arguments
+``````````````````
+
+    ``month_format``
+        A format string that regulates what format the ``month`` parameter
+        uses. This should be in the syntax accepted by Python's
+        ``time.strftime``. (See Python's strftime docs at
+        http://www.python.org/doc/current/lib/module-time.html#l2h-1941) It's
+        set to ``"%b"`` by default, which is a three-letter month abbreviation
+        (i.e. "jan", "feb", etc.). To change it to use numbers, use ``"%m"``.
+    
+    ``allow_future`` 
+        A boolean specifying whether to include "future" objects on this page,
+        as described in the note above.
+        
+This view may also take these common arguments (documented above):
+
+    * ``allow_empty``
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
+    
+Template name
+`````````````
+
+If ``template_name`` isn't specified, this view will use the template
+``<app_label>/<model_name>_archive_month.html`` by default.
+
+Template context
+```````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``month``
+        A ``datetime.date`` object representing the given month.
+    
+    ``next_month``
+        A ``datetime.date`` object representing the first day of the next
+        month. If the next month is in the future, this will be ``None``.
+    
+    ``previous_month``
+        A ``datetime.date`` object representing the first day of the previous
+        month. Unlike ``next_month``, this will never be ``None``.
+    
+    ``object_list``
+        A list of objects available for the given month. This variable's name
+        depends on the ``template_object_name`` parameter, which is
+        ``'object'`` by default. If ``template_object_name`` is ``'foo'``,
+        this variable's name will be ``foo_list``.
+
+Week archives
+-------------
+
+The ``django.views.generic.date_based.archive_week`` view shows all objects in
+a given week. Objects with a date in the *future* are not displayed unless you
+set ``allow_future`` to ``True``.
+
+.. note::
+
+    Django believes that weeks start on Sunday, for the perfectly arbitrary
+    reason that Python does, too.
+
+Required arguments
+``````````````````
+
+    ``year``
+        The four-digit year for which the archive serves (a string).
+    
+    ``week``
+        The week of the year for which the archive serves (a string).
+    
+    ``queryset``
+        A ``QuerySet`` of objects for which the archive serves.
+    
+    ``date_field``
+        The name of the ``DateField`` or ``DateTimeField`` in the
+        ``QuerySet``'s model that the date-based archive should use to
+        determine the objects on the page.
+
+Optional arguments
+
+    ``allow_future`` 
+        A boolean specifying whether to include "future" objects on this page,
+        as described in the note above.
+        
+This view may also take these common arguments (documented above):
+
+    * ``allow_empty``
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
+
+Template name
+`````````````
+
+If ``template_name`` isn't specified, this view will use the template
+``<app_label>/<model_name>_archive_week.html`` by default.
+
+Template context
+````````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``week``
+        A ``datetime.date`` object representing the first day of the given
+        week.
+    
+    ``object_list``
+        A list of objects available for the given week. This variable's name
+        depends on the ``template_object_name`` parameter, which is
+        ``'object'`` by default. If ``template_object_name`` is ``'foo'``,
+        this variable's name will be ``foo_list``.
+
+Day archives
+------------
+
+The ``django.views.generic.date_based.archive_day`` view provides a page
+showing all objects in a given day.
+
+Required arguments
+``````````````````
+
+    ``year``
+        The four-digit year for which the archive serves (a string).
+    
+    ``month``
+        The month for which the archive serves, formatted according to the
+        ``month_format`` argument.
+    
+    ``day``
+        The day for which the archive serves, formatted according to the
+        ``day_format`` argument.
+    
+    ``queryset``
+        A ``QuerySet`` of objects for which the archive serves.
+    
+    ``date_field``
+        The name of the ``DateField`` or ``DateTimeField`` in the
+        ``QuerySet``'s model that the date-based archive should use to
+        determine the objects on the page.
+
+Optional arguments
+``````````````````
+
+    ``month_format``
+        A format string that regulates what format the
+      ``month`` parameter uses.  See the detailed explanation above.
+
+    ``day_format``
+        Like ``month_format``, but for the ``day`` parameter. It defaults to
+        ``"%d"`` (day of the month as a decimal number, 01-31).
+
+    ``allow_future`` 
+          A boolean specifying whether to include "future" objects on this page,
+          as described in the note above.
+
+This view may also take these common arguments (documented above):
+
+    * ``allow_empty``
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
+
+Template name
+`````````````
+
+If ``template_name`` isn't specified, this view will use the template
+``<app_label>/<model_name>_archive_day.html`` by default.
+
+Template context
+````````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``day``
+        A ``datetime.date`` object representing the given day.
+    
+    ``next_day``
+        A ``datetime.date`` object representing the next day. If the next day
+        is in the future, this will be ``None``.
+    
+    ``previous_day``
+        A ``datetime.date`` object representing the given day. Unlike
+        ``next_day``, this will never be ``None``.
+    
+    ``object_list``
+        A list of objects available for the given day. This variable's name
+        depends on the ``template_object_name`` parameter, which is
+        ``'object'`` by default. If ``template_object_name`` is ``'foo'``,
+        this variable's name will be ``foo_list``.
+
+Archive for today
+-----------------
+
+The ``django.views.generic.date_based.archive_today`` view shows all objects
+for *today*. This is exactly the same as ``archive_day``, except the
+``year``/``month``/``day`` arguments are not used, and today's date is used
+instead.
+
+Date-based detail pages
+-----------------------
+
+Description
+```````````
+
+The ``django.views.generic.date_based.object_detail`` view shows a page
+representing an individual object. This differs from the ``object_detail``
+page in their respective URLs; the ``object_detail`` view uses URLs like
+``/entries/<slug>/``, while this one uses URLs like
+``/entries/2006/aug/27/<slug>/``.
+
+.. note::
+
+    If you're using date-based detail pages with slugs in the URLs, you
+    probably also want to use the ``unique_for_date`` option on the slug field
+    to validate that slugs aren't duplicated in a single day. See Chapter XXX
+    for details on ``unique_for_date``.
+
+Required arguments
+``````````````````
+
+    ``year``
+        The object's four-digit year (a string).
+    
+    ``month``
+        The object's month , formatted according to the ``month_format``
+        argument.
+    
+    ``day``
+        The object's day , formatted according to the ``day_format`` argument.
+    
+    ``queryset``
+        A ``QuerySet`` that contains the object.
+    
+    ``date_field``
+        The name of the ``DateField`` or ``DateTimeField`` in the
+        ``QuerySet``'s model that the generic view should use to look up the
+        object according to ``year``, ``month`` and ``day``.
+
+Either:
+
+    ``object_id``
+        The value of the primary-key field for the object.
+
+or:
+
+    ``slug``
+        The slug of the given object.  If you pass this field, then
+        the ``slug_field`` argument (below) is also required.
+
+Optional arguments
+``````````````````
+
+    ``allow_future`` 
+        A boolean specifying whether to include "future" objects on this page,
+        as described in the note above.
+
+    ``day_format``
+        Like ``month_format``, but for the ``day`` parameter. It defaults to
+        ``"%d"`` (day of the month as a decimal number, 01-31).
+
+    ``month_format``
+        A format string that regulates what format the
+      ``month`` parameter uses.  See the detailed explanation above.
+
+    ``slug_field``
+        The name of the field on the object containing the slug. This is
+        required if you are using the ``slug`` argument, but must be absent if
+        you're using the ``object_id`` argument.
+          
+    ``template_name_field``
+        The name of a field on the object whose value is the template name to
+        use. This lets you store template names in the data. In other words,
+        if your object has a field ``'the_template'`` that contains a string
+        ``'foo.html'``, and you set ``template_name_field`` to
+        ``'the_template'``, then the generic view for this object will use the
+        template ``'foo.html'``.
+        
+        It's a bit of a brain-bender, but it's useful in some cases.
+
+This view may also take these common arguments (documented above):
+
+    * ``context_processors``
+    * ``extra_context``
+    * ``mimetype``
+    * ``template_loader``
+    * ``template_name``
+    * ``template_object_name``
+
+Template name
+`````````````
+
+If ``template_name`` isn't specified, this view will use the template
+``<app_label>/<model_name>_detail.html`` by default.
+
+Template context
+````````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``object``
+        The object. This variable's name depends on the
+        ``template_object_name`` parameter, which is ``'object'`` by default.
+        If ``template_object_name`` is ``'foo'``, this variable's name will be
+        ``foo``.
 
 Create/update/delete generic views
 ==================================
@@ -462,7 +1033,7 @@ Optional arguments
         to see the page and save changes. This hooks into the Django
         authentication system. By default, this is ``False``.
 
-         If this is ``True``, and a non-logged-in user attempts to visit this
+        If this is ``True``, and a non-logged-in user attempts to visit this
         page or save the form, Django will redirect the request to
         ``/accounts/login/``.
 
