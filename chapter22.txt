@@ -1,0 +1,48 @@
+========================================
+Chapter 22: Case study: Chicagocrime.org
+========================================
+
+About the rest of this book
+===========================
+
+The rest of this section will focus on a building a single project: a complete Web
+site. Since Django's perfect for building so many different kinds of sites, we
+had quite a bit of trouble figuring out what to build in this book.
+
+We thought about building a blog, but (a) that's boring and (b) since Django
+makes boring tasks so easy we were afraid that we'd be done before we even
+started to clear our throats.
+
+We thought about riding the "Web 2.0" wave -- we almost registered the domain
+name "e.pl.urbib.us" hoping that Yahoo! would give us $1 million us on the
+strength of the domain name alone -- but publishing schedules being what they
+are we decided that we'd already be working on Web 3.1 by the time these words
+see the printer.
+
+We even thought about building a [CENSORED] until until a nice gentleman from
+the NSA paid us a visit and [CENSORED] to [CENSORED] our [CENSORED] if we
+[CENSORED].
+
+In the end, though, we decided to take the path of least resistance and discuss
+a site that already exists: chicagocrime.org.
+
+Chicagocrime.org is a non-profit, freely browseable database of crimes reported
+in Chicago. It maps public data from the Chicago Police Department with the
+Google Maps API and provides many ways to browse and search the data. You can
+sift through crimes by type, ZIP code, location, or date; you can search for
+crimes by keyword, and you can even plot crimes that occurred along a given
+route.
+
+Chicagocrime.org was one of the first Google Maps "mash-ups" to gain widespread
+attention and has inspired countless similar projects. The site won the 2005
+Batten Award for Innovations in Journalism, and was named one of 2005's "best
+ideas" by the New York Times.
+
+Throughout the rest of this book, we'll be using examples from the actual code
+that drives the site to illustrate how Django works. We also hope that by
+examining a real-world project you'll come away with a concrete feel for *why*
+Django works the way it does.
+
+Shall we get started?
+
+

@@ -1,6 +1,6 @@
-=============
-Generic views
-=============
+========================
+Chapter 9: Generic views
+========================
 
 .. contents::
 
@@ -19,7 +19,7 @@ with the help of generic views.
 
 Django contains generic views to do the following:
 
-    * Perform common "simple" tasks: redirect to a different page, and 
+    * Perform common "simple" tasks: redirect to a different page, and
       render a given template.
 
     * Display list and detail pages for a single object. For example, the
@@ -46,7 +46,7 @@ Using generic views
 
 All of these views are used by creating configuration dictionaries in
 your URLconf files and passing those dictionaries as the third member of the
-URLconf tuple for a given pattern. 
+URLconf tuple for a given pattern.
 
 For example, here's the URLconf for the simple weblog app that drives the blog
 on djangoproject.com::
@@ -73,7 +73,7 @@ this case, all of the ``Entry`` objects) and tells the generic view which
 model is being used.  The remaining arguments to each generic view are taken
 from the named captures in the URLconf.
 
-This is really all the "view" code for Django's weblog!  The only thing that's left 
+This is really all the "view" code for Django's weblog!  The only thing that's left
 is writing a template.
 
 Documentation of each generic view follows, along with a list of all keyword
@@ -153,7 +153,7 @@ This example returns a 410 HTTP error for requests to ``/bar/``::
 Required arguments
 ``````````````````
 
-    ``url``: 
+    ``url``:
         The URL to redirect to, as a string. Or ``None`` to return a 410 (Gone)
         HTTP response.
 
@@ -169,7 +169,7 @@ Lists of objects
 ----------------
 
 The view ``django.views.generic.list_detail.object_list`` is used to create a
-page representing a list of objects.  
+page representing a list of objects.
 
 Example
 ```````
@@ -179,19 +179,19 @@ of all crimes to stand alongside to the crimes-by-type view (which we'll get
 to in a moment).  We can easily fill this gap with a generic view.
 
 First, we'll need to construct a info dictionary for the generic view. Add the
-following to the top of the ``myproject/crimes/urls.py`` file::
+following to the top of the ``mysite/crimes/urls.py`` file::
 
-    from myproject.crimes.models import Crime
+    from mysite.crimes.models import Crime
 
     crime_list_info = {
         'queryset' :   Crime.objects.all(),
         'allow_empty': True,
     }
-    
+
 Then, we need to register this view at a certain URL.  Add this to the bottom
 of that same file::
 
-    urlpatterns += patterns('django.views.generic.list_detail', 
+    urlpatterns += patterns('django.views.generic.list_detail',
         (r'^/crimes/all/$', 'object_list', crime_list_info),
     )
 
@@ -209,7 +209,7 @@ Optional arguments
         available. If this is ``False`` and no objects are available, the view
         will raise a 404 instead of displaying an empty page. By default, this
         is ``False``.
-    
+
     ``context_processors``
         A list of template-context processors to apply to the view's template.
         See Chapter XXX for information on template context processors.
@@ -233,14 +233,14 @@ Optional arguments
 
     ``template_loader``
         The template loader to use when loading the template. By default, it's
-        ``django.template.loader``.  See Chapter XXX for information on 
+        ``django.template.loader``.  See Chapter XXX for information on
         template loaders.
-    
+
     ``template_name``
         The full name of a template to use in rendering the page. This lets
         you override the default template name derrived from the ``QuerySet``
         (see below).
-    
+
     ``template_object_name``
         Designates the name of the template variable to use in the template
         context. By default, this is ``'object'``. The view will append
@@ -281,27 +281,27 @@ If the results are paginated, the context will contain these extra variables:
     ``results_per_page``
         The number of objects per page. (Same as the ``paginate_by``
         parameter.)
-    
+
     ``has_next``
         A boolean representing whether there's a next page.
-    
+
     ``has_previous``
         A boolean representing whether there's a previous page.
-    
+
     ``page``
         The current page number, as an integer. This is 1-based.
-    
+
     ``next``
         The next page number, as an integer. If there's no next page, this
         will still be an integer representing the theoretical next-page
         number. This is 1-based.
-    
+
     ``previous``
         The previous page number, as an integer. This is 1-based.
-    
+
     ``pages``
         The total number of pages, as an integer.
-    
+
     ``hits``
         The total number of objects across *all* pages, not just this page.
 
@@ -340,7 +340,7 @@ information about a particular ``Crime`` object.  Given this info dict::
         "template_name" : "crimes/crime_detail.html",
         "template_object_name" : "crime",
     }
-    
+
 We could use a urlpattern like::
 
     (r'^/crimes/(?P<object_id>\d+)/$', 'object_detail', crime_detail_info),
@@ -360,7 +360,7 @@ Either:
 
     ``object_id``
         The value of the primary-key field for the object.
-        
+
 or:
 
     ``slug``
@@ -378,8 +378,8 @@ Optional arguments
 
     ``template_name_field``
         The name of a field on the object whose value is the template name to
-        use. This lets you store template names in your data. 
-    
+        use. This lets you store template names in your data.
+
         In other words, if your object has a field ``'the_template'`` that
         contains a string ``'foo.html'``, and you set ``template_name_field``
         to ``'the_template'``, then the generic view for this object will use
@@ -388,15 +388,15 @@ Optional arguments
         It's a bit of a brain-bender, but it's useful in some cases.
 
     ``context_processors``
-    
+
     ``extra_context``
-    
+
     ``mimetype``
-    
+
     ``template_loader``
-    
+
     ``template_name``
-    
+
     ``template_object_name``
         These arguments are as described above.
 
@@ -419,37 +419,6 @@ In addition to ``extra_context``, the template's context will be:
 
 Date-based generic views
 ========================
-
-Date-based generic views (in the module ``django.views.generic.date_based``)
-are views for displaying drilldown pages for date-based data. The cannonical
-example for these types of views are blog or news archives where you want to
-browse stories by year, month, and day. So, for the examples in this section,
-we'll be using this model::
-
-    class Article(models.Model):
-        headline = models.CharField(maxlength=200)
-        story = models.TextField()
-        pub_date = models.DateTimeField()
-        
-Archive index
--------------
-
-
-
-Example
-```````
-
-Required arguments
-``````````````````
-
-Optional arguments
-``````````````````
-
-Template name
-`````````````
-
-Template context
-````````````````
 
 Create/update/delete generic views
 ==================================
@@ -483,7 +452,7 @@ Optional arguments
         A URL to which the view will redirect after saving the object. By
         default, it's ``object.get_absolute_url()``.
 
-    ``post_save_redirect`` 
+    ``post_save_redirect``
         may contain dictionary string formatting, which will be interpolated
         against the object's field attributes. For example, you could use
         ``post_save_redirect="/polls/%(slug)s/"``.
@@ -492,7 +461,7 @@ Optional arguments
         A boolean that designates whether a user must be logged in, in order
         to see the page and save changes. This hooks into the Django
         authentication system. By default, this is ``False``.
-        
+
          If this is ``True``, and a non-logged-in user attempts to visit this
         page or save the form, Django will redirect the request to
         ``/accounts/login/``.
@@ -517,11 +486,11 @@ Template context
 
 In addition to ``extra_context``, the template's context will be:
 
-    ``form``: 
+    ``form``:
         A ``FormWrapper`` instance representing the form for editing the
         object. This lets you refer to form fields easily in the template
         system.
-        
+
          For example, if the model has two fields, ``name`` and ``address``::
 
               <form action="" method="post">

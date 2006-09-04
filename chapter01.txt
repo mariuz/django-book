@@ -1,6 +1,6 @@
-==========================
-Chapter 1: What is Django?
-==========================
+=================================
+Chapter 1: Introduction to Django
+=================================
 
 If you go to the Web site djangoproject.com with your Web browser -- or,
 depending on the decade in which you're reading this destined-to-be-timeless

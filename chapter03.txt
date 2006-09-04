@@ -1,432 +1,714 @@
-=========================
-Chapter 3: Writing models
-=========================
+==========================================
+Chapter 3: The basics of dynamic Web pages
+==========================================
 
-Although relational databases were first conceived of in the 1960s and have
-been around in some form or another for many years, the web has really taken
-database use to a whole new level. Almost every web site is backed by one
-database or another.
+In the previous chapter, we explained how to set up a Django project and run
+the Django development server. Of course, that site doesn't actually do
+anything useful yet -- all it does is display the "It worked!" message. Let's
+change that.
 
-.. XXX JGD 1960s date based on http://en.wikipedia.org/w/index.php?title=Edgar_F._Codd&oldid=50335573
+This chapter introduces how to create dynamic Web pages with Django.
 
-When done right, database-backed websites are extremely useful. Instead of the
-top-down style that dominates in print, databased websites let readers "choose
-their own adventures" as they move through the site.
+Your first view: Dynamic content
+================================
 
-Sites like chicagocrime.org take this to an extreme by providing tools that
-let readers sift through mountains of information they'd otherwise be unable
-to process. Helping developers build those tools is the primary purpose of
-Django.
+As our first goal, let's create a Web page that displays the current date and
+time. This is a good example of a *dynamic* Web page, because the contents of
+the page are not static -- rather, the contents change according to the result
+of a computation (in this case, a calculation of the current time).
 
-It makes sense, then, to start our discussion of Django development by
-focusing on data models.
+This simple example doesn't involve a database or any sort of user input --
+just the output of your server's internal clock.
 
-.. note::
+To create this page, we'll write a **view function**. A view function, or
+**view** for short, is simply a Python function that takes a Web request and
+returns a Web response. This response can be the HTML contents of a Web page,
+or a redirect, or a 404 error, or an XML document, or an image...or anything,
+really. The view itself contains whatever arbitrary logic is necessary to
+return that response.
 
-    This chapter is a high-level overview of all the steps involved in
-    creating and customizing models.  It's in no way a complete reference,
-    but Chapter XXX has a complete reference to all the permutations
-    available when defining models.
+Here's a view that returns the current date and time, as an HTML document::
 
-What's a model?
-===============
+    from django.http import HttpResponse
+    import datetime
 
-In a nutshell, a model describes your data. They're like a blueprint: they
-explain what types of objects you'll use, what fields those objects have, and
-how it all fits together. In Django, models definitions also contain metadata
-about your models that Django uses to build APIs -- more on that later.
+    def current_datetime(request):
+        now = datetime.datetime.now()
+        html = "<html><body>It is now %s.</body></html>" % now
+        return HttpResponse(html)
 
-In Django, you define these models as Python modules and then use tools to
-turn those models into SQL data definitions that create tables in your
-database.
+Let's step through this code one line at a time:
 
-Now, many web development platforms want you to define your models using SQL.
-After all, the data will eventually be stored in a database, so why not simply
-define your models there first? While this logic makes sense on the surface,
-we disagree:
+    * First, we import the class ``HttpResponse``, which lives in the
+      ``django.http`` module.
 
-    * Writing SQL can be tough.  Different databases require you to do things
-      differently, and having to write three different versions of your 
-      data definitions is the opposite of elegant.
-      
-    * Having your data definitions stored in the database instead of in code
-      means it's harder to keep your models under version control. Django does
-      its best to support development best practices, which certainly includes
-      the use of source control.
-      
-    * Your application will need to work with the database design regardless
-      of how you created it. If you created it using SQL, you'd have to repeat
-      yourself. Don't Repeat Yourself.
-      
-    * Writing Python is fun! Django does its best to keep you writing Python
-      all the time.
-      
-.. XXX JGD Added a fourth reason.
+    * Next, we import the ``datetime`` module from Python's standard library --
+      the set of useful modules that comes with Python. The ``datetime`` module
+      contains several functions and classes for dealing with dates and times,
+      including a function that returns the current time.
 
-Creating models
-===============
-     
-Right, enough propaganda.  What does a model look like?
+    * Next, we define a function called ``current_datetime``. This is the
+      **view function**, and, as such, it takes an ``HttpRequest`` object as
+      its first parameter. In this case, we call that ``HttpRequest`` object
+      ``request``.
 
-::
+      Note that the name of the view function doesn't matter; Django doesn't
+      care what it's called, and it doesn't have to be named in a certain way
+      in order for Django to recognize it. We're calling it ``current_datetime``
+      here, because that name clearly indicates what it does.
 
-    from django.db import models
-    
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        description = models.TextField()
+    * The first line of code within the function calculates the current
+      date/time, as a ``datetime.datetime`` object, and stores that as the
+      local variable ``now``.
 
-This describes a super-simple ``Crime`` model (which we'll expand over the
-course of the next few chapters). Each ``Crime`` object has
+    * The second line of code within the function constructs an HTML response
+      using Python's format-string capability. The ``%s`` within the string is
+      a placeholder, and the percent sign after the string means "replace the
+      ``%s`` with the value of the variable ``now``."
 
-    * a ``when`` field which is a date/time object
-    * a ``location`` field which is a character field with a maximum length of 
-      300 characters, 
-    * and a ``description`` field which is a (unlimited length) text field.
-    
-Unless you instruct it otherwise (see XXX), Django will also automatically
-create an integer primary key field called ``id``.
+      (A note to the HTML purists: Yes, we know we're missing a DOCTYPE, and
+      a ``<head>``, and all that stuff. We're trying to keep it simple.)
 
-At this point, this is pretty much equivalent to the following SQL when using
-PostgreSQL as the backend. ::
+    * Finally, the view returns an ``HttpResponse`` object that contains the
+      generated HTML. Each view function is responsible for returning an
+      ``HttpResponse`` object. (There are exceptions, but we'll get to those
+      later.)
 
-    CREATE TABLE "crimes_crime" (
-        "id" serial NOT NULL PRIMARY KEY,
-        "when" timestamp with time zone NOT NULL,
-        "location" varchar(300) NOT NULL,
-        "description" text NOT NULL
-    );
-    
-In fact, we can generate that SQL above using Django itself.
+Your first URLconf
+==================
 
-Installing models
-=================
+So, to recap, this view function returns an HTML page that includes the current
+date and time. But where should this code live, how do we tell Django to use
+this code?
 
-First, though, we'll need to put this code into the place that Django expects
-it to be. We'll put this code inside the first project you created in Chapter
-2 (so go back and do that if you haven't already). You'll want to drop into a
-shell, and in the project directory you created before, do::
+The answer to the first question is: This code can live anywhere you want, as
+long as it's on your Python path. There's no other requirement -- no "magic,"
+so to speak. For the sake of putting it *somewhere*, let's create a file called
+``views.py``, copy this view code into that file and save it into the ``mysite``
+directory you created in the previous chapter.
 
-    $ python manage.py startapp crimes
-    
-This will create a ``crimes`` package for you to put your code in. This
-directory now contains two files, ``models.py`` and ``views.py``; you'll want
-to put the model code above into the ``models.py`` file.
+.. admonition:: Your Python path
 
-You've now created a model, but there's one more step to getting this model
-registered with Django. In your ``settings.py`` file, you'll see a list called
-``INSTALLED_APPS``. This list tells a given Django instance which apps should
-be considered "active" for that instance. This lets you have a large library
-of models and select which ones you want enabled on a site-by-site basis.
-You'll want to modify ``INSTALLED_APPS`` so that it looks like::
+    The Python path is the list of directories on your system where Python
+    looks when you use the Python ``import`` statement.
 
-    INSTALLED_APPS = (
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.sites',
-        'myproject.crimes',         # <-- add this line
+    For example, let's say your Python path is set to
+    ``['', '/usr/lib/python2.4/site-packages', '/home/mycode']``. If you
+    execute the Python code ``from foo import bar``, Python will first
+    check for a module called ``foo.py`` in the current directory. (The first
+    entry in the Python path, an empty string, means "the current directory.")
+    If that file doesn't exist, Python will look for the file
+    ``/usr/lib/python2.4/site-packages/foo.py``. If
+    that file doesn't exist, it will try ``/home/mycode/foo.py``. Finally, if
+    *that* file doesn't exist, it will raise ``ImportError``.
+
+    If you're interested in seeing the value of your Python path, start the
+    Python interactive interpreter and type ``import sys``, followed by
+    ``print sys.path``.
+
+    Generally you don't have to worry about setting your Python path -- Python
+    and Django will take care of things for you automatically behind the
+    scenes. (If you're curious, setting the Python path is one of the things
+    that the ``manage.py`` file does.)
+
+How do we tell Django to use this view code? That's where URLconfs come in.
+
+A **URLconf** is like a table of contents for your Django-powered Web site.
+Basically, it's a mapping between URL patterns and the view functions that
+should be called for those URL patterns. It's how you tell Django "For this
+URL, call this code, and for that URL, call that code."
+
+When you executed ``django-admin.py startproject`` in the previous chapter, the
+script created a URLconf for you automatically: the file ``urls.py``. Let's
+edit that file. By default, it looks something like this::
+
+    from django.conf.urls.defaults import *
+
+    urlpatterns = patterns('',
+        # Example:
+        # (r'^mysite/', include('mysite.apps.foo.urls.foo')),
+
+        # Uncomment this for admin:
+    #     (r'^admin/', include('django.contrib.admin.urls')),
     )
 
-Now your app is registered with this Django project. The first thing you'll
-want to do to celebrate is to make sure you've got the model defined
-correctly. Try this::
+Let's step through this code one line at a time:
 
-    $ python manage.py validate
-    
-Django should spit out ``0 errors found``; if it doesn't, it means you've got
-errors defined in your model somewhere. Check that you've copied the code
-above correctly.
+    * The first line imports all variables from the
+      ``django.conf.urls.defaults`` module, including a function called
+      ``patterns``.
 
-From here, you'll probably want to install this model into you database so you
-can start reading and writing data from and to the database. Run::
+    * The second line calls the function ``patterns()`` and saves the result
+      into a variable called ``urlpatterns``. The ``patterns()`` function gets
+      passed only a single argument -- the empty string. The rest of the lines
+      are commented out.
 
-    $ python manage.py syncdb
-    
-This automatically creates the tables for this model in the database. You'll
-re-run ``syncdb`` every time you add new models to your project so that Django
-creates the related tables in the database.
+The main thing to see here is the variable ``urlpatterns``. This defines the
+mapping between URLs and the code that handles those URLs.
 
-If you want to see the SQL that Django is running against your database, you
-can run::
+By default, everything in the URLconf is commented out -- your Django
+application is a blank slate. (As a side note, that's how Django knew to show
+you the "It worked!" page in the last chapter: If your URLconf is empty, Django
+assumes you just started a new project and, hence, displays that message. For
+that reason, there's no need to delete or replace anything in your URLconf to
+begin with; Django only displays that "It worked!" page if the URLconf is
+empty, so there's no danger of forgetting to remove that functionality.)
 
-    $ python manage.py sql crimes
-    
-to have Django print the SQL for the ``crimes`` model to the console (with
-pretty syntax highlighting on \*nix). There's also quite a number of other
-things you can do with ``manage.py``; see Chapter XXX for a complete
-reference.
+Let's edit this file to expose our ``current_datetime`` view::
 
-.. XXX JGD This command shows nothing after running syncdb.  It should be noted that the output changes depending on whether your DB's already been synced for a given installed app.
+    from django.conf.urls.defaults import *
+    from mysite.views import current_datetime
 
-Playing with the Python API
+    urlpatterns = patterns('',
+        (r'^now/$', current_datetime),
+    )
+
+We made two changes here. First, we imported the ``current_datetime`` view from
+its module (``mysite/views.py``, which translates into ``mysite.views`` in
+Python import syntax). Next, we added the line ``(r'^now/$', current_datetime),``.
+This line is referred to as a **URLpattern** -- it's a simple Python tuple in
+which the first element is a simple regular expression and the second element
+is the function to use for that pattern.
+
+In a nutshell, we just told Django that any request to the URL ``/now/`` should
+be handled by the ``current_datetime`` view function.
+
+A couple of things are worth pointing out:
+
+    * Note that, in this example, we passed the ``current_datetime`` view
+      function as an object without calling the function. This is a key feature
+      of Python (and other dynamic languages): Functions are first-class
+      objects, which means you can pass them around just like any other
+      variables. Cool stuff, eh?
+
+    * There's no need to add a slash at the beginning of the ``'^now/$'``
+      expression in order to match ``/now/``. Django automatically puts a slash
+      before every expression.
+
+    * The caret character (``'^'``) and dollar sign character (``'$'``) are
+      important. The caret means "require that the string matches the start of
+      the string," and the dollar sign means "require that the string
+      matches the end of the string."
+
+      This concept is best explained by example. If we had instead used the
+      pattern ``'^now/'`` (without a dollar sign at the end), then *any* URL
+      that starts with ``now/`` would match -- such as ``/now/foo`` and
+      ``/now/bar``, not just ``/now/``. Similarly, if we had left off the
+      initial caret character (``'now/$'``), Django would match *any* URL that
+      ends with ``now/`` -- e.g., ``/foo/bar/now/``. Thus, we use both the
+      caret and dollar sign to ensure that only the URL ``/now/`` matches.
+      Nothing more, nothing less.
+
+To test our changes to the URLconf, start the Django development server, as you
+did in Chapter 1, by running the command ``python manage.py runserver``. (If
+you left it running, that's fine, too. The development server automatically
+detects changes to your Python code and reloads as necessary, so you don't have
+to restart the server between changes.) The server is running at the address
+``http://127.0.0.1:8000/``, so open up a Web browser and go to
+``http://127.0.0.1:8000/now/`` -- and you should see the output of your Django
+view.
+
+Hooray! You've made your first Django-powered Web page.
+
+How Django processes a request
+==============================
+
+We should point out several things about what just happened. Here's the
+nitty-gritty of what goes on when you run the Django development server and
+make requests to Web pages:
+
+    * The command ``python manage.py runserver`` looks for a file called
+      ``settings.py``. This file contains all sorts of optional configuration
+      for this particular Django Web site, but one of the most important
+      settings is one called ``ROOT_URLCONF``. The ``ROOT_URLCONF`` setting
+      tells Django which Python module should be used as the URLconf for this
+      Web site.
+
+      Remember when ``django-admin.py startproject`` created the files
+      ``settings.py`` and ``urls.py``? Well, the auto-generated ``settings.py``
+      has a ``ROOT_URLCONF`` that points to the auto-generated ``urls.py``.
+      Convenient.
+
+    * When a request comes in -- say, a request to the URL ``/now/`` -- Django
+      loads the URLconf pointed-to by the ``ROOT_URLCONF`` setting. Then it
+      checks each of the URLpatterns in that URLconf in order, comparing the
+      requested URL with the patterns one at a time, until it finds one that
+      matches. When it finds one that matches, it calls the view function
+      associated with that pattern, passing a ``HttpRequest`` object as the
+      first parameter to the function. (More on ``HttpRequest`` later.)
+
+    * The view function is responsible for returning an ``HttpResponse``
+      object. Once it returns it, Django takes care of the rest.
+
+With this basic knowledge, you know the basics of how to make Django-powered
+pages. It's quite simple, really: Just write view functions and map them to
+URLs via URLconfs.
+
+URLconfs and loose coupling
 ===========================
 
-Once you've created a model, Django automatically provides a high-level Python
-API for working with those models. Let's try it out -- try the following::
+Now's a good time to point out a key philosophy behind URLconfs, and behind
+Django in general: the principle of **loose coupling**. Simply, put loose
+coupling is a software-development approach that values the importance of
+making pieces interchangeable. If two pieces of code are "loosely coupled,"
+then making changes to one of the pieces will have little-to-no effect on the
+other.
 
-    $ python manage.py shell
+Django's URLconfs are a good example of this principle in practice. In a Django
+Web application, the URL definitions and the view functions they call are
+loosely coupled; that is, the decision of what the URL should be for a given
+function, and the implementation of the function itself, reside in two separate
+places. This lets a developer switch out one piece without affecting the other.
 
-    >>> from crimes.models import Crime
-    >>> from datetime import datetime
-    
-    >>> c = Crime(when=datetime.now(), location="1137 Vermont St", 
-    ...           description="Breaking and Entering")
-    ...
-    >>> c.save()
+In contrast, other Web development platforms couple the URL to the program.
+In PHP (http://www.php.net/), for example, the URL of your application is
+designated by where you place the code on your filesystem. In the CherryPy
+Python Web framework (http://www.cherrypy.org/), the URL of your application
+corresponds to the name of the method in which your code lives. This may seem
+like a convenient shortcut in the short term, but it can get unmanageable in
+the long run.
 
-    >>> c2 = Crime(when=datetime.now(), location="1208 Florida St", 
-    ...           description="Reckless driving")
-    ...
-    >>> c2.save()
+For example, consider the view function we wrote above, which displays the
+current date and time. If we wanted to change the URL for the application --
+say, move it from ``/now/`` to ``/currenttime/`` -- we could make a quick
+change to the URLconf, without having to worry about the underlying
+implementation of the function. Similarly, if we wanted to change the view
+function -- say, rename the Python function, or change its logic somehow -- we
+could do that without affecting the URL to which the function is bound.
+Furthermore, if we wanted to expose the current-date functionality at *several*
+URLs, we could easily take care of that by editing the URLconf, without having
+to touch the view code.
 
-    >>> crime_list = Crime.objects.all()
-    >>> print crime_list
-    [<Crime: Crime object>, <Crime: Crime object>]
+That's loose coupling in action. And we'll continue to point out examples of
+this important philosophy throughout this book.
 
+404 errors
+==========
 
-Although it's only a few lines of code, this actually does quite a bit. You
-can see how objects are created (Django objects are simply Python classes) and
-saved to the database (all Django objects have a ``save()`` method which saves
-the object to the database).
+In our URLconf thus far, we've only defined a single URLpattern -- the one that
+handles requests to the URL ``/now/``. What happens when a different URL is
+requested?
 
-You can also see how objects are retrieved from the database:
-``Crime.objects`` lets you interact with the objects already stored in the
-database. ``Crime.objects.all()`` is how you fetch a list of already-created
-``Crime`` objects from the database.
+To find out, try running the Django development server and hitting a page such
+as ``http://127.0.0.1:8000/hello/`` or ``http://127.0.0.1:8000/doesnonexist/``,
+or even ``http://127.0.0.1:8000/`` (the site "root").
 
-..note::
+You should see a "Page not found" message. (Pretty, isn't it? We Django people
+sure do like our pastel colors.) Django displays this message because you
+requested a URL that's not defined in your URLconf.
 
-    Technically, ``Crime.objects`` is a "manager" object; see Chapter XXX for
-    more information about managers.
-    
-There's quite a lot more you can do here -- and in fact Chapter XXX has a
-complete reference to this object API -- but first let's take care of a small
-annoyance.
+The utility of this page goes beyond the basic 404 error message: It also tells
+you precisely which URLconf Django used and every pattern in that URLconf. From
+that information, you should be able to tell why the requested URL threw a 404.
 
-As you can see above, when we printed out the list of crimes, all we got was
-the unhelpful::
+Naturally, this is sensitive information intended only for you, the Web
+developer. If this were a production site deployed live on the Internet, we
+wouldn't want to expose that information to the public. For that reason, this
+"Page not found" page is only displayed if your Django project is in
+**debug mode**. We'll explain how to deactivate debug mode later. For now, just
+know that every Django project is in debug mode automatically when you start it.
 
-    [<Crime: Crime object>, <Crime: Crime object>]
-    
-We can fix that easily by adding a method to our ``Crime`` object that handles
-conversion to a string. This takes the shape of a Python "magic method" called
-``__str__``; you can see it in action by adding one to your ``Crime`` class::
+Your second view: Dynamic URLs
+==============================
 
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        description = models.TextField()
+In our first view example, the contents of the page -- the current date/time --
+were dynamic, but the URL ("/now/") was static. In most dynamic Web
+applications, though, a URL contains data that influences the output of the
+page.
 
-        def __str__(self):
-            return "Crime at %s on %s" % \
-                (self.location, self.when.strftime("%Y-%m-%d"))
+As another (slightly contrived) example, let's create a second view, which
+displays the current date and time offset by a certain number of hours. The
+goal is to craft a site in such a way that the page ``/now/plus1hour/``
+displays the date/time one hour into the future, the page ``/now/plus2hours/``
+displays the date/time two hours into the future, the page ``/now/plus3hours/``
+displays the date/time three hours into the future, and so on.
 
-Now, printing the list of crimes looks a lot better::
+A programming novice might think to code a separate view function for each
+hour offset, which might result in a URLconf that looked like this::
 
-    >>> Crime.objects.all()
-    [<Crime: Crime at 1137 Vermont St on 2006-05-16>, 
-     <Crime: Crime at 1208 Florida St on 2006-05-16>]
-     
-.. XXX JGD Seeing this change requires reloading the Crime model, no?  Maybe explain that or 
-.. XXX JGD show it by doing from crimes import models and referring to models.Crime, 
-.. XXX JGD so you can reload(models).  Or am I being stupid?
+    urlpatterns = patterns('',
+        (r'^now/$', current_datetime),
+        (r'^now/plus1hour/$', one_hour_ahead),
+        (r'^now/plus2hours/$', two_hours_ahead),
+        (r'^now/plus3hours/$', three_hours_ahead),
+        (r'^now/plus4hours/$', four_hours_ahead),
+    )
 
-You'll want to make sure that any model you define has the ``__str__`` method.
-Django uses this method anywhere a human-readable version of the object needs
-to be displayed.
+Clearly, this line of thought is flawed. Not only would this result in
+redundant view functions, but the application is fundamentally limited to
+supporting only the predefined hour ranges -- one, two, three or four hours.
+If, all of a sudden, we wanted to create a page that displayed the time *five*
+hours into the future, we'd have to create a separate view and URLconf line for
+that, furthering the duplication and insanity. We need to do some abstraction
+here.
 
-.. XXX JGD A note explaining that user-facing pages generally won't be relying on __str__
-.. XXX JGD would be good.  __str__ is mostly helpful terminal and admin, right?  Or, put
-.. XXX JGD  another way, if too much relies on __str__, when __str__ needs to change for
-.. XXX JGD   some need, all places relying on __str__ will need to change.  This is the
-.. XXX JGD    same reason surrogate keys (aka id sequence) are used in DBs even if a natural
-.. XXX JGD     key exists.
+So, instead of that nonsense, let's put a wildcard in the URLpattern. As we
+mentioned above, a URLpattern is a regular expression, and, hence, we can use
+the regular expression pattern ``\d+`` to match one or more digits::
 
-Customizing object metadata
+    from django.conf.urls.defaults import *
+    from mysite.views import current_datetime, hours_ahead
+
+    urlpatterns = patterns('',
+        (r'^now/$', current_datetime),
+        (r'^now/plus\d+hours/$', hours_ahead),
+    )
+
+This URLpattern will match any URL such as ``/now/plus2hours/``,
+``/now/plus25hours/`` or even ``/now/plus100000000000hours/``. Come to think of
+it, let's limit it so that the maximum allowed offset is 99 hours. That means
+we want to allow either one- or two-digit numbers; in regular expression
+syntax, that translates into ``\d{1,2}``::
+
+    (r'^now/plus\d{1,2}hours/$', hours_ahead),
+
+(When building Web applications, it's always important to consider the most
+outlandish data input possible, and decide whether the application should
+support that input or not. We've curtailed the outlandishness here by limiting
+the offset to 99 hours. And, by the way, The Outlandishness Curtailers would be
+a fantastic, if verbose, band name.)
+
+.. admonition:: Regular expressions
+
+    Regular expressions (or "regexes") are a compact way of specifying patterns
+    in text. While Django URLconfs allow arbitrary regexes for powerful
+    URL-matching capability, you'll probably only use a few regex patterns in
+    practice. Here's a small selection of common patterns::
+
+        =======    ==============================================================================
+        Symbol     Matches
+        =======    ==============================================================================
+        . (dot)    Any character
+        \d         Any digit
+        [A-Z]      Any character from A-Z (uppercase)
+        [a-z]      Any character from a-z (lowercase)
+        [A-Za-z]   Any character from a-z (case-insensitive)
+        [^/]+      All characters until a forward slash (excluding the slash itself)
+        +          One or more of the previous character (e.g., \d+ matches one or more digit)
+        ?          Zero or more of the previous character (e.g., \d* matches zero or more digits)
+        {1,3}      Between one and three (inclusive) of the previous character
+        =======    ==============================================================================
+
+    For more on regular expressions, see Appendix XXX, Regular Expressions.
+
+Now that we've designated a wildcard for the URL, we need a way of passing that
+data to the view function, so that we can use a single view function for any
+arbitrary hour offset. We do this by placing parenthesis around the data in the
+URLpattern that we want to capture. In the case of our example, we want to
+capture whatever number was entered in the URL -- so let's put parentheses
+around the ``\d{1,2}``::
+
+    (r'^now/plus(\d{1,2})hours/$', hours_ahead),
+
+If you're familiar with regular expressions, you'll be right at home here;
+we're using parentheses to *capture* data from the matched text.
+
+The final URLconf, including our previous ``current_datetime`` view, looks like
+this::
+
+    from django.conf.urls.defaults import *
+    from mysite.views import current_datetime, hours_ahead
+
+    urlpatterns = patterns('',
+        (r'^now/$', current_datetime),
+        (r'^now/plus(\d{1,2})hours/$', hours_ahead),
+    )
+
+With that taken care of, let's write the ``hours_ahead`` view. It's very
+similar to the ``current_datetime`` view we wrote earlier, with a key
+difference: it takes an extra argument, the number of hours of offset. Here it
+is::
+
+    from django.http import HttpResponse
+    import datetime
+
+    def hours_ahead(request, offset):
+        offset = int(offset)
+        dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
+        html = "<html><body>In %s hour(s), it will be %s.</body></html>" % (offset, dt)
+        return HttpResponse(html)
+
+Let's step through this code one line at a time:
+
+    * Just as we did for our ``current_datetime`` view, we import the class
+      ``django.http.HttpResponse`` and the ``datetime`` module.
+
+    * The view function, ``hours_ahead``, takes *two* parameters: ``request``
+      and ``offset``.
+
+        * ``request`` is an ``HttpRequest`` object, just as in
+          ``current_datetime``; each view *always* takes an ``HttpRequest``
+          object as its first parameter.
+
+        * ``offset`` is the string captured by the parentheses in the
+          URLpattern. For example, if the requested URL were ``/now/plus3hours/``,
+          then ``offset`` would be the string ``'3'``. If the requested URL were
+          ``/now/plus21hours/``, then ``offset`` would be the string ``'21'``.
+          Note that captured strings will always be *strings*, not integers,
+          even if the string is composed of only digits, such as ``'21'``.
+
+    * The first thing we do within the function is call ``int()`` on
+      ``offset``. This converts the string value to an integer.
+
+      Note that Python will raise a ``ValueError`` exception if you call
+      ``int()`` on a value that cannot be converted to an integer, such as the
+      string ``'foo'``. However, we don't have to worry about catching that
+      exception, because we can be certain ``offset`` will be a string
+      containing only digits. We know that because the regular-expression
+      pattern in our URLconf -- ``\d{1,2}`` -- captures only digits. This
+      illustrates another nicety of URLconfs: they provide a fair level of
+      input validation.
+
+    * The next line of the function explains why we called ``int()`` on
+      ``offset``. On this line, we calculate the current time plus a time
+      offset of ``offset`` hours, storing the result in ``dt``. The
+      ``datetime.timedelta`` function requires the ``hours`` parameter to be
+      an integer.
+
+    * Next, we construct the HTML output of this view function, just as we did
+      in ``current_datetime``. A small difference in this line from the
+      previous line is that it uses Python's format-string capability with
+      *two* values, not just one. Hence, there are two ``%s`` symbols in the
+      string and a tuple of values to insert -- ``(offset, dt)``.
+
+    * Finally, we return an ``HttpResponse`` of the HTML -- again, just as we
+      did in ``current_datetime``.
+
+With that view function and URLconf written, start the Django development
+server (if it's not already running), and visit
+``http://127.0.0.1:8000/now/plus3hours/`` to verify it works. Then try
+``http://127.0.0.1:8000/now/plus5hours/``. Then
+``http://127.0.0.1:8000/now/plus24hours/``. Finally, visit
+``http://127.0.0.1:8000/now/plus100hours/`` to verify that the pattern in your
+URLconf only accepts one- or two-digit numbers; Django should display a "Page
+not found" error in this case, just as we saw in the "404 errors" section
+above.
+
+If you're following along while coding at the same time, you'll notice that the
+``views.py`` file now contains two views. (We omitted the ``current_datetime``
+view from the last set of examples for clarity.) Put together, ``views.py``
+should look like this::
+
+    from django.http import HttpResponse
+    import datetime
+
+    def current_datetime(request):
+        now = datetime.datetime.now()
+        html = "<html><body>It is now %s.</body></html>" % now
+        return HttpResponse(html)
+
+    def hours_ahead(request, offset):
+        offset = int(offset)
+        dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
+        html = "<html><body>In %s hour(s), it will be %s.</body></html>" % (offset, dt)
+        return HttpResponse(html)
+
+Django's pretty error pages
 ===========================
 
-To save you time, Django automatically derives the name of the database table
-from the name of your model class and the app that contains it. A model's
-database table name is constructed by joining the model's "app label" -- the
-name you used in ``manage.py startapp`` -- to the model's class name, with an
-underscore between them.
+Take a moment to admire the fine Web application we've made so far...and break
+it!
 
-So, if you examine your database now (or the output of ``manage.py sql
-crimes``) you'll see that Django has automatically named the ``Crime`` table
-``crimes_crime``.
+Let's deliberately introduce a Python error into our ``views.py`` file, by
+commenting-out the ``offset = int(offset)`` line in the ``hours_ahead`` view::
 
-So what if you're sharing a database with other users and you need to be
-careful about table names, or what if you just don't like the automatic name?
-Well, each Django model can define metadata about that object; this is done by
-defining an inner class called ``Meta``::
+    def hours_ahead(request, offset):
+        # offset = int(offset)
+        dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
+        html = "<html><body>In %s hour(s), it will be %s.</body></html>" % (offset, dt)
+        return HttpResponse(html)
 
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        description = models.TextField()
+Now load up the development server and navigate to ``/now/plus3hours/``. You'll
+see a error page with a significant amount of information, including a
+``TypeError`` message displayed at the very top: "unsupported type for
+timedelta hours component: str".
 
-        class Meta:
-            db_table = "crimes"
+What happened?
 
-The ``db_table`` option overrides the default table name that Django uses.
-There's really no reason to use this option now, so for the rest of this
-walkthrough we'll assume you removed it.
+Well, the ``datetime.timedelta`` function expects the ``hours`` parameter to be
+an integer, and we commented-out the bit of code that converted ``offset`` to
+an integer. That caused ``datetime.timedelta`` to raise the ``TypeError``. It's
+the typical kind of small bug that every programmer runs into at some point.
 
-.. admonition:: Philosophy
+But the point of this example was to demonstrate Django's error pages. Take
+some time to explore the error page and get to know the various bits of
+information it gives you.
 
-    You'll see this pattern repeated everywhere in Django.  The framework 
-    provides sensible defaults, but always lets you override them if you
-    need more fine-grained control.
+Some highlights:
 
-.. XXX JGD No nod/snark to "convention over configuration"?
+    * At the top of the page, you get the key information about the exception:
+      the type of exception, any parameters to the exception (e.g., the
+      ``"unsupported type"`` message in this case), the file in which the
+      exception was raised and the offending line number.
 
-Of course, there are other ``Meta`` options available; refer to Chapter XXX
-for a complete reference.
+    * Under that, the page displays the full Python traceback for this
+      exception. This is similar to the standard traceback you get in Python's
+      command-line interpreter, except it's more interactive. For each frame in
+      the stack, Django displays the name of the file, the function/method
+      name, the line number and the source code of that line.
 
-Relations
+      Click the line of source code (in dark gray), and you'll see several
+      lines from before and after the erroneous line, to give you context.
+
+      Click "Local vars" under any frame in the stack to view a table of all
+      local variables, and their values, in that frame, at the exact point in
+      the code at which the exception was raised. This debugging information is
+      invaluable.
+
+    * Note the "Switch to copy-and-paste view" text just under the "Traceback"
+      header. Click those words, and the traceback will switch to a alternate
+      version that can be easily copied and pasted. Use this when you want to
+      share your exception traceback with others to get technical support --
+      such as the kind folks in the Django IRC chat room or on the Django users
+      mailing list.
+
+    * Next, the "Request information" section includes a wealth of information
+      about the incoming Web request that spawned the error: GET and POST
+      information, cookie values and meta information, such as CGI headers.
+      If this information seems like gibberish to you at the moment, don't fret
+      -- we'll explain it later in this book.
+
+      Below, the "Settings" section lists all of the settings for this
+      particular Django installation. Again, we'll explain settings later in
+      this book. For now, take a look at the settings to get an idea of the
+      information available.
+
+The Django error page is capable of displaying more information in certain
+special cases, such as the case of template syntax errors. We'll get to those
+later, when we discuss the Django template system.
+
+Are you the type of programmer who likes to debug with the help of carefully
+placed ``print`` statements? You can use the Django error page to do just that
+-- just without the ``print`` statements. At any point in your view,
+temporarily insert an ``assert False`` to trigger the error page. Then, you can
+view the local variables and state of the program. (There's a more advanced way
+to debug Django views, which we'll explain later, but this is the quickest and
+easiest.)
+
+Finally, it's obvious that much of this information is sensitive -- it exposes
+the innards of your Python code and Django configuration -- and it would be
+foolish to show this information on the public Internet. A malicious person
+could use it to attempt to reverse-engineer your Web application and do nasty
+things. For that reason, the Django error page is only displayed when your
+Django project is in debug mode. We'll explain how to deactivate debug mode
+later. For now, just know that every Django project is in debug mode
+automatically when you start it. (Sound familiar? The "Page not found" errors,
+described in the "404 errors" section above, work the same way.)
+
+Exercises
 =========
 
-Of course, what's the point of using a relational database if we don't use
-relations? Let's refine our ``Crime`` object to be somewhat better designed.
-Right now, we're simply stuffing a description of the crime into the
-``description`` field, but that will quickly fill up with duplicate values
-like "carjacking" and "distributing cigarettes to minors". Let's break those
-crime types out into a related object::
+Here are a few exercises that will solidify some of the things you learned in
+this chapter:
 
-    class CrimeType(models.Model):
-        name        = models.CharField(maxlength=250)
-        is_felony   = models.BooleanField()
-        
-        def __str__(self):
-            return self.name
+    1. Create another view, ``hours_behind``, that works like ``hours_ahead``
+       but instead displays the date/time with an offset into the *past*, not
+       the future. This view should bind to URLs in the style
+       ``/now/minusXhours/``, where ``X`` is the offset, in hours.
 
-.. XXX JGD This has to be in the models.py file before Crime, right?  It'd be good to note it.
-            
-Here we've defined a "crime type" object which we'll populate with all the
-possible crimes on the books. Now we'll modify the exiting ``Crime`` object to
-replace the ``description`` field with a relation to this one::
+    2. Once you've done that, be a good programmer and notice how similar the
+       ``hours_ahead`` and ``hours_behind`` views are. How redundant! Eliminate
+       the redundancy and combine them into a single view, ``hour_offset``. The
+       URLs should stay the same as before: e.g., ``/now/minusXhours/`` and
+       ``/now/plusXhours/``. Don't forget to change the HTML to say either
+       "In X hour(s)" or "X hour(s) ago", depending on whether the offset is
+       positive or negative.
 
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        type        = models.ForeignKey(CrimeType)
+    3. We were lazy and hard-coded the plural form of "hour" in the URL,
+       resulting in the grammar atrocity of ``/now/plus1hours/``. Do your part
+       to uphold proper English grammar, and improve the application so that it
+       accepts the URL ``/now/plus1hour/``. For bonus points, be a
+       perfectionist: allow ``/now/plus1hour/`` and ``/now/plus2hours/`` but
+       not ``/now/plus1hours/`` nor ``/now/plus2hour/``.
 
-.. XXX JGD You're both modifying an existing bit of code and excluding 
-.. XXX JGD some previously-added code.  It'd be good to make it clear that the other
-.. XXX JGD code is not to be removed.  Perhaps a small 
-.. XXX JGD admonition at the first occurrence of this in the book?
+    4. Similarly, we were lazy in the template, saying
+       ``"In %s hour(s), it will be %s."`` Fix this to remove the ``hour(s)`` --
+       the ``(s)`` was such a cop-out! If the offset is singular, use
+       ``'hour'``; otherwise, use ``'hours'``.
 
-This defines a foreign key on the ``type`` field which points to a ``CrimeType``.
+Answers to exercises
+====================
 
-.. admonition:: Huh?
+    1. Here's one implementation of the ``hours_behind`` view::
 
-    What's a "foreign key"?  If you're not familiar with database terminology,
-    XXX what should they do??? XXX
-    
-.. XXX JGD We could just have a glossary for the book (which could include any DB terms 
-.. XXX JGD you don't want to assume).  Or, if it's not too political, you could recommend 
-.. XXX JGD a couple books (one for each popular backend?).  
-.. XXX JGD Lastly, Wikipedia has nice relation data modeling coverage:
-.. XXX JGD http://en.wikipedia.org/wiki/Category:Data_modeling
-    
-Modifying models
-================
+        def hours_behind(request, offset):
+            offset = int(offset)
+            dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
+            html = "<html><body>%s hour(s) ago, it was %s.</body></html>" % (offset, dt)
+            return HttpResponse(html)
 
-If you actually try to use these models at this point, you'll quickly find
-problems. Although you've changed the ``Crime`` model, those changes can't
-automatically be transfered into the database. You've got to inform the
-database that you've changed the model, and you've got two options::
+       Not much is different between this view and ``hours_ahead`` -- only the
+       calculation of ``dt`` and the text within the HTML.
 
-    1. Use SQL to modify the database tables.  That is, use ``ALTER TABLE`` 
-       commands to modify the database directly to match the model. 
-       
-       This is the approach you have to take if you've already got important
-       data stored in the database.
-       
-    2. If, however, you don't care about the data in the database, you can
-       "reset" a given model, dropping and restoring the tables involved.
-       
-Since we've just started, we'll take the second route.  Run::
+       The URLpattern would look like this::
 
-    $ python manage.py reset crimes
-    
-Django will ask you if you're *sure* that this is something you want to do;
-say "yes" and the old tables will be dropped and new ones created.
+        (r'^now/minus(\d{1,2})hours/$', hours_behind),
 
-.. admonition:: Philosophy:
+    2. Here's one implementation of the ``hour_offset`` view::
 
-    Yes, you're right to think that option 1 looks pretty difficult.  If
-    you've got to make a schema change in an application with a bunch of
-    existing data it can indeed be time-consuming.  
-    
-    However, automated tools could be very dangerous here. Django won't     
-    automatically modify your database for you; that could lead to 
-    catastrophic data loss.
-    
-    So, spend a little extra time up front making sure your models are
-    well-defined and future-proof.  You'll recover that time in spades
-    in the future -- trust us!
+        def hour_offset(request, plus_or_minus, offset):
+            offset = int(offset)
+            if plus_or_minus == 'plus':
+                dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
+                html = 'In %s hour(s), it will be %s.' % (offset, dt)
+            else:
+                dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
+                html = '%s hour(s) ago, it was %s.' % (offset, dt)
+            html = '<html><body>%s</body></html> % html
+            return HttpResponse(html)
 
-.. XXX JGD It's impossible to future-proof, and its wrong to suggest it is possible.
-.. XXX JGD As a newcomer to Django, this looks suspiciously like the Python-defined 
-.. XXX JGD models is necessary but not sufficient for the DRY principal.
-.. XXX JGD Migration code obviously shouldn't be automated.
-.. XXX JGD What's up with http://code.djangoproject.com/wiki/SchemaEvolution#conclusions ?
-.. XXX JGD Assuming that won't be done, the book should at least go through one
-.. XXX JGD real-worldy model design update process.
-.. XXX JGD Another thing that would help is to explain the thought process involved in 
-.. XXX JGD future-proofing (with your crystal ball).
-.. XXX JGD I'm not tryin' to be a jerk, but you can't pretend it's not an issue.  :)
+       The URLpattern would look like this::
 
-Using relations in the Python API
-=================================
+        (r'^now/(plus|minus)(\d{1,2})hours/$', hour_offset),
 
-Set up a few example Crimes using the new ``CrimeType`` to explore the Django
-API for foreign keys::
+       In this implementation, we capture *two* values from the URL -- the
+       offset, as we did before, but also the string that designates whether
+       the offset should be positive or negative. They're passed to the view
+       function in the order in which they're captured.
 
-    >>> jaywalking = CrimeType(name="Jaywakling", is_felony=False)
-    >>> jaywalking.save()
-    >>> florida_jaywalking = Crime(when=datetime.now(), location="1211 Florida St", type=jaywalking)
-    >>> florida_jaywalking.save()
-    >>> fortysecond_jaywalking = Crime(when=datetime.now(), location="1301 W. 42nd St", type=jaywalking)
-    >>> fortysecond_jaywalking.save()
-    
-Now you can retrieve all Crimes of the same CrimeType for any given Crime::
+       Inside the view code, the variable ``plus_or_minus`` will be either the
+       string ``'plus'`` or the string ``'minus'``. We test that to determine
+       how to calculate the offset -- either by adding or subtracting a
+       ``datetime.timedelta``.
 
-    >>> fortysecond_jaywalking.type.crime_set.all()
-    [<Crime: Crime at 1211 Florida St on 2006-05-17>, <Crime: Crime at 1301 W. 42nd St on 2006-05-17>]
+    3. To accomplish this, we wouldn't have to change the ``hour_offset`` view
+       at all. We'd just need to edit the URLconf slightly. Here's one way to
+       do it, by using *two* URLpatterns::
 
-Those Crimes refer to the same CrimeType object so that changes in the
-CrimeType are reflected in all Crimes::
+        (r'^now/(plus|minus)(1)hour/$', hour_offset),
+        (r'^now/(plus|minus)([2-9]|\d\d)hours/$', hour_offset),
 
-    >>> jaywalking.crime_set.all()[0].type
-    <CrimeType: Jaywakling>
-    >>> jaywalking.name="Jaywalking"
-    >>> jaywalking.save()
-    >>> jaywalking.crime_set.all()[0].type
-    <CrimeType: Jaywalking>
-    >>> jaywalking.crime_set.all()[1].type
-    <CrimeType: Jaywalking>
-    
-XXX explain interesting code here    
-    
-.. XXX: talk about M2M next, or leave that for the ref?
+       More than one URLpattern can point to the same view; Django processes
+       the patterns in order and doesn't care how many times a certain view is
+       referenced. In this case, the first pattern matches the URLs
+       ``/now/plus1hour/`` and ``/now/minus1hour/``. The ``(1)`` is a neat
+       little trick -- it passes the value ``'1'`` as the captured value,
+       without allowing any sort of wildcard.
 
-.. XXX JGD Is there an M2M in chicrime that's not too out of the way?  
+       The second pattern is more complex, as it uses a slightly tricky regular
+       expression. The key part is ``([2-9]|\d\d)``. The pipe character (``'|'``)
+       means "or," so the pattern in full means "match either the pattern
+       ``[2-9]`` or ``\d\d``." In other words, that matches any one-digit
+       number from 2 through 9, *or* any two-digit number.
 
-.. XXX JGD Also, I think it'd be good to talk about model cycles.
-.. XXX JGD A Person is holding an Event which has a list of Invitees.
-.. XXX JGD This may be a pet issue since I ran into it w/ MediaWiki's existing schema.
+    4. Here's a basic way of accomplishing this. Alter the ``hour_offset``
+       function like so::
 
-What's next?
-============
+        def hour_offset(request, plus_or_minus, offset):
+            offset = int(offset)
+            if offset == 1:
+                hours = 'hour'
+            else:
+                hours = 'hours'
+            if plus_or_minus == 'plus':
+                dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
+                html = 'In %s %s, it will be %s.' % (offset, hours, dt)
+            else:
+                dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
+                html = '%s %s ago, it was %s.' % (offset, hours, dt)
+            html = '<html><body>%s</body></html> % html
+            return HttpResponse(html)
 
-At this point you know enough (with the help of the reference in Chapter XXX)
-to start writing your own models. However, in the next chapter we'll step
-aside to look at the best-looking piece of Django: the automatic admin
-interface.
-
-So what are you waiting for? Turn the page!
-
+       Ideally, though, we wouldn't have to edit Python code to make small
+       presentation-related changes like this. Wouldn't it be nice if we could
+       separate presentation from Python logic? Ah, foreshadowing...

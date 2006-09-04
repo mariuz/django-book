@@ -1,430 +1,352 @@
-====================
-Chapter 6: Templates
-====================
-
-.. About 50% of this chapter is taken from Django's template.txt doc.
-
-If a view describes *what* data is displayed on a given page, the template
-describes *how* that data looks. This distinction is important since it will
-easily let you change how your site looks without having to change how it
-behaves. Most web development teams already have different people who develop
-the code who design the templates; this division in Django strives to match
-that natural division of labor.
-
-Django's template language is designed to strike a balance between power and
-ease. It's designed to feel comfortable to those used to working with HTML. If
-you have any exposure to other text-based template languages, such as Smarty
-(http://smarty.php.net) or CheetahTemplate (http://www.cheetahtemplate.org/),
-you should feel right at home with Django's templates.
-
-.. admonition:: Ick, I hate it!
-
-    We have a deep love for Django's template language, but not everyone 
-    shares our passion.  Luckily, like most of Django, there's nothing
-    that binds you to using Django's template engine instead of the one
-    of your choice. You can simply write views that render content using
-    your favorite engine instead.
-
-Django's template language has particularly been designed to be
-designer-friendly. We think most programmers -- us included -- have the design
-sense of a color-blind three-year-old, so we prefer to leave the designing to
-the professionals by giving them a template language they can understand.
-
-Tying up loose ends
-===================
-
-Let's get started by wrapping up the index template we started in the last
-chapter. You'll recall that the view we're dealing with looks like::
-
-    from django import template
-    from django.http import HttpResponse
-    from django.shortcuts import render_to_response, get_object_or_404
-    from myproject.crimes.models import Crime, CrimeType
-
-    def index(request):
-        latest_crime_list = Crime.objects.all().order_by('-pub_date')[:10]
-        return render_to_response('crimes/index.html', {
-            'latest_crime_list': latest_crime_list,
-            'type_list': CrimeType.objects.all(),
-        })
-        
-Right now, the template is set up to only display the list of latest crimes
-and doesn't display the list of crime types. On top of that, the template we
-have so far isn't valid HTML at all; just a small snippet. Here's our take on
-fixing both those problems::
-
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-    <html lang="en">
-    <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <title>Crimes in my city</title>
-    </head>
-    <body>
-      {% if latest_crime_list %}
-        <h2>Latest crimes:</h2>
-        <ul>
-        {% for crime in latest_crime_list %}
-          <li>{{ crime.type }} at {{ crime.location }} 
-                [{{ crime.when|date:"F j, P" }}]</li>
-        {% endfor %}
-        </ul>
-        
-        <h2>Crimes by type:</h2>
-        <ul>
-        {% for type in type_list %}
-          <li><a href="types/{{ type.id }}/">{{ type }}</a></li>
-        {% endfor %}
-        </ul>
-      
-      {% else %}
-        <p>No crimes are available.</p>
-      {% endif %}
-    </body>
-    </html>
-    
-That's better. Now we've got a complete (if still minimal) HTML page
-displaying all the data available on the page. Let's focus on this template
-and explain all the bits and pieces that go into making it.
-
-What's a template
-=================
-
-First, though, what do we mean when we call the above a **template**? Well, a
-template is simply a text file. It can generate any text-based format (HTML,
-XML, CSV, etc.).
-
-To do anything useful, template contains **variables**, which get replaced
-with values when the template is evaluated, and **tags**, which control the
-logic of the template.
-
-.. admonition:: Philosophy
-
-    Why use a text-based template instead of an XML-based one (like Zope's
-    TAL)? We wanted Django's template language to be usable for more than
-    just XML/HTML templates. At World Online, we use it for e-mails,
-    JavaScript and CSV. You can use the template language for any text-based
-    format.
-
-    Oh, and one more thing: Making humans edit XML is just sadistic!
+================================
+Chapter 6: The Django admin site
+================================
 
-Variables
-=========
-
-Variables look like this: ``{{ variable }}``. When the template engine
-encounters a variable, it evaluates that variable and replaces it with the
-result.
+There's one part of web development we've always hated: writing administration
+interfaces. Developing the parts of the site that the general public sees is
+always different and interesting, but the bits that the administrators use to
+modify the site always are the same. You've got to deal with authenticating
+users to make sure that they are allowed to edit the content, display and
+handle forms, deal with tricky validation issues... it's boring, and it's
+repetitive.
 
-Use a dot (``.``) to access attributes of a variable.
-
-.. admonition:: Behind the scenes
-
-    Technically, when the template system encounters a dot, it tries the
-    following lookups, in this order:
-
-        * Dictionary lookup
-        * Attribute lookup
-        * Method call
-        * List-index lookup
-
-In the above example, ``{{ crime.location }}`` will be replaced with the
-``location`` attribute of the ``crime`` object.
-
-Where did that ``crime`` object come from? It came from the context you
-created in the view and passed into the template. All variables are evaluated
-against the context that view creates.
-
-If you use a variable that doesn't exist, the template system will insert
-the value of the ``TEMPLATE_STRING_IF_INVALID`` setting which is set to an
-empty string by default.
-
-See "Using the built-in reference", below, for help on finding what variables
-are available in a given template.
-
-Filters
-=======
-
-You can modify variables for display by using **filters**.
-
-Filters look like this: ``{{ name|lower }}``. This displays the value of the
-``{{ name }}`` variable after being filtered through the ``lower`` filter,
-which converts text to lowercase. Use a pipe (``|``) to apply a filter.
-
-Filters can be "chained." The output of one filter is applied to the next.
-``{{ text|escape|linebreaks }}`` is a common idiom for escaping text contents,
-then converting line breaks to ``<p>`` tags.
-
-Some filters take arguments. A filter argument looks like this:
-``{{ bio|truncatewords:"30" }}``. This will display the first 30 words of the
-``bio`` variable. Filter arguments always are in double quotes.
-
-So, in the example above, ``{{ crime.when|date:"F j, P" }}`` outputs the value
-of the ``crime``'s ``when`` attribute, formatted with the ``date`` filter
-which is given the format string ``F j, P``. This ``date`` filter is based on
-PHP's ``date()`` function and is described fully along with all the other
-standard Django filters in Chapter XXX.
-
-Tags
-====
-
-Tags look like this: ``{% tag %}``. Tags are more complex than variables: Some
-create text in the output, some control flow by performing loops or logic, and
-some load external information into the template to be used by later
-variables.
-
-Some tags require beginning and ending tags (i.e. ``{% tag %} ... tag contents
-... {% endtag %}``). In the example above, both ``{% if %}`` and ``{% for %}``
-are tags, and both require ending tags.
-
-The built-in tag reference in Chapter XXX describes these and all the other
-built-in tags, and Chapter 9 explains how to create your own tags.
-
-Template inheritance
-====================
-
-The most powerful -- and thus the most complex -- part of Django's template
-engine is template inheritance. Template inheritance allows you to build a
-base "skeleton" template that contains all the common elements of your site
-and defines **blocks** that child templates can override.
-
-Understanding inheritance begins with understanding the problem it solves. The
-template we designed above looks just fine, but what happens when we go to
-create a template for the ``crimes_by_type`` view? If we want again to make a
-nice valid HTML template, we'd start out something like::
-
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-    <html lang="en">
-    <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <title>{{ crime_type }} crimes</title>
-    </head>
-    <body>
-    
-    ...
-        
-But wait a minute -- we've just duplicated a lot of HTML! Imagine if we had a
-few stylesheets included on each page, maybe a navigation bar, perhaps some
-JavaScript... We'd end up putting all sorts of redundant HTML into each and
-every template.
-
-Clearly, this won't do -- what if you want to change all your templates to
-XHTML 2 when it comes out? OK, so you probably won't want to do that, but what
-about changing the included stylesheets? Can you imagine going into hundreds
-of templates and changing all of them?
-
-Ugh.
-
-Template inheritance solves this problem (and a few others). You'll start out
-by defining what's called a **base template** -- a skeleton of your page that
-other templates will later fill in. Here's what a base template derived from
-our ongoing example might look like::
-
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-    <html lang="en">
-    <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <title>{% block title %}{% endblock %}</title>
-    </head>
-    <body>
-      <div id="content">
-        {% block content %}{% endblock %}
-      </div>
-      
-      <div id="footer">
-        {% block footer %}
-          Copyright Me, Myself, and I -- All rights reserved.
-        {% endblock %}
-      </div>
-    </body>
-    </html>
-
-
-This template, which we'll call ``base.html``, defines a simple HTML skeleton
-document that we'll use for all the pages on the site. It's the job of
-"child" templates to fill the empty blocks with content.
-
-In this example, the ``{% block %}`` tag defines three blocks that child
-templates can fill in. All the ``block`` tag does is to tell the template
-engine that a child template may override those portions of the template.
-
-Now that we've got this base template, we can modify our existing index
-template to use it::
-
-    {% extends "base.html" %}
-
-    {% block title %}Crimes in my city{% endblock %}
-
-    {% block content %}
-      {% if latest_crime_list %}
-        <h2>Latest crimes:</h2>
-        <ul>
-        {% for crime in latest_crime_list %}
-          <li>{{ crime.type }} at {{ crime.location }} 
-                [{{ crime.when|date:"F j, P" }}]</li>
-        {% endfor %}
-        </ul>
-        
-        <h2>Crimes by type:</h2>
-        <ul>
-        {% for type in type_list %}
-          <li><a href="types/{{ type.id }}/">{{ type }}</a></li>
-        {% endfor %}
-        </ul>
-      
-      {% else %}
-        <p>No crimes are available.</p>
-      {% endif %}
-    {% endblock %}
-
-The ``{% extends %}`` tag is the key here. It tells the template engine that
-this template "extends" another template. When the template system evaluates
-this template, first it locates the parent -- in this case, "base.html".
-
-At that point, the template engine will notice the three ``{% block %}`` tags
-in ``base.html`` and replace those blocks with the contents of the child
-template. So the title we've defined here will be used, as will all the
-template code to loop over and display the crime list and list of crime types.
-The skeleton from the base template will be filled in with the content from
-the child one.
-
-Note that since the child template didn't define the ``footer`` block, the
-value from the parent template is used instead. Content within a ``{% block
-%}`` tag in a parent template is always used as a fallback.
-
-You can use as many levels of inheritance as needed. One common way of using
-inheritance is the following three-level approach:
-
-    * Create a ``base.html`` template that holds the main look-and-feel of
-      your site.
-      
-    * Create a ``base_SECTION.html`` template for each "section" of your site.
-      For example, ``base_news.html``, ``base_sports.html``. These templates
-      all extend ``base.html`` and include section-specific styles/design.
-      
-    * Create individual templates for each type of page, such as a news
-      article or blog entry. These templates extend the appropriate section
-      template.
-
-This approach maximizes code reuse and makes it easy to add items to shared
-content areas, such as section-wide navigation.
-
-Here are some tips for working with inheritance:
-
-    * If you use ``{% extends %}`` in a template, it must be the first
-      template tag in that template. Template inheritance won't work,
-      otherwise.
-
-    * More ``{% block %}`` tags in your base templates are better. Remember,
-      child templates don't have to define all parent blocks, so you can fill
-      in reasonable defaults in a number of blocks, then only define the ones
-      you need later. It's better to have more hooks than fewer hooks.
-
-    * If you find yourself duplicating content in a number of templates, it
-      probably means you should move that content to a ``{% block %}`` in a
-      parent template.
-
-    * If you need to get the content of the block from the parent template,
-      the ``{{ block.super }}`` variable will do the trick. This is useful if
-      you want to add to the contents of a parent block instead of completely
-      overriding it.
-
-Finally, note that you can't define multiple ``{% block %}`` tags with the
-same name in the same template. This limitation exists because a block tag
-works in "both" directions. That is, a block tag doesn't just provide a hole
-to fill -- it also defines the content that fills the hole in the *parent*. If
-there were two similarly-named ``{% block %}`` tags in a template, that
-template's parent wouldn't know which one of the blocks' content to use.
-
-Using the built-in reference
-============================
-
-Django's admin interface includes a complete reference of all template tags
-and filters available for a given site. To see it, go to your admin interface
-and click the "Documentation" link in the upper right of the page.
-
-The reference is divided into 4 sections: tags, filters, models, and views.
-
-The **tags** and **filters** sections describe all the built-in tags (in fact,
-the tag and filter references below come directly from those pages) as well as
-any custom tag or filter libraries available.
-
-The **views** page is the most valuable. Each URL in your site has a separate
-entry here, and clicking on a URL will show you:
-
-    * The name of the view function that generates that view.
-    
-    * A short description of what the view does.
-    
-    * The **context**, or a list of variables available in the view's
-      template.
-      
-    * The name of the template or templates that are used for that view.
-
-Each view documentation page also has a bookmarklet that you can use to jump
-from any page to the documentation page for that view.
-
-Because Django-powered sites usually use database objects, the **models**
-section of the documentation page describes each type of object in the system
-along with all the fields available on that object.
-
-Taken together, the documentation pages should tell you every tag, filter,
-variable and object available to you in a given template.
-
-Custom tag and filter libraries
+Django's approach to this boring, repetitive task? Do it all for you -- in
+just a couple of lines of code, no less.
+
+One of the oldest and most powerful parts of Django is the automatic admin
+interface. It hooks off of metadata in your model to provide a powerful and
+production-ready interface that content producers can immediately use to start
+adding content to the site.
+
+Activating the admin interface
+==============================
+
+We think the admin interface is the coolest part of Django -- and most
+Djangonauts agree -- but since not everyone actually needs it, it's an
+optional piece. That means there are three steps you'll need to follow to
+activate the admin interface:
+
+    1.  Add admin metadata to your models.
+
+        Not all models can (or should) be editable by admin users, so you need
+        to "mark" models that should have an admin interface. You do that be
+        adding an inner ``Admin`` class to your model (alongside the ``Meta``
+        class, if you have one).  Extending our previous example::
+
+            class Crime(models.Model):
+                when        = models.DateTimeField()
+                location    = models.CharField(maxlength=300)
+                type        = models.ForeignKey(CrimeType)
+
+                class Admin:
+                    pass
+
+        The ``Admin`` declaration flags the class as having an admin
+        interface. There are a number of options that you can put beneath
+        ``Admin``; for now we're sticking with all the defaults, so we put
+        ``pass`` in there to signify to Python that the ``Admin`` class is
+        empty.
+
+    2.  Install the admin models.  Simply add ``"django.contrib.admin"`` to
+        your ``INSTALLED_APPS`` setting and run ``python manage.py syncdb``.
+
+.. note::
+
+        When you first ran ``syncdb``, you were probably asked about creating
+        a superuser.  If you didn't that time, you'll need to run
+        ``django/contrib/auth/bin/create_superuser.py`` to create an admin
+        user.  Otherwise you won't be able to log into the admin interface.
+
+    3.  Add the URL pattern to your ``urls.py``.  If you're still using the
+        one created by ``startproject``, the admin URL pattern should be
+        already there, but commented out.  Either way, your URL patterns
+        should look like::
+
+            from django.conf.urls.defaults import *
+
+            urlpatterns = patterns('',
+                (r'^admin/', include('django.contrib.admin.urls')),
+            )
+
+That's it.  Now run ``python manage.py runserver`` to start the development server; you'll see something like::
+
+    Validating models...
+    0 errors found.
+
+    Django version 0.95 (post-magic-removal), using settings 'mysite.settings'
+    Development server is running at http://127.0.0.1:8000/
+    Quit the server with CONTROL-C.
+
+Now you can visit the URL given to you by Django (http://127.0.0.1:8000/ in the example above), log in, and play around.
+
+Using the admin interface
+=========================
+
+The admin interface is designed to be used by non-technical users, and as such
+should be pretty self-explanatory. Nevertheless, a few notes about the
+features of the admin are in order.
+
+    * Each object given an ``Admin`` declaration shows up on the main index
+      page. Links to add and change objects lead to two pages we refer to as
+      object "change lists" and "edit forms".
+
+      .. image:: images/chapter04/admin_index.png
+
+    * Change lists are essentially index pages of objects in the system. There
+      are a number of options that can control which fields appear on these
+      lists and the appearance of extra features like date drill downs, search
+      fields, and filter interfaces. There's more about these features below.
+
+      .. image:: images/chapter04/changelist.png
+
+    * Edit forms are used to edit existing objects and create new ones. Each
+      field defined in your model appears here, and you'll notice that fields
+      of different types get different widgets (i.e. date/time fields have
+      calendar controls; foreign keys use a select box, etc.).
+
+      .. image:: images/chapter04/editform.png
+
+      You'll notice that the admin also handles input validation for you; try
+      leaving a required field blank, or putting an invalid time into a time
+      field and you'll see those errors when you try to save.
+
+      This validation actually is done with a powerful and flexible validation
+      framework which is discussed in Chapter XXX.
+
+    .. image:: images/chapter04/editform_errors.png
+
+    * When editing an existing object, you'll notice a "history" link in the
+      upper-right. Every change made through the admin is logged, and you can
+      examine this log by clicking the history
+
+      .. image:: images/chapter04/history.png
+
+    * Deletions in the admin cascade. That is, when deleting an existing
+      object, you'll see that the admin asks you to confirm the delete action
+      to avoid costly mistakes. What might not be instantly obvious is that
+      this page will show you all the related objects that will be deleted as
+      well. For example, if you go to delete a ``CrimeType``, you'll see that
+      the related ``Crime`` objects are scheduled for deletion as well.
+
+      .. image:: images/chapter04/delete_confirm.png
+
+Users, groups, and permissions
+------------------------------
+
+Since you're logged in as a superuser, you have access to create, edit, and
+delete any object. However, the admin has a user permissions system that you
+can use to give other users access only to the portions of the admin they
+need.
+
+You edit these users and permissions through the admin just like any other
+object; the link to the ``User`` and ``Group`` models is there on the admin
+index along with all the objects you've defined yourself.
+
+User objects have the standard username, password, email, and real name fields
+you might expect, along with a set of fields that define what the user is
+allowed to do in the admin. First, there's a set of three flags::
+
+    * The "is active" flag controls weather the account is active at all.
+      If this flag is off, the user is considered "inactive" and has no
+      access at all.
+
+    * The "is staff" flag controls weather the user is allowed to log into
+      the admin (i.e. is considered a "staff member" in your organization).
+      Since this same user system can be used to control access to public
+      (i.e. non-admin) sites (see Chapter XXX), this flag differentiates
+      between public users and administrators.
+
+    * The "is superuser" flag gives the user full unfettered access to
+      every item in the admin; regular permissions are ignored.
+
+For "normal" admin users -- active, non-superuser staff members -- the set of
+permissions controls what access they are granted. Each object editable
+through the admin has three permissions: a "create" permission, an "edit"
+permission, and a "delete" permission. Assigning permissions to a user grants
+the user access to do what is described by those permissions.
+
+.. note::
+
+    Notice that access to edit users and permissions is also controled by this
+    permission system. If you give a user permission to edit users, she will
+    be able to edit her own permissions, which might not be what you want!
+
+You can also assign users to groups. A group is simply a set of permissions to
+apply to all members of that group. Groups are extremely useful for granting a
+large number of users identical permissions.
+
+Customizing the admin interface
 ===============================
 
-Certain applications provide custom tag and filter libraries. To access them
-in a template, use the ``{% load %}`` tag::
+There are a number of ways to customize the way the admin interface looks and
+behaves. We'll cover just a few of them below as they relate to our ``Crime``
+model, but Chapter XXX covers customizing the admin interface in detail.
 
-    {% load comments %}
-    
-    {% comment_form for blogs.entries entry.id with is_public yes %}
+As it stands now, the change list for our crimes shows only the string
+representation of the model we added to its ``__str__`` method in Chapter 3.
+This works fine for just a few crimes, but if we had hundreds or thousands of
+crimes, it would be very hard to locate a single needle amoung the haystack.
+However, we can easily add some display, searching, and filtering functions to
+this interface. Change the ``Admin`` declaration to::
 
-In the above, the ``load`` tag loads the ``comments`` tag library, which then
-makes the ``comment_form`` tag available for use. Consult the documentation
-area in your admin to find the list of custom libraries in your installation.
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        type        = models.ForeignKey(CrimeType)
 
-The ``{% load %}`` tag can take multiple library names, separated by spaces.
-Example::
+        class Admin:
+            ordering      = ['-when']
+            list_display  = ['location', 'type', 'when']
+            list_filter   = ['when', 'type']
+            search_fields = ['location']
 
-    {% load comments i18n %}
-    
-Chapter 9 explains how you can write your own custom template tag libraries.
+These four lines of code dramatically change our list interface:
 
-Custom libraries and template inheritance
------------------------------------------
+.. image:: images/chapter04/changelist2.png
 
-When you load a custom tag or filter library, the tags/filters are only made
-available to the current template -- not any parent or child templates along
-the template-inheritance path.
+Each of those lines instructed the admin to construct a different piece of this interface::
 
-For example, if a template ``foo.html`` has ``{% load comments %}``, a child
-template (e.g., one that has ``{% extends "foo.html" %}``) will *not* have
-access to the comments template tags and filters. The child template is
-responsible for its own ``{% load comments %}``.
+    * The ``ordering`` option controls what order the objects are presented in
+      the admin.  It's simply a list of fields to order the results by;
+      prefixing a field with a minus sign means to reverse the given order. So
+      in this example, we're ordering by when the crime occurred, most recent
+      crimes first.
 
-This is a feature for the sake of maintainability and sanity.
+    * The ``list_display`` option controls which columns appear in the change
+      list table.  By default, only a single column with the object's string
+      representation appears; here we've changed that to show the location,
+      type, and date of the crime all on the list page.
+
+    * The ``list_filter`` option creates the filtering bar on the right side
+      of the list.  We've allowed filtering either by date (which allows you
+      to see only crimes occuring in the last week, month, etc.), and by type
+      (which allows you to see only crimes of a given type).
+
+      You can instruct the admin to filter by any date field, any foreign key,
+      or any field with a ``choices`` attribute set (see XXX for more
+      information about ``choices``).
+
+    * Finally, the ``search_fields`` option creates a field that allows text
+      searches. This allows searches by the ``location`` field (so you could
+      type "Michigan" to show all crimes that occured on Michigan Ave.).
+
+Using these options -- and the other ones described in Chapter XXX -- you can
+with only a few lines of code make a very powerful, production-ready interface
+for data editing.
+
+Customize the admin look and feel
+=================================
+
+.. This and the next section is taken mostly verbatim from tutorial02.txt
+
+Clearly, having "Django administration" and "example.com" at the top of each
+admin page is ridiculous. It's just placeholder text.
+
+That's easy to change, though, using Django's template system. The Django
+admin is powered by Django itself, and its interfaces use Django's own
+template system. (How meta!)
+
+Open your settings file (``mysite/settings.py``, remember) and look at the
+``TEMPLATE_DIRS`` setting. ``TEMPLATE_DIRS`` is a tuple of filesystem
+directories to check when loading Django templates. It's a search path.
+
+By default, ``TEMPLATE_DIRS`` is empty. So, let's add a line to it, to tell
+Django where our templates live::
+
+    TEMPLATE_DIRS = (
+        "/home/mytemplates", # Change this to your own directory.
+    )
+
+Now copy the template ``admin/base_site.html`` from within the default Django
+admin template directory (``django/contrib/admin/templates``) into an
+``admin`` subdirectory of whichever directory you're using in
+``TEMPLATE_DIRS``. For example, if your ``TEMPLATE_DIRS`` includes
+``"/home/mytemplates"``, as above, then copy
+``django/contrib/admin/templates/admin/base_site.html`` to
+``/home/mytemplates/admin/base_site.html``. Don't forget that ``admin``
+subdirectory.
+
+Then, just edit the file and replace the generic Django text with your own
+site's name and URL as you see fit.
+
+Note that any of Django's default admin templates can be overridden. To
+override a template, just do the same thing you did with ``base_site.html`` --
+copy it from the default directory into your custom directory, and make
+changes.
+
+Astute readers will ask: But if ``TEMPLATE_DIRS`` was empty by default, how
+was Django finding the default admin templates? The answer is that, by
+default, Django automatically looks for a ``templates/`` subdirectory within
+each app package, for use as a fallback. See "Template loaders" in Chapter 9
+for more information about how this works.
+
+Customize the admin index page
+==============================
+
+On a similar note, you might want to customize the look and feel of the Django
+admin index page.
+
+By default, it displays all available apps, according to your
+``INSTALLED_APPS`` setting, sorted by the name of the application. You might,
+however, want to change this order to make it easier to find the apps you're
+looking for. After all, the index is probably the most important page of the
+admin, and it should be easy to use.
+
+The template to customize is ``admin/index.html``. (Do the same as with
+``admin/base_site.html`` in the previous section -- copy it from the default
+directory to your custom template directory.) Edit the file, and you'll see it
+uses a template tag called ``{% get_admin_app_list as app_list %}``. That's
+the magic that retrieves every installed Django app. Instead of using that,
+you can hard-code links to object-specific admin pages in whatever way you
+think is best.
+
+Django offers another shortcut in this department. Run the command ``python
+manage.py adminindex polls`` to get a chunk of template code for inclusion in
+the admin index template. It's a useful starting point.
+
+For full details on customizing the look and feel of the Django admin site in
+general, see Chapter 17.
+
+When and why to use the admin interface
+=======================================
+
+We think Django's admin interface is pretty spectacular. In fact, we'd call it
+one of Django's main "killer features". However, we often get asked questions
+about "use cases" for the admin -- when do *we* use it, and why? Over the
+years, we've discovered a number of patterns for using the admin interface
+that we think might be helpful.
+
+Obviously, it's extremely useful for -- duh -- editing data. If you have any
+sort of data entry tasks, the admin simply can't be beat. We suspect that the
+vast majority of readers of this book will have a whole host of data entry
+tasks.
+
+The Django community has put quite a bit of effort into making the admin fast,
+intuitive and user-friendly, and we think it shows.
+
+However, beyond the obvious data-entry tasks, we find the admin useful in a
+few other cases:
+
+    * Inspecting data models: the first think we do when we've defined a new
+      model is to call it up in the admin and enter some dummy data.  This is
+      usually when we find any data modeling errors; having a graphical
+      interface to a model quickly revels those mistakes.
+
+    * Managing acquired data: there's little actual data entry associated with
+      a site like chicagocrime.org since most of the data comes from an
+      automated source.  However, when problems with the automatically acquired
+      data crop up, it's very useful to be able to go in and edit that data
+      easily.
+
+.. XXX I know there was one other pattern I wanted to talk about here, but I've forgotten it now...
 
 What's next?
 ============
 
-At this point, you should understand enough about how templates work to create
-the crimes-by-type template yourself and retrofit the ``base.html`` we created
-onto the existing crime detail template. Consider that your "homework".
+So far we've created a few models and configured a top-notch interface for
+editing that data. However, most of what we've written so far isn't exactly
+"code" as much as declarative models and settings. In the next chapter, we'll
+roll up our sleeves and start on the most interesting and exciting part of
+programming in Django: writing the public-facing views.
 
-At this point we've also covered nearly all the basics, and you're probably
-ready to go out and create the Next Big Thing™. There's still one thing
-missing, though -- a way to let the site interact with readers. In the next
-chapter we'll plug that gap by explaining how Django does form processing.
-
-Care to join us?
-
-
-
-
-
-
-
-
-
-
-
+So grab another cup of your favorite beverage and let's get started.

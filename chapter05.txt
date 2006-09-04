@@ -1,578 +1,484 @@
-================
-Chapter 5: Views
-================
+==============================================
+Chapter 5: Interacting with a database: Models
+==============================================
 
-.. Much of this chapter comes from the third Django tutorial (tutorial03.txt)
+In Chapter 3, we covered the fundamentals of building dynamic Web sites
+with Django: setting up views and URLconfs. As we explained, a view is
+responsible for doing *some arbitrary logic*, then returning a response. In the
+example, our *arbitrary logic* was to calculate the current date and time.
 
-This is where it gets really interesting.
+In many modern Web applications, the *arbitrary logic* involves interacting
+with a database. Behind the scenes, a so-called **database-driven Web site**
+connects to a database server, retrieves some data out of it and displays that
+data, nicely formatted, on a Web page. Or, similarly, the site could provide
+HTML forms that let site visitors populate the database on their own.
 
-Up until this point, we've been dealing with how Django simplifies the boring,
-annoying, repetitive tasks every web developer faces. Now that we've gotten
-them out of the way, we can finally deal with the exciting, fun part of web
-development: creating the public facing views.
+Many complex Web sites provide some combination of the two. Amazon.com, for
+instance, is a great example of a database-driven site. Each product page is
+essentially an HTML view into Amazon's product database, and when you post a
+customer review, it gets inserted into the database of reviews.
+
+Django is very well-suited for making database-driven Web sites, as it comes
+with easy yet powerful ways of performing database queries with Python. This
+chapter explains that functionality -- Django's database layer.
+
+(Note: We'll assume you are familiar with basic database theory and SQL. An
+introduction to those concepts is out of the scope of this book.)
+
+The MTV development pattern
+===========================
+
+Before we delve into code, let's a moment to consider the overall design of a
+database-driven Django Web application.
+
+Your first app
+==============
+
+Database setup
+==============
+
+Now, edit ``settings.py``. It's a normal Python module with module-level
+variables representing Django settings. Change these settings to match your
+database's connection parameters:
+
+    ``DATABASE_ENGINE``
+        Either 'postgresql', 'mysql', 'sqlite3', `ado_mssql`, or `oracle`. See
+        `Setting up a database` for more information about each database
+        Django supports.
+
+    ``DATABASE_NAME``
+        The name of your database, or the full (absolute) path to the database
+        file if you're using SQLite.
+
+    ``DATABASE_USER``
+        Your database username (not used for SQLite).
+
+    ``DATABASE_PASSWORD``
+        Your database password (not used for SQLite).
+
+    ``DATABASE_HOST``
+        The host your database is on. Leave this as an empty string if your
+        database server is on the same physical machine (not used for SQLite).
 
 .. note::
 
-    We refer to views your write yourself as "public views" to differentiate
-    them from the built-in admin interface, but really these "public" views
-    could be anywhere on the spectrum of private-only-for-a-single-user to
-    completely public world-accessibly websites.
-    
-This is also the point where Django philosophy of "getting out of your way"
-comes into play: when writing views, you're pretty much left to your own
-devices as Django tries to be as unobtrusive as possible.
+    Make sure you've created a database within your database application by
+    this point. Do that with "``CREATE DATABASE database_name;``" within your
+    database's interactive prompt (such as ``psql`` or ``mysql``).
 
-.. admonition:: A note to the lazy
+Run the following command to initialize your database with Django's default
+installed apps::
 
-    Much of what we'll cover in this chapter can actually be done quicker and
-    with less code using a feature called **Generic Views**, covered in
-    Chapter 9. We're presenting this material first since we think a strong
-    understanding of how to write your own views is very important -- you have
-    to walk before you can run.
-    
-    However, as laziness is one of the cardinal virtues of the programmer (XXX
-    LINK NEEDED XXX), we won't be offended if you skip ahead and come back
-    when you need a deeper understanding of exactly how views work.
+    python manage.py syncdb
 
-Philosophy
-==========
+The ``syncdb`` command takes care of initalizing your database with any tables
+not yet defined. You'll run it any time you add new models to your project;
+see Chapter 3 for more information on the ``manage.py`` utility and the
+``syncdb`` command.
 
-A view is a "type" of Web page in your Django application that generally
-serves a specific function and has a specific template. For example, in a
-weblog application, you might have the following views:
+If you're interested, run the command-line client for your database and type
+``\dt`` (PostgreSQL), ``SHOW TABLES;`` (MySQL), or ``.schema`` (SQLite) to
+display the tables Django created.
 
-    * Blog homepage -- displays the latest few entries.
-    
-    * Entry "detail" page -- permalink page for a single entry.
-    
-    * Year-based archive page -- displays all months with entries in the
-      given year.
-      
-    * Month-based archive page -- displays all days with entries in the
-      given month.
-      
-    * Day-based archive page -- displays all entries in the given day.
-    
-    * Comment action -- handles posting comments to a given entry.
+What's a model?
+===============
 
-In our simplistic crime database example, we'll want a few views:
+In a nutshell, a model describes your data. They're like a blueprint: they
+explain what types of objects you'll use, what fields those objects have, and
+how it all fits together. In Django, models definitions also contain metadata
+about your models that Django uses to build APIs -- more on that later.
 
-    * A "home page" showing the most recent crimes in the database and
-      a list of all available crime types.
-    
-    * A list of crimes by type -- one page for each type of crime.
-    
-    * A detailed view of each crime.
-    
-(We'll also extend this short list in Chapter 7 by adding forms for readers to
-submit corrections and/or additional information for each crime.)
+In Django, you define these models as Python modules and then use tools to
+turn those models into SQL data definitions that create tables in your
+database.
 
-In essence, a view is responsible for pulling together all the information
-accessible at a given URL. It's where you look up data from a database, read
-it in from a file, aggregate or summarize it, etc. Note that a view is *not*
-where you define how this data *looks*; that's up to a template, which we'll
-cover in the next chapter.
+Now, many web development platforms want you to define your models using SQL.
+After all, the data will eventually be stored in a database, so why not simply
+define your models there first? While this logic makes sense on the surface,
+we disagree:
 
-Design your URLs
-================
+    * Writing SQL can be tough.  Different databases require you to do things
+      differently, and having to write three different versions of your
+      data definitions is the opposite of elegant.
 
-The first step of writing views is to design your URL structure. You do this
-by creating a Python module, called a **URLconf**. URLconfs are how Django
-associates a given URL with given Python code.
+    * Having your data definitions stored in the database instead of in code
+      means it's harder to keep your models under version control. Django does
+      its best to support development best practices, which certainly includes
+      the use of source control.
 
-When a user requests a Django-powered page, the system looks at the
-``ROOT_URLCONF`` setting, which contains a string in Python dotted syntax.
-Django loads that module and looks for a module-level variable called
-``urlpatterns``, which is a sequence of tuples in the following format::
+    * Your application will need to work with the database design regardless
+      of how you created it. If you created it using SQL, you'd have to repeat
+      yourself. Don't Repeat Yourself.
 
-    (regular expression, Python callback function [, optional dictionary])
+    * Writing Python is fun! Django does its best to keep you writing Python
+      all the time.
 
-Django starts at the first regular expression and makes its way down the list,
-comparing the requested URL against each regular expression until it finds one
-that matches.
+.. XXX JGD Added a fourth reason.
 
-When it finds a match, Django calls the Python callback function, with an
-``HTTPRequest`` object as the first argument, any "captured" values from the
-regular expression as keyword arguments, and, optionally, arbitrary keyword
-arguments from the dictionary (an optional third item in the tuple).
+Creating models
+===============
 
-For more on ``HTTPRequest`` objects, see Chapter XXX, and for more details on
-URLconfs, see Chapter XXX.
+Right, enough propaganda.  What does a model look like?
 
-When you ran ``django-admin.py startproject myproject`` at the beginning of
-Chapter 2, it created a default URLconf in ``myproject/urls.py``. It also
-automatically set your ``ROOT_URLCONF`` setting to point at that file::
+::
 
-    ROOT_URLCONF = 'myproject.urls'
+    from django.db import models
 
-Let's dive into writing views by editing ``myproject/urls.py`` so it looks like this::
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        description = models.TextField()
 
-    from django.conf.urls.defaults import *
+This describes a super-simple ``Crime`` model (which we'll expand over the
+course of the next few chapters). Each ``Crime`` object has
 
-    urlpatterns = patterns('',
-        (r'^crimes/$', 'myproject.crimes.views.index'),
-        (r'^crimes/types/(?P<type_id>\d+)/$', 'myproject.crimes.views.crimes_by_type'),
-        (r'^crimes/detail/(?P<crime_id>\d+)/$', 'myproject.crimes.views.detail'),
+    * a ``when`` field which is a date/time object
+    * a ``location`` field which is a character field with a maximum length of
+      300 characters,
+    * and a ``description`` field which is a (unlimited length) text field.
+
+Unless you instruct it otherwise (see XXX), Django will also automatically
+create an integer primary key field called ``id``.
+
+At this point, this is pretty much equivalent to the following SQL when using
+PostgreSQL as the backend. ::
+
+    CREATE TABLE "crimes_crime" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "when" timestamp with time zone NOT NULL,
+        "location" varchar(300) NOT NULL,
+        "description" text NOT NULL
+    );
+
+In fact, we can generate that SQL above using Django itself.
+
+Installing models
+=================
+
+First, though, we'll need to put this code into the place that Django expects
+it to be. We'll put this code inside the first project you created in Chapter
+2 (so go back and do that if you haven't already). You'll want to drop into a
+shell, and in the project directory you created before, do::
+
+    $ python manage.py startapp crimes
+
+This will create a ``crimes`` package for you to put your code in. This
+directory now contains two files, ``models.py`` and ``views.py``; you'll want
+to put the model code above into the ``models.py`` file.
+
+You've now created a model, but there's one more step to getting this model
+registered with Django. In your ``settings.py`` file, you'll see a list called
+``INSTALLED_APPS``. This list tells a given Django instance which apps should
+be considered "active" for that instance. This lets you have a large library
+of models and select which ones you want enabled on a site-by-site basis.
+You'll want to modify ``INSTALLED_APPS`` so that it looks like::
+
+    INSTALLED_APPS = (
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.sites',
+        'mysite.crimes',         # <-- add this line
     )
 
-This is worth a review. When somebody requests a page from your Web site --
-say, "/crimes/detail/44/", Django will load this Python module, because it's
-pointed to by the ``ROOT_URLCONF`` setting.
+Now your app is registered with this Django project. The first thing you'll
+want to do to celebrate is to make sure you've got the model defined
+correctly. Try this::
 
-Django then finds the variable named ``urlpatterns`` and traverses the regular
-expressions in order. When it finds a regular expression that matches --
-``r'^crimes/detail/(?P<crime_id>\d+)/$'`` -- it loads the associated Python
-package/module: ``myproject.crimes.views.detial``. That corresponds to
-the function ``detail()`` in ``myproject/crimes/views.py``. Finally, it
-calls that ``detail()`` function like so::
+    $ python manage.py validate
 
-    detail(request=<HttpRequest object>, crime_id='44')
+Django should spit out ``0 errors found``; if it doesn't, it means you've got
+errors defined in your model somewhere. Check that you've copied the code
+above correctly.
 
-The ``crime_id='44'`` part comes from ``(?P<crime_id>\d+)``. Using parenthesis
-around a pattern "captures" the text matched by that pattern and sends it as
-an argument to the view function; the ``?P<crime_id>`` defines the name that
-will be used to identify the matched pattern; and ``\d+`` is a regular
-expression to match a sequence of digits (i.e., a number).
+From here, you'll probably want to install this model into you database so you
+can start reading and writing data from and to the database. Run::
 
-Because the URL patterns are regular expressions, there really is no limit on
-what you can do with them. And there's no need to add URL cruft such as
-``.php`` -- unless you have a sick sense of humor, in which case you can do
-something like this::
+    $ python manage.py syncdb
 
-    (r'^crimes/latest\.php$', 'myproject.crimes.views.index'),
+This automatically creates the tables for this model in the database. You'll
+re-run ``syncdb`` every time you add new models to your project so that Django
+creates the related tables in the database.
 
-But, don't do that. It's silly.
+If you want to see the SQL that Django is running against your database, you
+can run::
 
-Note that these regular expressions do not search GET and POST parameters, or
-the domain name. For example, in a request to
-``http://www.example.com/myapp/``, the URLconf will look for ``/myapp/``. In a
-request to ``http://www.example.com/myapp/?page=3``, the URLconf will look for
-``/myapp/``.
+    $ python manage.py sql crimes
 
-If you need help with regular expressions, see Wikipedia's entry
-(http://en.wikipedia.org/wiki/Regular_expression) and the Python documentation
-(http://www.python.org/doc/current/lib/module-re.html). Also, the O'Reilly
-book "Mastering Regular Expressions" by Jeffrey Friedl is fantastic.
+to have Django print the SQL for the ``crimes`` model to the console (with
+pretty syntax highlighting on \*nix). There's also quite a number of other
+things you can do with ``manage.py``; see Chapter XXX for a complete
+reference.
 
-.. Are we "allowed" to pimp non-Apress books? <grin>
+.. XXX JGD This command shows nothing after running syncdb.  It should be noted that the output changes depending on whether your DB's already been synced for a given installed app.
 
-Finally, a performance note: these regular expressions are compiled the first
-time the URLconf module is loaded so they're super fast.
+Playing with the Python API
+===========================
 
-Write your first view
-=====================
+Once you've created a model, Django automatically provides a high-level Python
+API for working with those models. Let's try it out -- try the following::
 
-At this point we've not actually created any views -- we just have the
-URLconf. But let's make sure Django is following the URLconf properly.
+    $ python manage.py shell
 
-Fire up the Django development Web server::
+    >>> from crimes.models import Crime
+    >>> from datetime import datetime
 
-    python manage.py runserver
+    >>> c = Crime(when=datetime.now(), location="1137 Vermont St",
+    ...           description="Breaking and Entering")
+    ...
+    >>> c.save()
 
-Now go to "http://localhost:8000/crimes/" on your domain in your Web browser.
-You should get a pleasantly-colored error page::
+    >>> c2 = Crime(when=datetime.now(), location="1208 Florida St",
+    ...           description="Reckless driving")
+    ...
+    >>> c2.save()
 
-.. image:: images/chapter05/crime_view_does_not_exist.png
+    >>> crime_list = Crime.objects.all()
+    >>> print crime_list
+    [<Crime: Crime object>, <Crime: Crime object>]
 
-This error happened because you haven't written a function ``index()`` in the
-module ``myproject/crimes/views.py``.
 
-Try "/crimes/detail/23/", "/crimes/types/44/" and "/salmon/". The first two
-error messages show look the same and will tell you which view Django tried
-(and failed to find, because you haven't written any views yet).
+Although it's only a few lines of code, this actually does quite a bit. You
+can see how objects are created (Django objects are simply Python classes) and
+saved to the database (all Django objects have a ``save()`` method which saves
+the object to the database).
 
-The third URL -- ``/salmon/`` -- will give you a different error, Django's
-version of a HTTP 404 page::
+You can also see how objects are retrieved from the database:
+``Crime.objects`` lets you interact with the objects already stored in the
+database. ``Crime.objects.all()`` is how you fetch a list of already-created
+``Crime`` objects from the database.
 
-.. image:: images/chapter05/404.png
+..note::
 
-This is because no patterns match the URL you've given Django, and so it tells you so.
+    Technically, ``Crime.objects`` is a "manager" object; see Chapter XXX for
+    more information about managers.
 
-.. note::
+There's quite a lot more you can do here -- and in fact Chapter XXX has a
+complete reference to this object API -- but first let's take care of a small
+annoyance.
 
-    These "pretty" error pages show up because you have ``DEBUG = True`` in
-    your settings file. Once you actually deploy a site, change ``DEBUG`` to
-    ``False`` will replace these developer-friendly error pages with simple
-    error pages that don't reveal any potentially dangerous information about
-    your site.
+As you can see above, when we printed out the list of crimes, all we got was
+the unhelpful::
 
-OK, time to write our first view.. Open the file ``myproject/crimes/views.py``
-and put the following Python code in it::
+    [<Crime: Crime object>, <Crime: Crime object>]
 
-    from django.http import HttpResponse
+We can fix that easily by adding a method to our ``Crime`` object that handles
+conversion to a string. This takes the shape of a Python "magic method" called
+``__str__``; you can see it in action by adding one to your ``Crime`` class::
 
-    def index(request):
-        return HttpResponse("Hello, world. You're at the crime index.")
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        description = models.TextField()
 
-This is the simplest view possible. Go to "/crimes/" in your browser, and you
-should see your text.
+        def __str__(self):
+            return "Crime at %s on %s" % \
+                (self.location, self.when.strftime("%Y-%m-%d"))
 
-.. note::
+Now, printing the list of crimes looks a lot better::
 
-    Django's development server automatically reloads your code when you
-    make any changes to it; you don't have to restart the server.  However,
-    this reloading process can take a second or two, so if you see a 
-    "server is not responding" message in your browser just wait a second
-    and try again.
+    >>> Crime.objects.all()
+    [<Crime: Crime at 1137 Vermont St on 2006-05-16>,
+     <Crime: Crime at 1208 Florida St on 2006-05-16>]
 
-Now add the following view. It's slightly different, because it takes an
-argument (which, remember, is passed in from whatever was captured by the
-regular expression in the URLconf)::
-
-    def detail(request, crime_id):
-        return HttpResponse("You're looking at crime %s." % crime_id)
-
-Take a look in your browser, at "/crimes/detail/34/". It'll display whatever
-ID you provide in the URL.
-
-Write views that actually do something
-======================================
-
-Each view is responsible for doing one of two things: Returning an
-``HttpResponse`` object containing the content for the requested page, or
-raising an exception such as ``Http404``. The rest is up to you.
-
-Your view can read records from a database, or not. It can use a template
-system such as Django's -- or a third-party Python template system -- or not.
-It can generate a PDF file, output XML, create a ZIP file on the fly, anything
-you want, using whatever Python libraries you want.
-
-All Django wants is that ``HttpResponse``. Or an exception.
-
-Because it's convenient, let's use Django's own database API, which we covered
-in Chapter 3. Here's one stab at the ``index()`` view, which displays the
-latest 10 crime locations in the system, according to
-when the crimes occurred::
-
-    def index(request):
-        latest_crime_list = Crime.objects.all().order_by('-pub_date')[:10]
-        output = "<ul>"
-        for crime in latest_crime_list:
-            output += "<li>Crime: %s at %s [%s]" % \
-                (crime.type, crime.location, crime.when)
-        output += "</ul>"
-        return HttpResponse(output)
-
-There's a problem here, though. The page's design is hard-coded in the view.
-If you want to change the way the page looks, you'll have to edit this Python
-code. So let's use Django's template system to separate the design from
-Python::
-
-    from django import template
-    from myproject.crimes.models import Crime
-    from django.http import HttpResponse
-
-    def index(request):
-        latest_crime_list = Crime.objects.all().order_by('-pub_date')[:10]
-        t = template.loader.get_template('crimes/index.html')
-        c = Context({
-            'latest_crime_list': latest_crime_list,
-        })
-        return HttpResponse(t.render(c))
-
-That code loads the template called "crimes/index.html" and passes it a
-context. The context is a dictionary mapping template variable names to Python
-objects.
-
-Reload the page. Now you'll see an error::
-
-.. image:: images/chapter05/missing_crime_index_template.png
-
-Ah. There's no template yet. First, create a directory, somewhere on your
-filesystem, whose contents Django can access. (Django runs as whatever user
-your server runs.) It doesn't really matter where these templates live; one
-good place is inside the ``myproject`` directory.
-
-Now edit ``TEMPLATE_DIRS`` in your ``settings.py`` to tell Django where it
-can find templates -- just as you did in the "Customize the admin look and
-feel" section of Chapter 4.
-
-When you've done that, create a directory ``crimes`` in your template
-directory. Within that, create a file called ``index.html``.   The line::
-
-    template.loader.get_template('crimes/index.html')
-    
-from above maps to ``<template_directory>/crimes/index.html`` on the
-filesystem.
-
-Put this code in that template::
-
-    {% if latest_crime_list %}
-        <ul>
-        {% for crime in latest_crime_list %}
-            <li>{{ crime.type }} at {{ crime.location }} 
-                [{{ crime.when }}]</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No crimess are available.</p>
-    {% endif %}
-
-Load the page in your Web browser, and you should see a bulleted-list of any
-crimes you've entered into the database.  
-
-For the moment, don't worry too much about the template syntax; we'll cover it
-in detail in the next chapter. What's important to notice now is how the
-template system uses dot-lookup syntax to access variable attributes. In the
-example of ``{{ crime.location }}``, first Django does a dictionary lookup on
-the object ``crime``. Failing that, it tries attribute lookup -- which works,
-in this case. If attribute lookup had failed, it would've tried calling the
-method ``crime()`` on the crime object.
-
-Also notice that Django automatically follows the relationship to ``type``
-when you say ``{{ crime.type }}``, and converts the ``CrimeType`` object to a
-string using the ``__str__`` method we defined in Chapter 3.
-
-We'll let the rest of this template remain a bit of a mystery until the next chapter.
-
-A shortcut: render_to_response()
---------------------------------
-
-It's a very common idiom to load a template, fill a context and return an
-``HttpResponse`` object with the result of the rendered template. Django
-provides a shortcut. Here's the full ``index()`` view, rewritten::
-
-    from django.shortcuts import render_to_response
-    from myproject.crimes.models import Crime
-
-    def index(request):
-        latest_crime_list = Crime.objects.all().order_by('-pub_date')[:10]
-        return render_to_response('crimes/index.html', {
-            'latest_crime_list': latest_crime_list
-        })
-
-Note that we no longer need to import ``loader``, ``Context`` or
-``HttpResponse``.
-
-The ``render_to_response()`` function takes a template name as its first
-argument and a dictionary as its optional second argument. It returns an
-``HttpResponse`` object of the given template rendered with the given context.
-
-Raising 404
-===========
-
-Now, let's tackle the crime detail view -- the page that displays detailed
-information for a single crime::
-
-    from django.http import Http404
-    from django.shortcuts import render_to_response
-    from myproject.crimes.models import Crime
-
-    def detail(request, crime_id):
-        try:
-            c = Crime.objects.get(pk=crime_id)
-        except Crime.DoesNotExist:
-            raise Http404
-        return render_to_response('crimes/detail.html', {'crime': c})
-
-The new concept here: The view raises the ``django.http.Http404``
-exception if a crime with the requested ID doesn't exist.
-
-A shortcut: get_object_or_404()
--------------------------------
-
-It's a very common idiom to use ``get_object()`` and raise ``Http404`` if the
-object doesn't exist. Again, Django provides a shortcut for this idiom..
-Here's the ``detail()`` view, rewritten::
-
-    from django.shortcuts import render_to_response, get_object_or_404
-    from myproject.crimes.models import Crime
-
-    def detail(request, crime_id):
-        c = get_object_or_404(Crime, pk=crime_id)
-        return render_to_response('crimes/detail.html', {'crime': c})
-
-The ``get_object_or_404()`` function takes a Django model module as its first
-argument and an arbitrary number of keyword arguments, which it passes to the
-module's ``get_object()`` function. It raises ``Http404`` if the object
-doesn't exist.
+.. XXX JGD Seeing this change requires reloading the Crime model, no?  Maybe explain that or
+.. XXX JGD show it by doing from crimes import models and referring to models.Crime,
+.. XXX JGD so you can reload(models).  Or am I being stupid?
+
+You'll want to make sure that any model you define has the ``__str__`` method.
+Django uses this method anywhere a human-readable version of the object needs
+to be displayed.
+
+.. XXX JGD A note explaining that user-facing pages generally won't be relying on __str__
+.. XXX JGD would be good.  __str__ is mostly helpful terminal and admin, right?  Or, put
+.. XXX JGD  another way, if too much relies on __str__, when __str__ needs to change for
+.. XXX JGD   some need, all places relying on __str__ will need to change.  This is the
+.. XXX JGD    same reason surrogate keys (aka id sequence) are used in DBs even if a natural
+.. XXX JGD     key exists.
+
+Customizing object metadata
+===========================
+
+To save you time, Django automatically derives the name of the database table
+from the name of your model class and the app that contains it. A model's
+database table name is constructed by joining the model's "app label" -- the
+name you used in ``manage.py startapp`` -- to the model's class name, with an
+underscore between them.
+
+So, if you examine your database now (or the output of ``manage.py sql
+crimes``) you'll see that Django has automatically named the ``Crime`` table
+``crimes_crime``.
+
+So what if you're sharing a database with other users and you need to be
+careful about table names, or what if you just don't like the automatic name?
+Well, each Django model can define metadata about that object; this is done by
+defining an inner class called ``Meta``::
+
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        description = models.TextField()
+
+        class Meta:
+            db_table = "crimes"
+
+The ``db_table`` option overrides the default table name that Django uses.
+There's really no reason to use this option now, so for the rest of this
+walkthrough we'll assume you removed it.
 
 .. admonition:: Philosophy
 
-    Why do we use a helper function ``get_object_or_404()`` instead of
-    automatically catching the ``DoesNotExist`` exceptions at a higher level,
-    or having the model API raise ``Http404`` instead of ``DoesNotExist``?
-    
-    Because that would couple the model layer to the view layer. One of the
-    foremost design goals of Django is to maintain loose coupling; since 
-    models can be used in many other places besides service web requests,
-    they shouldn't have to know details about HTTP like 404 error codes.
+    You'll see this pattern repeated everywhere in Django.  The framework
+    provides sensible defaults, but always lets you override them if you
+    need more fine-grained control.
 
-There's also a ``get_list_or_404()`` function, which works just as
-``get_object_or_404()`` -- except using ``get_list()`` instead of
-``get_object()``. It raises ``Http404`` if the list is empty.
+.. XXX JGD No nod/snark to "convention over configuration"?
 
-Write a 404 (page not found) view
+Of course, there are other ``Meta`` options available; refer to Chapter XXX
+for a complete reference.
+
+Relations
+=========
+
+Of course, what's the point of using a relational database if we don't use
+relations? Let's refine our ``Crime`` object to be somewhat better designed.
+Right now, we're simply stuffing a description of the crime into the
+``description`` field, but that will quickly fill up with duplicate values
+like "carjacking" and "distributing cigarettes to minors". Let's break those
+crime types out into a related object::
+
+    class CrimeType(models.Model):
+        name        = models.CharField(maxlength=250)
+        is_felony   = models.BooleanField()
+
+        def __str__(self):
+            return self.name
+
+.. XXX JGD This has to be in the models.py file before Crime, right?  It'd be good to note it.
+
+Here we've defined a "crime type" object which we'll populate with all the
+possible crimes on the books. Now we'll modify the exiting ``Crime`` object to
+replace the ``description`` field with a relation to this one::
+
+    class Crime(models.Model):
+        when        = models.DateTimeField()
+        location    = models.CharField(maxlength=300)
+        type        = models.ForeignKey(CrimeType)
+
+.. XXX JGD You're both modifying an existing bit of code and excluding
+.. XXX JGD some previously-added code.  It'd be good to make it clear that the other
+.. XXX JGD code is not to be removed.  Perhaps a small
+.. XXX JGD admonition at the first occurrence of this in the book?
+
+This defines a foreign key on the ``type`` field which points to a ``CrimeType``.
+
+.. admonition:: Huh?
+
+    What's a "foreign key"?  If you're not familiar with database terminology,
+    XXX what should they do??? XXX
+
+.. XXX JGD We could just have a glossary for the book (which could include any DB terms
+.. XXX JGD you don't want to assume).  Or, if it's not too political, you could recommend
+.. XXX JGD a couple books (one for each popular backend?).
+.. XXX JGD Lastly, Wikipedia has nice relation data modeling coverage:
+.. XXX JGD http://en.wikipedia.org/wiki/Category:Data_modeling
+
+Modifying models
+================
+
+If you actually try to use these models at this point, you'll quickly find
+problems. Although you've changed the ``Crime`` model, those changes can't
+automatically be transfered into the database. You've got to inform the
+database that you've changed the model, and you've got two options::
+
+    1. Use SQL to modify the database tables.  That is, use ``ALTER TABLE``
+       commands to modify the database directly to match the model.
+
+       This is the approach you have to take if you've already got important
+       data stored in the database.
+
+    2. If, however, you don't care about the data in the database, you can
+       "reset" a given model, dropping and restoring the tables involved.
+
+Since we've just started, we'll take the second route.  Run::
+
+    $ python manage.py reset crimes
+
+Django will ask you if you're *sure* that this is something you want to do;
+say "yes" and the old tables will be dropped and new ones created.
+
+.. admonition:: Philosophy:
+
+    Yes, you're right to think that option 1 looks pretty difficult.  If
+    you've got to make a schema change in an application with a bunch of
+    existing data it can indeed be time-consuming.
+
+    However, automated tools could be very dangerous here. Django won't
+    automatically modify your database for you; that could lead to
+    catastrophic data loss.
+
+    So, spend a little extra time up front making sure your models are
+    well-defined and future-proof.  You'll recover that time in spades
+    in the future -- trust us!
+
+.. XXX JGD It's impossible to future-proof, and its wrong to suggest it is possible.
+.. XXX JGD As a newcomer to Django, this looks suspiciously like the Python-defined
+.. XXX JGD models is necessary but not sufficient for the DRY principal.
+.. XXX JGD Migration code obviously shouldn't be automated.
+.. XXX JGD What's up with http://code.djangoproject.com/wiki/SchemaEvolution#conclusions ?
+.. XXX JGD Assuming that won't be done, the book should at least go through one
+.. XXX JGD real-worldy model design update process.
+.. XXX JGD Another thing that would help is to explain the thought process involved in
+.. XXX JGD future-proofing (with your crystal ball).
+.. XXX JGD I'm not tryin' to be a jerk, but you can't pretend it's not an issue.  :)
+
+Using relations in the Python API
 =================================
 
-When you raise ``Http404`` from within a view, Django will load a special view
-devoted to handling 404 errors. It finds it by looking for the variable
-``handler404``, which is a string in Python dotted syntax -- the same format
-the normal URLconf callbacks use. A 404 view itself has nothing special: It's
-just a normal view.
+Set up a few example Crimes using the new ``CrimeType`` to explore the Django
+API for foreign keys::
 
-You normally won't have to bother with writing 404 views. By default, URLconfs
-have the following line up top::
+    >>> jaywalking = CrimeType(name="Jaywakling", is_felony=False)
+    >>> jaywalking.save()
+    >>> florida_jaywalking = Crime(when=datetime.now(), location="1211 Florida St", type=jaywalking)
+    >>> florida_jaywalking.save()
+    >>> fortysecond_jaywalking = Crime(when=datetime.now(), location="1301 W. 42nd St", type=jaywalking)
+    >>> fortysecond_jaywalking.save()
 
-    from django.conf.urls.defaults import *
+Now you can retrieve all Crimes of the same CrimeType for any given Crime::
 
-That takes care of setting ``handler404`` in the current module. As you can
-see in ``django/conf/urls/defaults.py``, ``handler404`` is set to
-``'django.views.defaults.page_not_found'`` by default.
+    >>> fortysecond_jaywalking.type.crime_set.all()
+    [<Crime: Crime at 1211 Florida St on 2006-05-17>, <Crime: Crime at 1301 W. 42nd St on 2006-05-17>]
 
-Three more things to note about 404 views:
+Those Crimes refer to the same CrimeType object so that changes in the
+CrimeType are reflected in all Crimes::
 
-    * The 404 view is also called if Django doesn't find a match after
-      checking every regular expression in the URLconf.
+    >>> jaywalking.crime_set.all()[0].type
+    <CrimeType: Jaywakling>
+    >>> jaywalking.name="Jaywalking"
+    >>> jaywalking.save()
+    >>> jaywalking.crime_set.all()[0].type
+    <CrimeType: Jaywalking>
+    >>> jaywalking.crime_set.all()[1].type
+    <CrimeType: Jaywalking>
 
-    * If you don't define your own 404 view -- and simply use the default,
-      which is recommended -- you still have one obligation: To create a
-      ``404.html`` template in the root of your template directory. The
-      default 404 view will use that template for all 404 errors.
-      
-    * If ``DEBUG`` is set to ``True`` (in your settings module) then your 404
-      view will never be used, and the traceback will be displayed instead.
+XXX explain interesting code here
 
-Write a 500 (server error) view
-===============================
+.. XXX: talk about M2M next, or leave that for the ref?
 
-Similarly, URLconfs may define a ``handler500``, which points to a view to
-call in case of server errors. Server errors happen when you have runtime
-errors in view code. Also like the 404 view, you'll want to create a
-``500.html`` template for public consumption when ``DEBUG`` is off.
+.. XXX JGD Is there an M2M in chicrime that's not too out of the way?
 
-Use the template system
-=======================
-
-Back to our crime detail view.  Here's what the ``crimes/detail.html`` template might look like::
-
-    <ul>
-        <li>What: {{ crime.type }}</li>
-        <li>When: {{ crime.when }}</li>
-        <li>Where: {{ crime.location }}</li>
-    </ul>
-
-Simplifying the URLconfs
-========================
-
-Take some time to play around with the views and template system. As you edit
-the URLconf, you may notice there's a fair bit of redundancy in it::
-
-    from django.conf.urls.defaults import *
-
-    urlpatterns = patterns('',
-        (r'^crimes/$', 'myproject.crimes.views.index'),
-        (r'^crimes/types/(?P<type_id>\d+)/$', 'myproject.crimes.views.crimes_by_type'),
-        (r'^crimes/detail/(?P<crime_id>\d+)/$', 'myproject.crimes.views.detail'),
-    )
-
-Namely, ``myproject.crimes.views`` is in every callback.
-
-Because this is a common case, the URLconf framework provides a shortcut for
-common prefixes. You can factor out the common prefixes and add them as the
-first argument to ``patterns()``, like so::
-
-    urlpatterns = patterns('myproject.crimes.views',
-        (r'^crimes/$', 'index'),
-        (r'^crimes/types/(?P<type_id>\d+)/$', 'crimes_by_type'),
-        (r'^crimes/detail/(?P<crime_id>\d+)/$', 'detail'),
-    )
-
-This is functionally identical to the previous formatting. It's just a bit
-tidier, and if you ever decide to relocate those views into a different module
-you've only got one line of code to change.
-
-Decoupling the URLconfs
-=======================
-
-While we're at it, we should take the time to decouple our crime-app URLs from
-our Django project configuration. Django apps are meant to be pluggable --
-that is, each particular app should be transferrable to another Django
-installation with minimal fuss.
-
-Our crime app is pretty decoupled at this point, thanks to the strict
-directory structure that ``python manage.py startapp`` created, but one part
-of it is coupled to the Django settings: The URLconf.
-
-We've been editing the URLs in ``myproject/urls.py``, but the URL design of an
-app is specific to the app, not to the Django installation -- so let's move
-the URLs within the app directory.
-
-Copy the file ``myrpoject/urls.py`` to ``myproject/crimes/urls.py``. Then,
-change ``myproject/urls.py`` to remove the crime-specific URLs and insert an
-``include()``::
-
-    (r'^crimes/', include('myproject.crimes.urls')),
-
-``include()``, simply, references another URLconf. Note that the regular
-expression doesn't have a ``$`` (end-of-string match character) but has the
-trailing slash. Whenever Django encounters ``include()``, it chops off
-whatever part of the URL matched up to that point and sends the remaining
-string to the included URLconf for further processing.
-
-Here's what happens if a user goes to "/crimes/detail/34/" in this system:
-
-    * Django will find the match at ``'^crimes/'``
-    
-    * It will strip off the matching text (``"crimes/"``) and send the
-      remaining text -- ``"detail/34/"`` -- to the 'myproject.crimes.urls'
-      URLconf for further processing.
-
-Now that we've decoupled that, we need to fix the 'myproject.crimes.urls'
-urlconf by removing the leading "crimes/" from each line::
-
-    urlpatterns = patterns('myproject.crimes.views',
-        (r'^$', 'index'),
-        (r'^types/(?P<type_id>\d+)/$', 'crimes_by_type'),
-        (r'^detail/(?P<crime_id>\d+)/$', 'detail'),
-    )
-
-The idea behind ``include()`` and URLconf decoupling is to make it easy to
-plug-and-play URLs. Now that crimes are in their own URLconf, they can be
-placed under "/crimes/", or under "/infractions/", or under
-"/content/crimes/", or any other URL root, and the app will still work.
-
-All the crime app cares about is its relative URLs, not its absolute URLs.
-
-Wrapping up
-===========
-
-Let's wrap this up by finishing off all our views. So far we've written a
-simple index and detail view, but not the ``crimes_by_type`` view. We also
-wanted to show a list of all crime types on the index page. So, here's a
-complete ``views.py`` with those changes that we'll carry into the next
-chapter::
-
-    from django import template
-    from django.http import HttpResponse
-    from django.shortcuts import render_to_response, get_object_or_404
-    from myproject.crimes.models import Crime, CrimeType
-
-    def index(request):
-        latest_crime_list = Crime.objects.all().order_by('-pub_date')[:10]
-        return render_to_response('crimes/index.html', {
-            'latest_crime_list': latest_crime_list,
-            'type_list': CrimeType.objects.all(),
-        })
-        
-    def detail(request, crime_id):
-        c = get_object_or_404(Crime, pk=crime_id)
-        return render_to_response('crimes/detail.html', {'crime': c})
-    
-    def crimes_by_type(request, type_id):
-        ct = get_object_or_404(CrimeType, pk=type_id)
-        return render_to_response('crimes/crimes_by_type.html', {
-            'crime_type' : ct
-        })
+.. XXX JGD Also, I think it'd be good to talk about model cycles.
+.. XXX JGD A Person is holding an Event which has a list of Invitees.
+.. XXX JGD This may be a pet issue since I ran into it w/ MediaWiki's existing schema.
 
 What's next?
 ============
 
-With those last few changes, our simple set of views is done. We've now
-loaded all the data we want to present at each view, but we've only just
-touched on how to format the data using the template system.
+At this point you know enough (with the help of the reference in Chapter XXX)
+to start writing your own models. However, in the next chapter we'll step
+aside to look at the best-looking piece of Django: the automatic admin
+interface.
 
-So, in the next chapter we'll finish the templates for these three views and
-explain the template engine in all its glory.
+So what are you waiting for? Turn the page!
 
-Ready?

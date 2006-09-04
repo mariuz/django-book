@@ -1,6 +1,6 @@
-=======================================================
-Chapter 7: Forms, Formfields, and Manipulators (oh my!)
-=======================================================
+==========================
+Chapter 7: Form processing
+==========================
 
 If you did your "homework" from last chapter, you should now have a fully
 functioning if somewhat simple site. In this chapter, we'll deal with the last
@@ -23,11 +23,11 @@ So it looks like we'd better add some searching to our fledgling crime site,
 no?
 
 We'll start with by adding the search view to our URLconf
-(``myproject.crimes.urls``). Recall that this means adding something like ``
+(``mysite.crimes.urls``). Recall that this means adding something like ``
 (r'^search/$', 'search')`` to the set of URL patterns.
 
 Next, we'll write this ``search`` view into our view module
-(``myproject.crimes.views``)::
+(``mysite.crimes.views``)::
 
     from django.db.models import Q
 
@@ -42,7 +42,7 @@ Next, we'll write this ``search`` view into our view module
             "results": results,
             "query": q
         })
-        
+
 There's a couple of things going on here you've not seen yet.
 
 First, there's this ``request.GET`` business. This is how you access GET data
@@ -51,23 +51,23 @@ These objects behave exactly like standard Python dictionaries with some extra
 features covered in Chapter XXX.
 
 .. admonition:: What's GET and POST data?
-    
+
     GET and POST are the two methods that browsers use to send data to a
     server. Most of the time, you'll see them in HTML form tags::
-    
+
         <form action="/crimes/search/" method="GET">
-        
+
     This instructs the browser to submit the form data to the URL
     ``/crimes/search/`` using the GET method.
-    
+
     There are important differences between the semantics of GET and POST that
     we won't get into right now, but see XXX SOME REFERENCE XXX if you want
     to know more.
-    
+
 So the line::
 
     query = request.GET.get('q', '')
-    
+
 looks for a GET parameter named ``q`` and returns an empty string if that
 parameter wasn't submitted.
 
@@ -84,7 +84,7 @@ There's still no template for this search view, however. This should do the
 trick::
 
     {% extends "base.html" %}
-    
+
     {% block title %}
       Search {% if query %}Results{% endif %}
     {% endblock %}
@@ -94,7 +94,7 @@ trick::
         <label for="q">Search: </label>
         <input type="text" name="q" value="{{ query|escape }}">
       </form>
-      
+
       {% if query %}
         <h2>Results for "{{ query|escape }}":</h2>
 
@@ -109,7 +109,7 @@ trick::
         {% endif %}
       {% endif %}
     {% endblock %}
-    
+
 Hopefully by now what this does is fairly obvious. However, there are a few
 subtleties worth pointing out::
 
@@ -117,22 +117,22 @@ subtleties worth pointing out::
       standard best practice: don't have separate views for the form page and
       the result page; use a single one which serves the form and possibly the
       results if they've been searched for.
-      
+
     * We reinsert the value of the query back into the ``<input>``.  This lets
       readers easily refine their searches without having to retype what they
       searched for.
-      
+
     * Every place ``query`` is used, we pass it through the ``escape`` filter
       to make sure that any potentially malicious search text is filtered out
-      before being inserted into the page.  
-      
-      It's **vital** that you do this with any user-submitted content! 
+      before being inserted into the page.
+
+      It's **vital** that you do this with any user-submitted content!
       Otherwise you open your site up to cross-site scripting (XSS) attacks.
-      
+
     * However, we don't need to worry about harmful content in your database
       lookups, we can simply pass the query into the lookup as-is.  This is
       because Django's database layer handles this aspect of security for you.
-      
+
 Now we've got working search. A further improvement would be putting a search
 form on every page (i.e. in the base template); we'll let you handle that one
 yourself.
@@ -146,7 +146,7 @@ realization of the read-write Web.
 
 .. admonition:: Dear O'Reilly:
 
-    Please don't sue us. we mean the "other" Web 2.0, not the one you  
+    Please don't sue us. we mean the "other" Web 2.0, not the one you
     trademarked.
 
 So why not build a form that lets readers submit their own data? Since this is
@@ -159,7 +159,7 @@ manipulators...
 .. admonition:: A note to the lazy
 
     If all you want to do is present forms for a user to create and/or
-    update a given object, you can probably use generic views (see 
+    update a given object, you can probably use generic views (see
     Chapter 8).  As with the last chapter, this information is here
     so that you can understand how this stuff works before moving onto
     more complex topics.
@@ -172,7 +172,7 @@ Manipulators
 The highest-level interface for object creation and modification is the
 **Manipulator** framework. A manipulator is a utility class tied to a given
 model that "knows" how to create or modify instances of that model and how to
-validate data for the object. 
+validate data for the object.
 
 Manipulators come in two flavors: ``AddManipulators`` and
 ``ChangeManipulators``. Functionally they are quite similar, but the former
@@ -180,7 +180,7 @@ knows how to create new instances of the model, while the later modifies
 existing instances. Both types of classes are automatically created when you
 define a new class::
 
-    >>> from myproject.crrimes.models import Crime
+    >>> from mysite.crrimes.models import Crime
     >>> Crime.AddManipulator
     <class 'django.models.manipulators.AddManipulator'>
     >>> Crime.ChangeManipulator
@@ -195,13 +195,13 @@ POSTed data from the browser and creates a new ``Crime`` object::
     from django import forms
     from django.http import HttpResponse
     from django.shortcuts import render_to_response
-    from myproject.crrimes.models import Crime
+    from mysite.crrimes.models import Crime
 
     def naive_create_crime(request):
         """
         A naive approach to creating crimes; don't actually use this!
         """
-        
+
         # Create the AddManipulator.
         manipulator = Crime.AddManipulator()
 
@@ -239,7 +239,7 @@ a view with a form that submits to this flawed creation view::
         """
         Simplistic place form view; don't actually use anything like this!
         """
-        
+
         # Create a FormWrapper object that the template can use. Ignore
         # the last two arguments to FormWrapper for now.
         form = forms.FormWrapper(Crime.AddManipulator(), {}, {})
@@ -280,8 +280,8 @@ over some salient points of the above template::
     * DateTime widgets use two fields -- ``field_date`` and ``field_time``.
 
     * There isn't a way just to spit out the form. You'll still need to define
-      how the form gets laid out. 
-      
+      how the form gets laid out.
+
       *This is a feature*; Every form should be designed differently. Django
       doesn't force you into any type of mold. If you must use tables, use
       tables. If you're a semantic purist, you can probably find better HTML
@@ -289,7 +289,7 @@ over some salient points of the above template::
 
     * To avoid name conflicts, the ``id``s of form elements take the form
       "id_*fieldname*".
-      
+
 By creating a creation form we've solved problem number 3 above, but we still
 don't have any validation. Let's revisit the validation issue by writing a new
 creation view that takes validation into account::
@@ -353,7 +353,7 @@ Here's the collapsed and combined view::
         """
         Create a new crime object.
         """
-        
+
         manipulator = Crime.AddManipulator()
 
         if request.POST:
@@ -456,18 +456,18 @@ one::
                 manipulator.do_html2python(new_data)
                 manipulator.save(new_data)
 
-                # Do a post-after-redirect to this edit page so 
+                # Do a post-after-redirect to this edit page so
                 # that reload works, etc.
                 return HttpResponseRedirect(".")
         else:
             errors = {}
-            # This makes sure the form accurate represents the 
+            # This makes sure the form accurate represents the
             # fields of the place.
             new_data = place.__dict__
 
         form = forms.FormWrapper(manipulator, new_data, errors)
         return render_to_response('crimes/edit_form.html', {
-            'form': form, 
+            'form': form,
             'crime': crime
         })
 
@@ -521,9 +521,9 @@ for a "contact" form for this website::
         def __init__(self):
             self.fields = (
                 forms.EmailField(field_name="from", is_required=True),
-                forms.TextField(field_name="subject", length=30, 
+                forms.TextField(field_name="subject", length=30,
                                 maxlength=200, is_required=True),
-                forms.SelectField(field_name="urgency", 
+                forms.SelectField(field_name="urgency",
                                   choices=urgency_choices),
                 forms.LargeTextField(field_name="contents", is_required=True),
             )
@@ -564,49 +564,33 @@ endith ye olde guided toure.
 
 Some possible directions you might travel in:
 
-    * If you are the thorough type, you can read the rest of the book in 
+    * If you are the thorough type, you can read the rest of the book in
       order.  We've tried to organize material in a way that makes some
       sense, so have at it.
-      
+
     * If you want to discover that all the code you've written so far can
       be replaced with code 90% shorter, read the next chapter about
       generic views.
-      
+
     * If you want to learn about how to send email, generate RSS, PDFs,
       images, and other non-HTML content, skip to Chapter 10.
-      
-    * If you'd like to find out about all the other "goodies" that Django 
+
+    * If you'd like to find out about all the other "goodies" that Django
       includes, those are covered in Chapters 11 through 15.
-      
+
     * Chapters 16 through 18 cover some relatively esoteric tasks: integrating
       with existing databases, extending and customizing the admin interface,
       and Django's internationalization/localization framework.
-      
-    * Once you've finished an application and are ready to launch it, Chapter 
-      19 has all the details about how to deploy and scale Django 
+
+    * Once you've finished an application and are ready to launch it, Chapter
+      19 has all the details about how to deploy and scale Django
       applications.
 
     * Finally, Chapters 20 and above contain exhaustive reference material on
       the model API, database API, and others.
-      
+
 Whatever you do, we hope you'll join the Django community. Visit
 http://www.djangoproject.com/ and get involved; you'll find that Django's
 managed to attract one of the best open source communities around.
 
 We'll see you there!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
