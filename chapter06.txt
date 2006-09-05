@@ -5,7 +5,7 @@ Chapter 6: The Django admin site
 There's one part of web development we've always hated: writing administration
 interfaces. Developing the parts of the site that the general public sees is
 always different and interesting, but the bits that the administrators use to
-modify the site always are the same. You've got to deal with authenticating
+modify the site are always the same. You've got to deal with authenticating
 users to make sure that they are allowed to edit the content, display and
 handle forms, deal with tricky validation issues... it's boring, and it's
 repetitive.
@@ -33,6 +33,10 @@ activate the admin interface:
         adding an inner ``Admin`` class to your model (alongside the ``Meta``
         class, if you have one).  Extending our previous example::
 
+            class CrimeType(models.Model):
+                #...
+                class Admin:
+                    pass
             class Crime(models.Model):
                 when        = models.DateTimeField()
                 location    = models.CharField(maxlength=300)
@@ -43,12 +47,17 @@ activate the admin interface:
 
         The ``Admin`` declaration flags the class as having an admin
         interface. There are a number of options that you can put beneath
-        ``Admin``; for now we're sticking with all the defaults, so we put
+        ``Admin``.  For now we're sticking with all the defaults, so we put
         ``pass`` in there to signify to Python that the ``Admin`` class is
         empty.
 
     2.  Install the admin models.  Simply add ``"django.contrib.admin"`` to
         your ``INSTALLED_APPS`` setting and run ``python manage.py syncdb``.
+
+.. XXX JGD Is it better form to put contrib stuff before or after local-app stuff?
+.. XXX JGD I'm thinking of the case where an app template loader is used, and there
+.. XXX JGD are collisions between app/template files.
+       
 
 .. note::
 
@@ -77,7 +86,7 @@ That's it.  Now run ``python manage.py runserver`` to start the development serv
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
-Now you can visit the URL given to you by Django (http://127.0.0.1:8000/ in the example above), log in, and play around.
+Now you can visit the URL given to you by Django (http://127.0.0.1:8000/admin/ in the example above), log in, and play around.
 
 Using the admin interface
 =========================
@@ -91,6 +100,8 @@ features of the admin are in order.
       object "change lists" and "edit forms".
 
       .. image:: images/chapter04/admin_index.png
+
++.. XXX JGD Images not added to repos, or simply not yet done?
 
     * Change lists are essentially index pages of objects in the system. There
       are a number of options that can control which fields appear on these
@@ -110,7 +121,7 @@ features of the admin are in order.
       leaving a required field blank, or putting an invalid time into a time
       field and you'll see those errors when you try to save.
 
-      This validation actually is done with a powerful and flexible validation
+      This validation actually is done with a powerful and pluggable validation
       framework which is discussed in Chapter XXX.
 
     .. image:: images/chapter04/editform_errors.png
@@ -129,6 +140,11 @@ features of the admin are in order.
       the related ``Crime`` objects are scheduled for deletion as well.
 
       .. image:: images/chapter04/delete_confirm.png
+      
+.. XXX JGD The beginning of the chapter didn't give admin to CrimeType, 
+.. XXX JGD making it annoying for the reader to try out this cascade feature now.  
+.. XXX JGD I added it to the beginning.
+      
 
 Users, groups, and permissions
 ------------------------------
@@ -146,9 +162,10 @@ User objects have the standard username, password, email, and real name fields
 you might expect, along with a set of fields that define what the user is
 allowed to do in the admin. First, there's a set of three flags::
 
-    * The "is active" flag controls weather the account is active at all.
-      If this flag is off, the user is considered "inactive" and has no
-      access at all.
+    
+    * The "is active" flag controls whether the user is active at all.  
+      If this flag is off, the user has no access to any Django-powered 
+      URLs.
 
     * The "is staff" flag controls weather the user is allowed to log into
       the admin (i.e. is considered a "staff member" in your organization).
@@ -159,15 +176,16 @@ allowed to do in the admin. First, there's a set of three flags::
     * The "is superuser" flag gives the user full unfettered access to
       every item in the admin; regular permissions are ignored.
 
-For "normal" admin users -- active, non-superuser staff members -- the set of
-permissions controls what access they are granted. Each object editable
-through the admin has three permissions: a "create" permission, an "edit"
-permission, and a "delete" permission. Assigning permissions to a user grants
-the user access to do what is described by those permissions.
+For "normal" admin users -- active, non-superuser staff members -- the 
+access they are granted depends on a set of assigned permissions. 
+Each object editable through the admin has three permissions: a "create" 
+permission, an "edit" permission, and a "delete" permission. Assigning 
+permissions to a user grants the user access to do what is described by those 
+permissions.
 
 .. note::
 
-    Notice that access to edit users and permissions is also controled by this
+    Notice that access to edit users and permissions is also controlled by this
     permission system. If you give a user permission to edit users, she will
     be able to edit her own permissions, which might not be what you want!
 
@@ -185,7 +203,7 @@ model, but Chapter XXX covers customizing the admin interface in detail.
 As it stands now, the change list for our crimes shows only the string
 representation of the model we added to its ``__str__`` method in Chapter 3.
 This works fine for just a few crimes, but if we had hundreds or thousands of
-crimes, it would be very hard to locate a single needle amoung the haystack.
+crimes, it would be very hard to locate a single needle in the haystack.
 However, we can easily add some display, searching, and filtering functions to
 this interface. Change the ``Admin`` declaration to::
 
@@ -208,18 +226,18 @@ Each of those lines instructed the admin to construct a different piece of this 
 
     * The ``ordering`` option controls what order the objects are presented in
       the admin.  It's simply a list of fields to order the results by;
-      prefixing a field with a minus sign means to reverse the given order. So
+      prefixing a field with a minus sign reverses the given order. So
       in this example, we're ordering by when the crime occurred, most recent
       crimes first.
 
     * The ``list_display`` option controls which columns appear in the change
       list table.  By default, only a single column with the object's string
       representation appears; here we've changed that to show the location,
-      type, and date of the crime all on the list page.
+      type, and date of the crime on the list page.
 
     * The ``list_filter`` option creates the filtering bar on the right side
       of the list.  We've allowed filtering either by date (which allows you
-      to see only crimes occuring in the last week, month, etc.), and by type
+      to see only crimes occurring in the last week, month, etc.), and by type
       (which allows you to see only crimes of a given type).
 
       You can instruct the admin to filter by any date field, any foreign key,
@@ -228,7 +246,7 @@ Each of those lines instructed the admin to construct a different piece of this 
 
     * Finally, the ``search_fields`` option creates a field that allows text
       searches. This allows searches by the ``location`` field (so you could
-      type "Michigan" to show all crimes that occured on Michigan Ave.).
+      type "Florida" to show all crimes that occurred on Florida St.).
 
 Using these options -- and the other ones described in Chapter XXX -- you can
 with only a few lines of code make a very powerful, production-ready interface
@@ -239,7 +257,7 @@ Customize the admin look and feel
 
 .. This and the next section is taken mostly verbatim from tutorial02.txt
 
-Clearly, having "Django administration" and "example.com" at the top of each
+Clearly, having "Django administration" at the top of each
 admin page is ridiculous. It's just placeholder text.
 
 That's easy to change, though, using Django's template system. The Django
@@ -256,6 +274,11 @@ Django where our templates live::
     TEMPLATE_DIRS = (
         "/home/mytemplates", # Change this to your own directory.
     )
+    
+.. note:: Make sure to include the trailing comma there -- Python uses it to 
+distinguish between single-element tuples and parenthesized expressions.
+
+    
 
 Now copy the template ``admin/base_site.html`` from within the default Django
 admin template directory (``django/contrib/admin/templates``) into an
@@ -266,19 +289,19 @@ admin template directory (``django/contrib/admin/templates``) into an
 ``/home/mytemplates/admin/base_site.html``. Don't forget that ``admin``
 subdirectory.
 
-Then, just edit the file and replace the generic Django text with your own
-site's name and URL as you see fit.
+Then, just edit the new ``admin/base_site.html`` file to replace the 
+generic Django text with your own site's name as you see fit.
 
 Note that any of Django's default admin templates can be overridden. To
 override a template, just do the same thing you did with ``base_site.html`` --
-copy it from the default directory into your custom directory, and make
-changes.
+copy it from the default directory into your custom directory and make
+changes to the copy.
 
-Astute readers will ask: But if ``TEMPLATE_DIRS`` was empty by default, how
-was Django finding the default admin templates? The answer is that, by
-default, Django automatically looks for a ``templates/`` subdirectory within
-each app package, for use as a fallback. See "Template loaders" in Chapter 9
-for more information about how this works.
+Astute readers wonder how, if ``TEMPLATE_DIRS`` was empty by default, Django 
+was finding the default admin templates? The answer is that, by
+default, Django automatically looks for templates within 
+a ``templates/`` subdirectory in each app package as a fallback. 
+See "Template loaders" in Chapter 9 for more information about how this works.
 
 Customize the admin index page
 ==============================
@@ -290,18 +313,22 @@ By default, it displays all available apps, according to your
 ``INSTALLED_APPS`` setting, sorted by the name of the application. You might,
 however, want to change this order to make it easier to find the apps you're
 looking for. After all, the index is probably the most important page of the
-admin, and it should be easy to use.
+admin, so it should be easy to use.
 
-The template to customize is ``admin/index.html``. (Do the same as with
-``admin/base_site.html`` in the previous section -- copy it from the default
-directory to your custom template directory.) Edit the file, and you'll see it
-uses a template tag called ``{% get_admin_app_list as app_list %}``. That's
-the magic that retrieves every installed Django app. Instead of using that,
-you can hard-code links to object-specific admin pages in whatever way you
-think is best.
+The template to customize is ``admin/index.html``. (Remember to copy
+``admin/base_site.html`` to your custom template directory as in the previous 
+example.) Edit the file, and you'll see it uses a template tag called 
+``{% get_admin_app_list as app_list %}``. That's the magic that retrieves 
+every installed Django app. Instead of using that, you can hard-code links to 
+object-specific admin pages in whatever way you think is best.  If hard-coding 
+links doesn't appeal to you, you can also see Chapter XXX for details on 
+implementing your own template tags.
+
+.. XXX JGD No prior reference to template tags.  A short explanation of what 
+.. XXX JGD they are would be good here.
 
 Django offers another shortcut in this department. Run the command ``python
-manage.py adminindex polls`` to get a chunk of template code for inclusion in
+manage.py adminindex crimes`` to get a chunk of template code for inclusion in
 the admin index template. It's a useful starting point.
 
 For full details on customizing the look and feel of the Django admin site in
@@ -311,7 +338,7 @@ When and why to use the admin interface
 =======================================
 
 We think Django's admin interface is pretty spectacular. In fact, we'd call it
-one of Django's main "killer features". However, we often get asked questions
+one of Django's "killer features". However, we often get asked questions
 about "use cases" for the admin -- when do *we* use it, and why? Over the
 years, we've discovered a number of patterns for using the admin interface
 that we think might be helpful.
@@ -327,7 +354,7 @@ intuitive and user-friendly, and we think it shows.
 However, beyond the obvious data-entry tasks, we find the admin useful in a
 few other cases:
 
-    * Inspecting data models: the first think we do when we've defined a new
+    * Inspecting data models: the first thing we do when we've defined a new
       model is to call it up in the admin and enter some dummy data.  This is
       usually when we find any data modeling errors; having a graphical
       interface to a model quickly revels those mistakes.

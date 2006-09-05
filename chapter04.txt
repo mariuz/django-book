@@ -13,7 +13,7 @@ code, so it would be convenient if the frequency of HTML changes were separated
 from changes to Python code. Second, writing backend Python code and
 designing/coding HTML are two different disciplines, and most professional Web
 development environments split these responsibilities across separate people
-(or even separate departments). Designers and HTML monkeys shouldn't have to
+(or even separate departments). Designers and HTML'ers shouldn't have to
 edit Python code to get their job done; they should deal with HTML. Similarly,
 it's most efficient if programmers can work on Python code and designers can
 work on templates at the same time, rather than one person waiting for the
@@ -82,8 +82,9 @@ thrown in. Let's step through it:
 
 So, how do we feed data to this template so that it can fill those variable
 placeholders? We use something called a **context**. Let's dip into the Python
-interactive interpreter and see how this works in code. (Type ``python`` at the
-command prompt to start the interactive interpreter.) ::
+interactive interpreter and see how this works in code.  (At the
+command prompt, within the ``mysite`` directory, type 
+``python manage.py shell`` to start the interactive interpreter.) ::
 
     >>> from django.template import Template, Context
     >>> raw_template = """<p>Dear {{ person_name }},</p>
@@ -97,7 +98,7 @@ command prompt to start the interactive interpreter.) ::
     ...
     ... <p>Sincerely,<br />{{ company }}</p>"""
     >>> t = Template(raw_template)
-    >>> import datetime
+    >>> import datetime    
     >>> c = Context({'person_name': 'John Smith',
     ...     'product': 'Super Lawn Mower',
     ...     'company': 'Outdoor Equipment',
@@ -136,7 +137,7 @@ Let's step through this one statement at a time::
       replaces template variables with the actual values of the variables, and
       it executes any block tags.
 
-      Note that the warranty paragraph was displayed, because the
+      Note that the warranty paragraph was displayed because the
       ``ordered_warranty`` variable evaluated to ``True``. Also note the
       formatted date, ``April 2, 2009``, which is formatted according to the
       format string ``'F j, Y'``, passed in the template. (We'll explain all
@@ -189,9 +190,23 @@ think to do something like this::
 Sure, that uses the template system, but it doesn't solve the problems we
 pointed out in the introduction of this chapter. Namely, the template is still
 embedded in the Python code. Let's fix that by putting the template in a
-*separate file*, which this view will load::
+*separate file*, which this view will load.
 
-    TODO: This
+    TODO: Review this -- added by JGD
+    
+    First, create a directory, somewhere on your
+    filesystem, whose contents Django can access. (Django runs as the same user
+    as your web server.)  It doesn't really matter where these templates live; one
+    good place is ``mysite/templates`` directory.
+    
+    Now edit ``TEMPLATE_DIRS`` in your ``settings.py`` to tell Django where it
+    can find templates, adding the full path to the template directory you just created.
+    
+    When you've done that, create a new file, ``now.html`` in your template
+    directory, and place the HTML, 
+    ``<html><body>It is now {{ current_date }}.</body></html>`` in it.
+    
+    Next, change ``views.py`` to use load and use this template file::
 
 
     from django.template import loader, Context
@@ -200,7 +215,7 @@ embedded in the Python code. Let's fix that by putting the template in a
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        t = Template("<html><body>It is now {{ current_date }}.</body></html>")
+        t = loader.get_template('now.html')
         html = t.render(Context({'current_date': now}))
         return HttpResponse(html)
 

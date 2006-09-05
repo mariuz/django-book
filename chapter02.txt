@@ -93,9 +93,6 @@ To grab the latest Django trunk:
 .. XXX JGD You -can- use a utility called Junction (made by Sys Internals,
 .. XXX JGD and free), but what's the downside of just using a .pth?
 
-.. XXX JGD Also, it might be useful to recommend a book on svn (or link to
-.. XXX JGD the free one on red-bean.org (sorry, can't verify link right now)).
-
 When installing from Subversion, you don't need to run ``python setup.py install``.
 
 Because the Django trunk changes often with bug fixes and feature additions,
@@ -144,7 +141,8 @@ If you're using PostgreSQL, you'll need the ``psycopg`` package available from
 http://initd.org/projects/psycopg1. Make sure you use version 1, not version 2
 (which is still in beta).
 
-.. XXX JGD Verify psycopg 2 still in beta when book is finished.
+.. XXX JGD psycopg2 is no longer in beta.  Change to recommend psycopg2 above or 
+.. XXX JGD explain why not.
 
 If you're using PostgreSQL on Windows, you can find precompiled binaries of
 ``psycopg`` at http://stickpeople.com/projects/python/win-psycopg/.
@@ -184,8 +182,6 @@ With that said, bear in mind that a few of Django's features -- most notably,
 its admin interface -- rely on a database. In other words, if you don't use a
 database, that's fine, but you won't be able to use the automatic admin
 interface.
-
-.. XXX JGD do steps on latest trunk (ancient mr on laptop)
 
 Starting a project
 ==================

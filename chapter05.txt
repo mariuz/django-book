@@ -250,8 +250,8 @@ database. ``Crime.objects.all()`` is how you fetch a list of already-created
 
 ..note::
 
-    Technically, ``Crime.objects`` is a "manager" object; see Chapter XXX for
-    more information about managers.
+    ``Crime.objects`` is a "manager" object; see Chapter XXX for more 
+    information about managers.
 
 There's quite a lot more you can do here -- and in fact Chapter XXX has a
 complete reference to this object API -- but first let's take care of a small
@@ -423,7 +423,7 @@ say "yes" and the old tables will be dropped and new ones created.
 
 .. XXX JGD It's impossible to future-proof, and its wrong to suggest it is possible.
 .. XXX JGD As a newcomer to Django, this looks suspiciously like the Python-defined
-.. XXX JGD models is necessary but not sufficient for the DRY principal.
+.. XXX JGD models is necessary but not sufficient for the DRY principle.
 .. XXX JGD Migration code obviously shouldn't be automated.
 .. XXX JGD What's up with http://code.djangoproject.com/wiki/SchemaEvolution#conclusions ?
 .. XXX JGD Assuming that won't be done, the book should at least go through one
@@ -435,14 +435,20 @@ say "yes" and the old tables will be dropped and new ones created.
 Using relations in the Python API
 =================================
 
-Set up a few example Crimes using the new ``CrimeType`` to explore the Django
-API for foreign keys::
+Now that we've got CrimeType defined in the database, we'll set up a few 
+example Crimes using the new ``CrimeType`` to explore the Django API for 
+foreign keys.  Back to the shell::
 
+    $ python manage.py shell
+    >>> from crimes.models import Crime, CrimeType
+    >>> from datetime import datetime
     >>> jaywalking = CrimeType(name="Jaywakling", is_felony=False)
     >>> jaywalking.save()
-    >>> florida_jaywalking = Crime(when=datetime.now(), location="1211 Florida St", type=jaywalking)
+    >>> florida_jaywalking = Crime(when=datetime.now(), 
+    ...                            location="1211 Florida St", type=jaywalking)
     >>> florida_jaywalking.save()
-    >>> fortysecond_jaywalking = Crime(when=datetime.now(), location="1301 W. 42nd St", type=jaywalking)
+    >>> fortysecond_jaywalking = Crime(when=datetime.now(), 
+    ...                            location="1301 W. 42nd St", type=jaywalking)
     >>> fortysecond_jaywalking.save()
 
 Now you can retrieve all Crimes of the same CrimeType for any given Crime::

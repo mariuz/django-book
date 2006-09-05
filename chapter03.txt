@@ -459,7 +459,7 @@ Let's step through this code one line at a time:
       illustrates another nicety of URLconfs: they provide a fair level of
       input validation.
 
-    * The next line of the function explains why we called ``int()`` on
+    * The next line of the function shows why we called ``int()`` on
       ``offset``. On this line, we calculate the current time plus a time
       offset of ``offset`` hours, storing the result in ``dt``. The
       ``datetime.timedelta`` function requires the ``hours`` parameter to be
@@ -519,7 +519,7 @@ commenting-out the ``offset = int(offset)`` line in the ``hours_ahead`` view::
         return HttpResponse(html)
 
 Now load up the development server and navigate to ``/now/plus3hours/``. You'll
-see a error page with a significant amount of information, including a
+see an error page with a significant amount of information, including a
 ``TypeError`` message displayed at the very top: "unsupported type for
 timedelta hours component: str".
 
@@ -575,7 +575,8 @@ Some highlights:
 
 The Django error page is capable of displaying more information in certain
 special cases, such as the case of template syntax errors. We'll get to those
-later, when we discuss the Django template system.
+later, when we discuss the Django template system.  For now, uncomment the 
+``offset = int(offset)`` line to get the view function working properly again.
 
 Are you the type of programmer who likes to debug with the help of carefully
 placed ``print`` statements? You can use the Django error page to do just that
@@ -654,7 +655,7 @@ Answers to exercises
             else:
                 dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
                 html = '%s hour(s) ago, it was %s.' % (offset, dt)
-            html = '<html><body>%s</body></html> % html
+            html = '<html><body>%s</body></html>' % html
             return HttpResponse(html)
 
        The URLpattern would look like this::
@@ -706,7 +707,7 @@ Answers to exercises
             else:
                 dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
                 html = '%s %s ago, it was %s.' % (offset, hours, dt)
-            html = '<html><body>%s</body></html> % html
+            html = '<html><body>%s</body></html>' % html
             return HttpResponse(html)
 
        Ideally, though, we wouldn't have to edit Python code to make small
