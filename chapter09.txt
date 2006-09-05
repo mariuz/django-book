@@ -513,17 +513,18 @@ Example
 On a typical blog, the index page provides a certain number of recent entries
 We can use the ``archive_index`` view for this common task.  Here's a info dict::
 
-    archive_index_info = {
+    entry_info = {
         "queryset"   : Entry.objects.all(),
         "date_field" : "pub_date"
     }
     
-And the corresponding urlconf piece::
+And the corresponding urlconf piece (which roots this index at the bottom level
+of wherever it's included)::
 
-    (r'^/?$', 'archive_index', archive_index_info),
+    (r'^$', 'archive_index', entry_info),
 
 Required arguments
-`````````````````
+``````````````````
 
     ``date_field``: 
         The name of the ``DateField`` or ``DateTimeField`` in the
@@ -583,6 +584,17 @@ Year archives
 
 The ``django.views.generic.date_based.archive_year`` view provides a yearly
 archive page showing all available months in a given year.
+
+Example
+```````
+
+As with the previous example, most blogs have some sort of a yearly blog
+index. For this one, let's actually build a list of every blog entry posted
+this year (instead of just linking to each month's entry list). We'll continue
+to use the same ``entry_info`` dict from above, but this time we'll wire 
+it up to the ``archive_year`` view::
+
+    (r'^(?P<year>\d{4})/?$', 'archive_year', entry_info),
 
 Required arguments
 ``````````````````
@@ -658,6 +670,15 @@ Monthly archives
 The ``django.views.generic.date_based.archive_month`` views provides a monthly
 archive page showing all objects in a given month.
 
+Example
+```````
+
+Continuing on with our example, creating month views should look mighty familiar.
+The info corresponding urlconf piece::
+
+    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/$', 'archive_month', entry_info),
+
+
 Required arguments
 ``````````````````
 
@@ -708,7 +729,7 @@ If ``template_name`` isn't specified, this view will use the template
 ``<app_label>/<model_name>_archive_month.html`` by default.
 
 Template context
-```````````````
+````````````````
 
 In addition to ``extra_context``, the template's context will be:
 
@@ -733,13 +754,21 @@ Week archives
 -------------
 
 The ``django.views.generic.date_based.archive_week`` view shows all objects in
-a given week. Objects with a date in the *future* are not displayed unless you
-set ``allow_future`` to ``True``.
+a given week.
 
 .. note::
 
     Django believes that weeks start on Sunday, for the perfectly arbitrary
     reason that Python does, too.
+    
+
+Example
+```````
+
+Once again, we can use the same ``entry_info`` dict from above with a new
+urlconf peice::
+
+    (r'^(?P<year>\d{4})/(?P<week>\d{2})/$', 'archive_week', entry_info),
 
 Required arguments
 ``````````````````
@@ -801,6 +830,13 @@ Day archives
 The ``django.views.generic.date_based.archive_day`` view provides a page
 showing all objects in a given day.
 
+Example
+```````
+
+Keep on keepin' on (with the same continuing example)::
+
+    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/$', 'archive_day', entry_info),
+
 Required arguments
 ``````````````````
 
@@ -827,16 +863,16 @@ Optional arguments
 ``````````````````
 
     ``month_format``
-        A format string that regulates what format the
-      ``month`` parameter uses.  See the detailed explanation above.
+        A format string that regulates what format the ``month`` parameter
+        uses. See the detailed explanation above.
 
     ``day_format``
         Like ``month_format``, but for the ``day`` parameter. It defaults to
         ``"%d"`` (day of the month as a decimal number, 01-31).
 
     ``allow_future`` 
-          A boolean specifying whether to include "future" objects on this page,
-          as described in the note above.
+        A boolean specifying whether to include "future" objects on this page,
+        as described in the note above.
 
 This view may also take these common arguments (documented above):
 
@@ -887,9 +923,6 @@ instead.
 Date-based detail pages
 -----------------------
 
-Description
-```````````
-
 The ``django.views.generic.date_based.object_detail`` view shows a page
 representing an individual object. This differs from the ``object_detail``
 page in their respective URLs; the ``object_detail`` view uses URLs like
@@ -902,6 +935,25 @@ page in their respective URLs; the ``object_detail`` view uses URLs like
     probably also want to use the ``unique_for_date`` option on the slug field
     to validate that slugs aren't duplicated in a single day. See Chapter XXX
     for details on ``unique_for_date``.
+    
+Example
+```````
+
+This one differs (slightly) from all the other examples in that we need to
+either provide an object ID or a slug so that Django can look up the object
+in question.  
+
+Since the object we're using has a slug field, we'll choose
+the latter (and the nicer URLs that go along with it). This means we need to 
+provide an extra argument, ``slug_field``, to let Django know which field
+contains the slug.  So we'll construct a new dictionary from the original one
+to hold this new peice of information::
+
+    entry_detail_info = dict(entry_info, slug_field="slug").
+    
+Now, our urlconf piece looks like::
+
+    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/(?P<slug>[\w-]+)/$', 'object_detail', entry_detail_info),
 
 Required arguments
 ``````````````````
@@ -997,10 +1049,10 @@ Create/update/delete generic views
 The ``django.views.generic.create_update`` module contains a set of functions
 for creating, editing and deleting objects.
 
-Creating object view
---------------------
+Create object view
+------------------
 
-The ``django.views.generic.create_update.create_object`` displays a form for
+The ``django.views.generic.create_update.create_object`` view displays a form for
 creating an object, redisplays the form with validation errors (if there are
 any) and saves the object. This uses the automatic manipulators that come
 with Django models.
@@ -1016,6 +1068,11 @@ Required arguments
     ``model``
         The Django model of the object that the form will create.
 
+.. note::
+
+    Notice that this view takes the *model* to be created, not a QuerySet
+    (as all the views above do).
+
 Optional arguments
 ``````````````````
 
@@ -1024,7 +1081,7 @@ Optional arguments
         default, it's ``object.get_absolute_url()``.
 
     ``post_save_redirect``
-        may contain dictionary string formatting, which will be interpolated
+        May contain dictionary string formatting, which will be interpolated
         against the object's field attributes. For example, you could use
         ``post_save_redirect="/polls/%(slug)s/"``.
 
@@ -1037,14 +1094,12 @@ Optional arguments
         page or save the form, Django will redirect the request to
         ``/accounts/login/``.
 
-    ``template_name``
+This view may also take these common arguments (documented above):
 
-    ``template_loader``
-
-    ``extra_context``
-
-    ``context_processors``
-        These are the same as the views above.
+    * ``context_processors``
+    * ``extra_context``
+    * ``template_loader``
+    * ``template_name``
 
 Template name
 `````````````
@@ -1062,32 +1117,89 @@ In addition to ``extra_context``, the template's context will be:
         object. This lets you refer to form fields easily in the template
         system.
 
-         For example, if the model has two fields, ``name`` and ``address``::
+        For example, if the model has two fields, ``name`` and ``address``::
 
-              <form action="" method="post">
-              <p><label for="id_name">Name:</label> {{ form.name }}</p>
-              <p><label for="id_address">Address:</label> {{ form.address }}</p>
-              </form>
+          <form action="" method="post">
+          <p><label for="id_name">Name:</label> {{ form.name }}</p>
+          <p><label for="id_address">Address:</label> {{ form.address }}</p>
+          </form>
 
-          See Chapter 7 for more information about working with forms.
+        See Chapter 7 for more information about working with forms.
 
 Update object view
 ------------------
 
-This view is almost identical to the create-object view above, but this one
-allows the editing of an existing object instead of the creation of a new one.
+The ``django.views.generic.create_update.update_object`` view is almost
+identical to the create-object view above, but this one allows the editing of
+an existing object instead of the creation of a new one.
 
 Example
 ```````
 
+XXX FIXME XXX
+
 Required arguments
 ``````````````````
+
+    ``model``
+        The Django model the form will be editing.
+        
+Either:
+
+    ``object_id``
+        The value of the primary-key field for the object.
+
+or:
+
+    ``slug``
+        The slug of the given object.  If you pass this field, then
+        the ``slug_field`` argument (below) is also required.
 
 Optional arguments
 ``````````````````
 
+``slug_field``
+    The name of the field on the object containing the slug. This is
+    required if you are using the ``slug`` argument, but must be absent if
+    you're using the ``object_id`` argument.
+    
+Additionally, this view takes all same optional arguments as the creation view
+(above), plus the ``template_object_name`` common argument.
+
 Template name
 `````````````
 
+This view uses the same default template name
+(``<app_label>/<model_name>_form.html``) as the creation view.
+
 Template context
 ````````````````
+
+In addition to ``extra_context``, the template's context will be:
+
+    ``form``:
+        A ``FormWrapper`` instance representing the form for editing the
+        object. See the create object (above) for more about this value.
+
+    ``object``:
+        The original object being edited (this variable may be named
+        differently if you've provided the ``template_object_name``
+        argument).
+
+Delete object view
+------------------
+
+The ``django.views.generic.create_update.delete_object`` view is also very
+similar to the other two.
+
+If this view is fetched with GET, it will display a confirmation page (i.e. 
+"do you really want to delete this object?").  If the view is submitted 
+with POST, the object will be deleted.
+
+All the arguments are the same as for the update object view, as is the
+context; the template name for this view is
+``<app_label>/<model_name>_confirm_delete.html``
+
+Extending generic views
+=======================
+
