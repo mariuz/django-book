@@ -2,7 +2,7 @@
 Chapter 1: Introduction to Django
 =================================
 
-If you go to the Web site djangoproject.com with your Web browser -- or,
+If you go to the Web site djangoproject.com using your Web browser -- or,
 depending on the decade in which you're reading this destined-to-be-timeless
 literary work, using your cell phone, electronic notebook, shoe, or any
 Internet-superceding contraption -- you'll find this explanation:
@@ -61,6 +61,12 @@ A good Web framework solves these problems:
 
     * **It gets out of your way**, neglecting to leave dirty stains on your
       application such as URLs that contain ".aspx" or ".php".
+
+.. XXX WJG Can you elaborate a bit more or clarify on particularly the last
+.. XXX WJG two bullet-points? I'd imagine both will confuse a newcomer to
+.. XXX WJG frameworks. For instance, per the last point, I think you're 
+.. XXX WJG referring to pretty URLs? Perhaps illustrate the point with a 
+.. XXX WJG before-and-after example?
 
 Django does all of these things well -- and introduces a number of features
 that raise the bar for what a Web framework should do.
@@ -214,7 +220,7 @@ should be honest and outline what Django *doesn't* do:
       timed basis so as to fool your boss into thinking you're not really
       staying home to watch "The Price is Right."
 
-On a serious note, Django does not yet reverse the effects of global warming.
+On a more serious note, Django does not yet reverse the effects of global warming.
 
 Why was Django developed?
 =========================
@@ -289,6 +295,9 @@ open-source community, get free improvements from outside developers, and
 generate some buzz for their commercial Django-powered content-management
 system, Ellington (http://www.ellingtoncms.com/). Django was open-sourced in
 July 2005 and quickly became popular.
+
+.. XXX WJG Maybe cite some download stats in here? We can update them again
+.. XXX WJG right before press.
 
 Although Django is now an open-source project with contributors across the
 planet, the original World Online developers still provide central guidance
