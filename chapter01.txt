@@ -166,7 +166,7 @@ and outputs the list in a simple HTML page::
     </html>
 
 While this code is conceptually simple for beginners -- because everything is in
-a single file -- it's bad practice for several reasons::
+a single file -- it's bad practice for several reasons:
 
     1. **The presentation is tied to the code.** If a designer wanted to edit
        the HTML of this page, he or she would have to edit this code, because
@@ -204,7 +204,7 @@ a single file -- it's bad practice for several reasons::
        configuration, not programming logic. Also, this example hard-codes the
        fact that the database engine is MySQL.
 
-        By contrast, Django has a single place for storing configuration, and
+       By contrast, Django has a single place for storing configuration, and
        the database-access layer is abstracted so that switching database
        servers (say, from MySQL to PostgreSQL) is easy.
 
