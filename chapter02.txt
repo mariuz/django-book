@@ -195,7 +195,7 @@ initial setup.
 Run the command ``django-admin.py startproject mysite``. That'll create a
 ``mysite`` directory in your current directory.
 
-..note::
+.. note::
 
     ``django-admin.py`` should be on your system path if you installed Django
     via its setup.py utility. If it's not on your path, you can find it in
