@@ -55,7 +55,7 @@ the Python interactive interpreter.
     >>> django.VERSION
     (1, 0, 'official')
 
-.. The Python interactive interpreter::
+.. admonition:: The Python interactive interpreter:
 
     The Python interactive interpreter is a command-line program that lets you
     write a Python program interactively. To start it, just run the command
@@ -195,7 +195,7 @@ initial setup.
 Run the command ``django-admin.py startproject mysite``. That'll create a
 ``mysite`` directory in your current directory.
 
-..note ::
+..note::
 
     ``django-admin.py`` should be on your system path if you installed Django
     via its setup.py utility. If it's not on your path, you can find it in
