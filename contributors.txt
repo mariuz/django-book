@@ -1,2 +1,5 @@
 Matt Boersma	mboersma@arraybiopharma.com	rewording
 Matt Drew	matt.drew@arraybiopharma.com	rewording
+whiteinge	whiteinge@eseth.com	rewording
+Wijnand Modderman	django@tehmaze.nl	typo
+Orestis Markou	orestis@orestis.gr	rewording
