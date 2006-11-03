@@ -6,18 +6,24 @@ In the previous chapter, you may have noticed something peculiar in how we
 returned the HTML in our example views. Namely, the HTML was hard-coded
 directly in our Python code!
 
-This arrangement leads to several problems. Obviously, any change to the design
-of the page would require a change to the Python code. For one thing, the
-design of a site tends to change far more frequently than the underlying Python
-code, so it would be convenient if the frequency of HTML changes were separated
-from changes to Python code. Second, writing backend Python code and
-designing/coding HTML are two different disciplines, and most professional Web
-development environments split these responsibilities across separate people
-(or even separate departments). Designers and HTML'ers shouldn't have to
-edit Python code to get their job done; they should deal with HTML. Similarly,
-it's most efficient if programmers can work on Python code and designers can
-work on templates at the same time, rather than one person waiting for the
-other to finish editing a single file that contains both Python and HTML.
+This arrangement leads to several problems:
+
+    * Obviously, any change to the design of the page would require a change to
+      the Python code. For one thing, the design of a site tends to change far
+      more frequently than the underlying Python code, so it would be
+      convenient if the frequency of HTML changes were separated from changes
+      to Python code.
+
+    * Second, writing backend Python code and designing/coding HTML are two
+      different disciplines, and most professional Web development environments
+      split these responsibilities across separate people (or even separate
+      departments). Designers and HTML'ers shouldn't have to edit Python code
+      to get their job done; they should deal with HTML.
+
+      Similarly, it's most efficient if programmers can work on Python code and
+      designers can work on templates at the same time, rather than one person
+      waiting for the other to finish editing a single file that contains both
+      Python and HTML.
 
 For these reasons, it's much more maintainable, manageable and clean to
 separate the design of the page from the Python code itself. We can do this
@@ -45,19 +51,19 @@ thrown in. Let's step through it:
 
     * Any bit of text that's surrounded by double-curly braces -- e.g.,
       ``{{ person_name }}`` -- is a **variable**. This means "insert the
-      value of the variable with the given name." (But how do we specify the
-      values of the variables in the first place? We'll get to that in a
-      moment.)
+      value of the variable with the given name." (How do we specify the
+      values of the variables? We'll get to that in a moment.)
 
     * Any bit of text that's surrounded by curly braces and percent signs --
       e.g., ``{% if ordered_warranty %}`` -- is a **block tag**. The definition
-      of a block tag is quite broad: a block tag just tells the template system
+      of a block tag is quite broad: A block tag just tells the template system
       to *do something*.
 
       This example template only contains one block tag, the
       ``{% if ordered_warranty %}`` tag, which we refer to as an **"if" tag**.
-      An "if" tag, as you may expect, acts as a logical "if" statement. In this
-      example, the tag checks whether the value of the ``ordered_warranty``
+      An "if" tag, as you may expect, acts as a logical "if" statement.
+
+      In this example, the tag checks whether the value of the ``ordered_warranty``
       variable evaluates to ``True``. If it does, the template system will
       display everything between the ``{% if ordered_warranty %}`` and
       ``{% endif %}``. If not, the template system won't display that. (The
@@ -82,7 +88,7 @@ thrown in. Let's step through it:
 
 So, how do we feed data to this template so that it can fill those variable
 placeholders? We use something called a **context**. Let's dip into the Python
-interactive interpreter and see how this works in code.  (At the
+interactive interpreter and see how this works in code. (At the
 command prompt, within the ``mysite`` directory, type 
 ``python manage.py shell`` to start the interactive interpreter.) ::
 
@@ -120,13 +126,13 @@ Let's step through this one statement at a time::
       dots at the start of each line are inserted by the Python interactive
       interpreter -- they're not part of our template. We include them here to
       be faithful to the actual output of the interpreter. If you're copying
-      and pasting this example to follow along, don't copy those three dots.)
+      and pasting this example to follow along, don't copy those dots.)
 
     * Next, we create a template object ``t`` by passing ``raw_template`` to
       the ``Template`` class constructor.
 
     * Then we import the ``datetime`` module from Python's standard library,
-      because we'll need it in the next statement.
+      because we'll need it in the following statement.
 
     * Next, we create a context object ``c``. The ``Context`` constructor takes
       a Python dictionary mapping variable names to values. Here, for example,
@@ -140,10 +146,10 @@ Let's step through this one statement at a time::
       Note that the warranty paragraph was displayed because the
       ``ordered_warranty`` variable evaluated to ``True``. Also note the
       formatted date, ``April 2, 2009``, which is formatted according to the
-      format string ``'F j, Y'``, passed in the template. (We'll explain all
-      the possible format strings for the ``date`` filter later.)
+      format string ``'F j, Y'``, passed in the template. (We'll explain format
+      strings for the ``date`` filter later.)
 
-So that's all there is to using the Django template system -- just write a
+That's all there is to using the Django template system -- just write a
 template, create a template object, create a context and call the
 ``render()`` method.
 
@@ -162,8 +168,8 @@ For example::
 Using templates in views
 ========================
 
-So, then, we've learned the very basics of using the template system. Let's
-plug this into a view. Recall the ``current_datetime`` view from the previous
+We've learned the very basics of using the template system; now, let's plug
+this into a view. Recall the ``current_datetime`` view from the previous
 chapter. Here's what it looked like::
 
     from django.http import HttpResponse
