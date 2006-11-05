@@ -29,7 +29,7 @@ For these reasons, it's much more maintainable, manageable and clean to
 separate the design of the page from the Python code itself. We can do this
 with Django's **template system**.
 
-Template-system basics
+Template system basics
 ======================
 
 A Django template is just a bunch of text with placeholders and capability of
@@ -70,9 +70,8 @@ thrown in. Let's step through it:
       template system also supports ``{% else %}``, as you may expect, and
       other various logic statements. We'll get to those in a bit.)
 
-      Each Django template has access to several built-in block tags, which
-      you'll learn about later in this chapter. In addition, you can write your
-      own tags.
+      Each Django template has access to several built-in block tags. In
+      addition, you can write your own tags.
 
     * Finally, the second paragraph of this template has an example of a
       **filter**. Filters are a way to alter the display of a variable. In this
@@ -82,15 +81,117 @@ thrown in. Let's step through it:
       format, as specified by that argument. Filters are attached using a pipe
       character (``|``), as a reference to Unix pipes.
 
-      Each Django template has access to several built-in filters, which you'll
-      learn about later in this chapter. In addition, you can write your own
-      filters.
+      Each Django template has access to several built-in filters. In addition,
+      you can write your own filters.
 
-So, how do we feed data to this template so that it can fill those variable
-placeholders? We use something called a **context**. Let's dip into the Python
-interactive interpreter and see how this works in code. (At the
-command prompt, within the ``mysite`` directory, type 
-``python manage.py shell`` to start the interactive interpreter.) ::
+Using the template system
+=========================
+
+To use the template system in Python code, just follow these two steps:
+
+    * First, create a ``Template`` object, which you can do by passing either
+      the full template code or a path to a file on the filesystem that
+      contains your template code.
+
+    * Then, you call the ``render()`` method of the ``Template`` object with a
+      given set of variables -- the context.
+
+Compiling a string
+------------------
+
+The easiest way to create a ``Template`` object is by instantiating it
+directly. The ``Template`` class lives in the ``django.template`` module, and
+the constructor takes one argument, the raw template code. Let's dip into the
+Python interactive interpreter to see how this works in code. (Type ``python``
+at the command line to start the interactive interpreter.) Here's a basic
+walkthrough::
+
+    >>> from django.template import Template
+    >>> t = Template("My name is {{ my_name }}.")
+    >>> print t
+    <django.template.Template object>
+
+If you're following along interactively, you'll see something like this::
+
+    <django.template.Template object at 0xb7d5f24c>
+
+That ``0xb7d5f24c`` will be different every time, and it doesn't really matter;
+it's simply the memory address of the ``Template`` object.
+
+.. admonition:: Interactive interpreter examples
+
+    Throughout this book, we'll feature example Python interactive interpreter
+    sessions. You can recognize these examples by spotting the triple
+    greater-than signs (``>>>``), which designate the interpreter's prompt. If
+    you're copying examples from this book, don't copy those greater-than signs.
+
+    Multi-line statements in the interactive interpreter are padded with three
+    dots (``...``). For example::
+
+        >>> print """This is a
+        ...    string that spans
+        ...    three lines."""
+        This is a
+        string that spans
+        three lines.
+        >>> def my_function(value):
+        ...     print value
+        >>> my_function('hello')
+        hello
+
+    Those three dots at the start of the additional lines are inserted by the
+    Python shell -- they're not part of our input. We include them here to be
+    faithful to the actual output of the interpreter. If you our examples to
+    follow along, don't copy those dots.
+
+When you create a ``Template`` object, the template system compiles the raw
+template code into an internal, optimized form, ready for rendering. But if
+your template code includes any syntax errors, the call to ``Template()`` will
+cause a ``TemplateSyntaxError`` exception::
+
+    >>> from django.template import Template
+    >>> t = Template('{% notatag %} ')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in ?
+      ...
+      django.template.TemplateSyntaxError: Invalid block tag: 'notatag'
+
+The system raises a ``TemplateSyntaxError`` exception for any of the following
+cases::
+
+    * Invalid block tags
+    * Invalid arguments to valid block tags
+    * Invalid filters
+    * Invalid arguments to valid filters
+    * Invalid template syntax
+    * Unclosed block tags (for block tags that require closing tags)
+
+Rendering a context
+-------------------
+
+Once you have a ``Template`` object, you can pass it data by giving it a
+**context**. A context is simply a set of variables and their associated
+values. A template uses this to populate its variable tags and evaluate its
+block tags.
+
+A context is represented in Python by the ``Context`` class, which lives in the
+``django.template`` module. Its constructor takes one (optional) argument: a
+dictionary mapping variable names to variable values. Call the ``Template``
+object's ``render()`` method with the context to "fill" the template. For
+example::
+
+    >>> from django.template import Context, Template
+    >>> t = Template("My name is {{ name }}.")
+    >>> c = Context({"name": "Stephane"})
+    >>> t.render(c)
+    'My name is Stephane.'
+
+Variable names must begin with a letter (A-Z) and may contain digits,
+underscores and dots. (Dots are a special-case we'll get to in a moment.)
+Variable names are case sensitive.
+
+Using the sample template from the beginning of this chapter, here's a meatier
+example::
 
     >>> from django.template import Template, Context
     >>> raw_template = """<p>Dear {{ person_name }},</p>
@@ -104,7 +205,7 @@ command prompt, within the ``mysite`` directory, type
     ...
     ... <p>Sincerely,<br />{{ company }}</p>"""
     >>> t = Template(raw_template)
-    >>> import datetime    
+    >>> import datetime
     >>> c = Context({'person_name': 'John Smith',
     ...     'product': 'Super Lawn Mower',
     ...     'company': 'Outdoor Equipment',
@@ -122,11 +223,8 @@ Let's step through this one statement at a time::
 
     * Next, save the raw text of our template into the variable
       ``raw_template``. Note that we use a triple quote marks to designate the
-      string, because it wraps over multiple lines. (Also note that the three
-      dots at the start of each line are inserted by the Python interactive
-      interpreter -- they're not part of our template. We include them here to
-      be faithful to the actual output of the interpreter. If you're copying
-      and pasting this example to follow along, don't copy those dots.)
+      string, because it wraps over multiple lines; strings designated with
+      single quote marks cannot be wrapped over multiple lines.
 
     * Next, we create a template object ``t`` by passing ``raw_template`` to
       the ``Template`` class constructor.
@@ -165,10 +263,247 @@ For example::
     >>> print t.render(Context({'name': 'Pat'}))
     Hello, Pat
 
+Whenever you're using the same template to render multiple contexts like this,
+it's most efficient to create the ``Template`` object *once*, then call
+``render()`` on it multiple times. For example::
+
+    # Bad
+    for name in ('John', 'Julie', 'Pat'):
+        t = Template('Hello, {{ name }}')
+        print t.render(Context{'name': name})
+
+    # Good
+    t = Template('Hello, {{ name }}')
+    for name in ('John', 'Julie', 'Pat'):
+        print t.render(Context{'name': name})
+
+Even so, Django's template parsing is quite fast. Behind the scenes, most of
+the parsing happens via a single call to a single, short, regular expression.
+
+Context variable lookup
+-----------------------
+
+In the examples so far, we've passed simple values in the template contexts --
+mostly strings, plus a ``datetime.date`` example. However, the template system
+elegantly handles more complex data structures, such as lists, dictionaries and
+custom objects.
+
+The key to traversing complex data structures in Django templates is the dot
+(``.``) character. Use a dot character to access dictionary keys, attributes,
+indices or methods of an object.
+
+This is best illustrated with a few examples. First, say you're passing a
+Python dictionary to a template. To access the values of that dictionary by
+dictionary key, use a dot::
+
+    >>> from django.template import Template, Context
+    >>> person = {'name': 'Sally', 'age': '43'}
+    >>> t = Template('{{ person.name }} is {{ person.age }} years old.')
+    >>> c = Context({'person': person})
+    >>> t.render(c)
+    'Sally is 43 years old.'
+
+Similarly, dots also allow access of object attributes. For example, a Python
+``datetime.date`` object has ``year``, ``month`` and ``day`` attributes, and
+you can use a dot to access those attributes in a Django template::
+
+    >>> from django.template import Template, Context
+    >>> import datetime
+    >>> d = datetime.date(1993, 5, 2)
+    >>> d.year
+    1993
+    >>> d.month
+    5
+    >>> d.day
+    2
+    >>> t = Template('The month is {{ date.month }} and the year is {{ date.year }}.')
+    >>> c = Context({'date': d})
+    >>> t.render(c)
+    'The month is 5 and the year is 1993.'
+
+This example uses a custom class::
+
+    >>> from django.template import Template, Context
+    >>> class Person(object):
+    ...     def __init__(self, first_name, last_name):
+    ...         self.first_name, self.last_name = first_name, last_name
+    >>> t = Template('Hello, {{ person.first_name }} {{ person.last_name }}.')
+    >>> c = Context({'person': Person('John', 'Smith')})
+    >>> t.render(c)
+    'Hello, John Smith.'
+
+Dots are also used to access list indices. For example::
+
+    >>> from django.template import Template, Context
+    >>> t = Template('Item 2 is {{ items.2 }}.')
+    >>> c = Context({'items': ['apples', 'bananas', 'carrots']})
+    >>> t.render(c)
+    'Item 2 is carrots.'
+
+Negative list indices are not allowed. For example, the template variable
+``{{ items.-1 }}`` would cause a ``TemplateSyntaxError``.
+
+Finally, dots are also used to call methods on objects. For example, each
+Python string has the methods ``upper()`` and ``isdigit()``, and you can call
+those in Django templates using the same dot syntax::
+
+    >>> from django.template import Template, Context
+    >>> t = Template('{{ var }} | {{ var.upper }} | {{ var.isdigit }}')
+    >>> t.render(Context({'var': 'hello'}))
+    'hello | HELLO | False'
+    >>> t.render(Context({'var': '123'}))
+    '123 | 123 | True'
+
+Note that, in the method calls, you don't include parentheses. Also, it's not
+possible to pass arguments to the methods; you can only call methods that have
+no required arguments. (We'll explain this philosophy later in this chapter.)
+
+The dot lookups can be summarized like this: When the template system
+encounters a dot in a variable name, it tries the following lookups, in this
+order::
+
+    * Dictionary lookup. Example: ``foo["bar"]``
+    * Attribute lookup. Example: ``foo.bar``
+    * Method call. Example: ``foo.bar()``
+    * List-index lookup. Example: ``foo[bar]``
+
+The system uses the first lookup type that works. It's short-circuit logic.
+
+Dot lookups can be nested. For instance, the following example uses
+``{{ person.name.upper }}``, which translates into a dictionary lookup
+(``person['name']``), then a method call (``upper()``)::
+
+    >>> from django.template import Template, Context
+    >>> person = {'name': 'Sally', 'age': '43'}
+    >>> t = Template('{{ person.name.upper }} is {{ person.age }} years old.')
+    >>> c = Context({'person': person})
+    >>> t.render(c)
+    'SALLY is 43 years old.'
+
+A word about method calls
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Method calls are slightly more complex than the other lookup types. Here are
+some things to keep in mind:
+
+    * If, during the method lookup, a method raises an exception, the exception
+      will be propagated, unless the exception has an attribute
+      ``silent_variable_failure`` whose value is ``True``. If the exception
+      *does* have a ``silent_variable_failure`` attribute, the variable will
+      render as an empty string. For example::
+
+        >>> t = Template("My name is {{ person.first_name }}.")
+        >>> class PersonClass3:
+        ...     def first_name(self):
+        ...         raise AssertionError, "foo"
+        >>> p = PersonClass3()
+        >>> t.render(Context({"person": p}))
+        Traceback (most recent call last):
+        ...
+        AssertionError: foo
+
+        >>> class SilentAssertionError(Exception):
+        ...     silent_variable_failure = True
+        >>> class PersonClass4:
+        ...     def first_name(self):
+        ...         raise SilentAssertionError
+        >>> p = PersonClass4()
+        >>> t.render(Context({"person": p}))
+        "My name is ."
+
+    * A method call will only work if the method has no required arguments.
+      Otherwise, the system will move to the next lookup type (list-index
+      lookup).
+
+    * Obviously, some methods have side effects, and it'd be either foolish or
+      a security hole to allow the template system to access them.
+
+      Say, for instance, you have a ``BankAccount`` object that has a
+      ``delete()`` method. The template system shouldn't be allowed to do
+      something like this::
+
+        I will now delete this valuable data. {{ account.delete }}
+
+      To prevent this, set a function attribute ``alters_data`` on the method.
+      The template system won't execute a method if the method has
+      ``alters_data=True`` set. For example::
+
+          def delete(self):
+              # Delete the account
+          delete.alters_data = True
+
+How invalid variables are handled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, if a variable doesn't exist, the template system renders it as an
+empty string, failing silently. For example::
+
+    >>> from django.template import Template, Context
+    >>> t = Template('Your name is {{ name }}.')
+    >>> t.render(Context())
+    'Your name is .'
+    >>> t.render(Context({'var': 'hello'}))
+    'Your name is .'
+    >>> t.render(Context({'NAME': 'hello'}))
+    'Your name is .'
+    >>> t.render(Context({'Name': 'hello'}))
+    'Your name is .'
+
+The system fails silently rather than raising an exception because it's
+intended to be resilient to human error. In the real world, it's unacceptable
+for a Web site to become inaccessible due to a small template syntax error.
+
+Note that it's possible to change Django's default behavior in this regard, by
+tweaking a setting called ``TEMPLATE_STRING_IF_INVALID``. We haven't covered
+Django settings yet, but we'll cover ``TEMPLATE_STRING_IF_INVALID`` in Chapter
+10, "Extending the template engine."
+
+Playing with Context objects
+----------------------------
+
+Most of the time, you'll instantiate ``Context`` objects by passing in a
+fully-populated dictionary to ``Context()``. But you can add and delete items
+from a ``Context`` object once it's been instantiated, too, using standard
+dictionary syntax::
+
+    >>> from django.template import Context
+    >>> c = Context({"foo": "bar"})
+    >>> c['foo']
+    'bar'
+    >>> del c['foo']
+    >>> c['foo']
+    ''
+    >>> c['newvariable'] = 'hello'
+    >>> c['newvariable']
+    'hello'
+
+A ``Context`` object is a stack. That is, you can ``push()`` and ``pop()`` it.
+If you ``pop()`` too much, it'll raise ``django.template.ContextPopException``::
+
+    >>> c = Context()
+    >>> c['foo'] = 'first level'
+    >>> c.push()
+    >>> c['foo'] = 'second level'
+    >>> c['foo']
+    'second level'
+    >>> c.pop()
+    >>> c['foo']
+    'first level'
+    >>> c['foo'] = 'overwritten'
+    >>> c['foo']
+    'overwritten'
+    >>> c.pop()
+    Traceback (most recent call last):
+    ...
+    django.template.ContextPopException
+
+Using a ``Context`` as a stack comes in handy in some custom template tags, as
+you'll see in Chapter 10.
+
 Using templates in views
 ========================
 
-We've learned the very basics of using the template system; now, let's plug
+We've learned the basics of using the template system; now, let's integrate
 this into a view. Recall the ``current_datetime`` view from the previous
 chapter. Here's what it looked like::
 
@@ -198,20 +533,58 @@ pointed out in the introduction of this chapter. Namely, the template is still
 embedded in the Python code. Let's fix that by putting the template in a
 *separate file*, which this view will load.
 
-    TODO: Review this -- added by JGD
-    
+The simple, "dumb" way to do this would be to save your template somewhere on
+your filesystem and use Python's built-in file-opening functionality to read
+the contents of the template. Here's what that might look like, assuming the
+template were saved as the file ``/home/djangouser/templates/mytemplate.html``::
+
+    from django.template import Template, Context
+    from django.http import HttpResponse
+    import datetime
+
+    def current_datetime(request):
+        now = datetime.datetime.now()
+        # Simple, "dumb" way of saving templates on the filesystem.
+        # This doesn't account for missing files!
+        fp = open('/home/djangouser/templates/mytemplate.html')
+        t = Template(fp.read())
+        fp.close()
+        html = t.render(Context({'current_date': now}))
+        return HttpResponse(html)
+
+This approach, however, is inelegant for these reasons:
+
+    * For one, it doesn't handle the case of a missing file. If the file
+      ``mytemplate.html`` doesn't exist or isn't readable, the ``open()`` call
+      would raise an exception.
+
+    * Second, it hard-codes your template location. If you were to use this
+      technique for every view function, you'd be duplicating the template
+      locations.
+
+    * Third, it includes a lot of boring boilerplate code. The calls to
+      ``open()``, ``fp.read()`` and ``fp.close()`` require a lot of typing and
+      not much creativity.
+
+To solve these issues, Django has a lightweight infrastructure for
+*template loading* and *template directories*.
+
+Template
+
+
+
     First, create a directory, somewhere on your
     filesystem, whose contents Django can access. (Django runs as the same user
     as your web server.)  It doesn't really matter where these templates live; one
     good place is ``mysite/templates`` directory.
-    
+
     Now edit ``TEMPLATE_DIRS`` in your ``settings.py`` to tell Django where it
     can find templates, adding the full path to the template directory you just created.
-    
+
     When you've done that, create a new file, ``now.html`` in your template
-    directory, and place the HTML, 
+    directory, and place the HTML,
     ``<html><body>It is now {{ current_date }}.</body></html>`` in it.
-    
+
     Next, change ``views.py`` to use load and use this template file::
 
 
@@ -655,4 +1028,14 @@ ready to go out and create the Next Big Thing™. There's still one thing
 missing, though -- a way to let the site interact with readers. In the next
 chapter we'll plug that gap by explaining how Django does form processing.
 
-Care to join us?
+
+
+Philosophy
+==========
+
+locals() trick
+==============
+
+Other template systems
+======================
+
