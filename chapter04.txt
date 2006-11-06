@@ -9,16 +9,15 @@ directly in our Python code!
 This arrangement leads to several problems:
 
     * Obviously, any change to the design of the page would require a change to
-      the Python code. For one thing, the design of a site tends to change far
-      more frequently than the underlying Python code, so it would be
-      convenient if the frequency of HTML changes were separated from changes
-      to Python code.
+      the Python code. The design of a site tends to change far more frequently
+      than the underlying Python code, so it would be convenient if the
+      frequency of HTML changes were separated from changes to Python code.
 
     * Second, writing backend Python code and designing/coding HTML are two
       different disciplines, and most professional Web development environments
       split these responsibilities across separate people (or even separate
-      departments). Designers and HTML'ers shouldn't have to edit Python code
-      to get their job done; they should deal with HTML.
+      departments). Designers and HTML/CSS coders shouldn't have to edit Python
+      code to get their job done; they should deal with HTML.
 
       Similarly, it's most efficient if programmers can work on Python code and
       designers can work on templates at the same time, rather than one person
@@ -32,8 +31,16 @@ with Django's **template system**.
 Template system basics
 ======================
 
-A Django template is just a bunch of text with placeholders and capability of
-basic logic through **tags**. Here's a simple example template::
+A Django template is a string of text that is intended to separate the
+presentation of a document from its data, which can be dynamic. A template
+defines placeholders and various bits of basic logic -- **tags** -- that
+regulate how the document should be displayed. Usually, templates are used for
+outputting HTML, but Django templates are equally capable of generating any
+text-based format.
+
+Let's dive in with a simple example template. This example template describes
+an HTML page that thanks a person for making an order from a company. Think of
+it as a form letter::
 
     <p>Dear {{ person_name }},</p>
 
@@ -46,29 +53,28 @@ basic logic through **tags**. Here's a simple example template::
 
     <p>Sincerely,<br />{{ company }}</p>
 
-This template is merely HTML with some **variables** and **template tags**
+This template is basic HTML with some **variables** and **template tags**
 thrown in. Let's step through it:
 
-    * Any bit of text that's surrounded by double-curly braces -- e.g.,
-      ``{{ person_name }}`` -- is a **variable**. This means "insert the
+    * Any text surrounded by double-curly braces -- e.g., ``{{ person_name }}``
+      -- is a **variable**. This means "insert the
       value of the variable with the given name." (How do we specify the
       values of the variables? We'll get to that in a moment.)
 
-    * Any bit of text that's surrounded by curly braces and percent signs --
-      e.g., ``{% if ordered_warranty %}`` -- is a **block tag**. The definition
+    * Any text that's surrounded by curly braces and percent signs -- e.g.,
+      ``{% if ordered_warranty %}`` -- is a **block tag**. The definition
       of a block tag is quite broad: A block tag just tells the template system
       to *do something*.
 
       This example template only contains one block tag, the
       ``{% if ordered_warranty %}`` tag, which we refer to as an **"if" tag**.
-      An "if" tag, as you may expect, acts as a logical "if" statement.
-
-      In this example, the tag checks whether the value of the ``ordered_warranty``
+      An "if" tag, as you may expect, acts as a logical "if" statement. In this
+      particular case, the tag checks whether the value of the ``ordered_warranty``
       variable evaluates to ``True``. If it does, the template system will
       display everything between the ``{% if ordered_warranty %}`` and
       ``{% endif %}``. If not, the template system won't display that. (The
       template system also supports ``{% else %}``, as you may expect, and
-      other various logic statements. We'll get to those in a bit.)
+      other various logic statements.)
 
       Each Django template has access to several built-in block tags. In
       addition, you can write your own tags.
@@ -89,12 +95,14 @@ Using the template system
 
 To use the template system in Python code, just follow these two steps:
 
-    * First, create a ``Template`` object, which you can do by passing either
-      the full template code or a path to a file on the filesystem that
-      contains your template code.
+    * First, create a ``Template`` object, which you can do by providing either
+      the raw template code or a path to a file on the filesystem that
+      contains your raw template code.
 
     * Then, you call the ``render()`` method of the ``Template`` object with a
-      given set of variables -- the context.
+      given set of variables -- the context. This returns a fully rendered
+      template, as a string, with all of the variables and block tags
+      evaluated according to the context.
 
 Compiling a string
 ------------------
@@ -111,7 +119,8 @@ walkthrough::
     >>> print t
     <django.template.Template object>
 
-If you're following along interactively, you'll see something like this::
+If you're following along interactively, you'll see something like this after
+typing ``print t``::
 
     <django.template.Template object at 0xb7d5f24c>
 
@@ -141,8 +150,8 @@ it's simply the memory address of the ``Template`` object.
 
     Those three dots at the start of the additional lines are inserted by the
     Python shell -- they're not part of our input. We include them here to be
-    faithful to the actual output of the interpreter. If you our examples to
-    follow along, don't copy those dots.
+    faithful to the actual output of the interpreter. If you copy our examples
+    to follow along, don't copy those dots.
 
 When you create a ``Template`` object, the template system compiles the raw
 template code into an internal, optimized form, ready for rendering. But if
@@ -190,8 +199,8 @@ Variable names must begin with a letter (A-Z) and may contain digits,
 underscores and dots. (Dots are a special-case we'll get to in a moment.)
 Variable names are case sensitive.
 
-Using the sample template from the beginning of this chapter, here's a meatier
-example::
+Here's an example of template compilation and rending, using the sample
+template from the beginning of this chapter::
 
     >>> from django.template import Template, Context
     >>> raw_template = """<p>Dear {{ person_name }},</p>
@@ -234,7 +243,8 @@ Let's step through this one statement at a time::
 
     * Next, we create a context object ``c``. The ``Context`` constructor takes
       a Python dictionary mapping variable names to values. Here, for example,
-      we specify that the ``person_name`` is ``'John Smith'``, etc.
+      we specify that the ``person_name`` is ``'John Smith'``, ``product`` is
+      ``'Super Lawn Mower'``, etc.
 
     * Finally, we call the ``render()`` method on our template object, passing
       it the context. This returns the rendered template -- that is, it
@@ -245,11 +255,23 @@ Let's step through this one statement at a time::
       ``ordered_warranty`` variable evaluated to ``True``. Also note the
       formatted date, ``April 2, 2009``, which is formatted according to the
       format string ``'F j, Y'``, passed in the template. (We'll explain format
-      strings for the ``date`` filter later.)
+      strings for the ``date`` filter shortly.)
+
+      If you're a Python newbie, you may wonder why this output includes
+      newline characters (``'\n'``) rather than displaying the line breaks.
+      That's happening because of a subtlety in the Python interactive
+      interpreter: The call to ``t.render(c)`` returns a string, and by default
+      the interactive interpreter displays the *representation* of the string,
+      rather than the printed value of the string. If you want to see the
+      string with line breaks displayed as true line breaks rather than ``'\n'``
+      characters, use the ``print`` statement: ``print t.render(c)``.
 
 That's all there is to using the Django template system -- just write a
 template, create a template object, create a context and call the
 ``render()`` method.
+
+Multiple contexts, same template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you have a template object, you can render multiple contexts through it.
 For example::
@@ -279,6 +301,9 @@ it's most efficient to create the ``Template`` object *once*, then call
 
 Even so, Django's template parsing is quite fast. Behind the scenes, most of
 the parsing happens via a single call to a single, short, regular expression.
+This is a stark contrast to XML-based templating engines, which incur the
+overhead of an XML parser and tend to be orders of magnitude slower than
+Django's template rendering engine.
 
 Context variable lookup
 -----------------------
@@ -289,8 +314,8 @@ elegantly handles more complex data structures, such as lists, dictionaries and
 custom objects.
 
 The key to traversing complex data structures in Django templates is the dot
-(``.``) character. Use a dot character to access dictionary keys, attributes,
-indices or methods of an object.
+(``.``) character. Use a dot to access dictionary keys, attributes, indices or
+methods of an object.
 
 This is best illustrated with a few examples. First, say you're passing a
 Python dictionary to a template. To access the values of that dictionary by
@@ -369,9 +394,9 @@ order::
 
 The system uses the first lookup type that works. It's short-circuit logic.
 
-Dot lookups can be nested. For instance, the following example uses
-``{{ person.name.upper }}``, which translates into a dictionary lookup
-(``person['name']``), then a method call (``upper()``)::
+Dot lookups can be nested multiple levels deep. For instance, the following
+example uses ``{{ person.name.upper }}``, which translates into a dictionary
+lookup (``person['name']``), then a method call (``upper()``)::
 
     >>> from django.template import Template, Context
     >>> person = {'name': 'Sally', 'age': '43'}
@@ -402,7 +427,7 @@ some things to keep in mind:
         ...
         AssertionError: foo
 
-        >>> class SilentAssertionError(Exception):
+        >>> class SilentAssertionError(AssertionError):
         ...     silent_variable_failure = True
         >>> class PersonClass4:
         ...     def first_name(self):
@@ -455,8 +480,8 @@ for a Web site to become inaccessible due to a small template syntax error.
 
 Note that it's possible to change Django's default behavior in this regard, by
 tweaking a setting called ``TEMPLATE_STRING_IF_INVALID``. We haven't covered
-Django settings yet, but we'll cover ``TEMPLATE_STRING_IF_INVALID`` in Chapter
-10, "Extending the template engine."
+Django settings yet, but we'll discuss ``TEMPLATE_STRING_IF_INVALID`` in
+Chapter 10, "Extending the template engine."
 
 Playing with Context objects
 ----------------------------
@@ -464,7 +489,7 @@ Playing with Context objects
 Most of the time, you'll instantiate ``Context`` objects by passing in a
 fully-populated dictionary to ``Context()``. But you can add and delete items
 from a ``Context`` object once it's been instantiated, too, using standard
-dictionary syntax::
+Python dictionary syntax::
 
     >>> from django.template import Context
     >>> c = Context({"foo": "bar"})
@@ -566,13 +591,37 @@ This approach, however, is inelegant for these reasons:
       ``open()``, ``fp.read()`` and ``fp.close()`` require a lot of typing and
       not much creativity.
 
-To solve these issues, Django has a lightweight infrastructure for
-*template loading* and *template directories*.
+To solve these issues, we'll use *template loading* and *template directories*.
 
 Template loading
 ================
 
-LEFT OFF HERE
+Django provides a convenient and powerful API for loading templates from disk,
+with the goal of removing redundancy both in your template-loading calls and in
+your templates themselves.
+
+Settings files
+--------------
+
+In order to use this template-loading API, first you'll need to tell the
+framework where you store your templates. The place to do this is in your
+**settings file**.
+
+A Django settings file is the place to put configuration for your Django
+instance (aka your Django project). It's a simple Python module with
+module-level variables, one for each setting.
+
+When you ran ``django-admin.py startproject mysite`` in Chapter 2, the script
+created a default settings file for you, aptly named ``settings.py``. Have a
+look at the file's contents. It contains variables that look like this (though
+not necessarily in this order)::
+
+    DEBUG = True
+    TIME_ZONE = 'America/Chicago'
+    USE_I18N = True
+    ROOT_URLCONF = 'mysite.urls'
+
+Each one of these variables is a setting.
 
 
 
@@ -876,3 +925,4 @@ locals() trick
 Other template systems
 ======================
 
+Template syntax errors in the debug view
