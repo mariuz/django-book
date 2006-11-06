@@ -556,11 +556,11 @@ This approach, however, is inelegant for these reasons:
 
     * For one, it doesn't handle the case of a missing file. If the file
       ``mytemplate.html`` doesn't exist or isn't readable, the ``open()`` call
-      would raise an exception.
+      would raise an ``IOError`` exception.
 
     * Second, it hard-codes your template location. If you were to use this
       technique for every view function, you'd be duplicating the template
-      locations.
+      locations. Not to mention that's a lot of typing!
 
     * Third, it includes a lot of boring boilerplate code. The calls to
       ``open()``, ``fp.read()`` and ``fp.close()`` require a lot of typing and
@@ -569,7 +569,20 @@ This approach, however, is inelegant for these reasons:
 To solve these issues, Django has a lightweight infrastructure for
 *template loading* and *template directories*.
 
-Template
+Template loading
+================
+
+LEFT OFF HERE
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -613,182 +626,6 @@ Template system philosophy
 
 
 
-
-.. About 50% of this chapter is taken from Django's template.txt doc.
-
-If a view describes *what* data is displayed on a given page, the template
-describes *how* that data looks. This distinction is important since it will
-easily let you change how your site looks without having to change how it
-behaves. Most web development teams already have different people who develop
-the code who design the templates; this division in Django strives to match
-that natural division of labor.
-
-Django's template language is designed to strike a balance between power and
-ease. It's designed to feel comfortable to those used to working with HTML. If
-you have any exposure to other text-based template languages, such as Smarty
-(http://smarty.php.net) or CheetahTemplate (http://www.cheetahtemplate.org/),
-you should feel right at home with Django's templates.
-
-.. admonition:: Ick, I hate it!
-
-    We have a deep love for Django's template language, but not everyone
-    shares our passion.  Luckily, like most of Django, there's nothing
-    that binds you to using Django's template engine instead of the one
-    of your choice. You can simply write views that render content using
-    your favorite engine instead.
-
-Django's template language has particularly been designed to be
-designer-friendly. We think most programmers -- us included -- have the design
-sense of a color-blind three-year-old, so we prefer to leave the designing to
-the professionals by giving them a template language they can understand.
-
-Tying up loose ends
-===================
-
-Let's get started by wrapping up the index template we started in the last
-chapter. You'll recall that the view we're dealing with looks like::
-
-    from django import template
-    from django.http import HttpResponse
-    from django.shortcuts import render_to_response, get_object_or_404
-    from mysite.crimes.models import Crime, CrimeType
-
-    def index(request):
-        latest_crime_list = Crime.objects.all().order_by('-pub_date')[:10]
-        return render_to_response('crimes/index.html', {
-            'latest_crime_list': latest_crime_list,
-            'type_list': CrimeType.objects.all(),
-        })
-
-Right now, the template is set up to only display the list of latest crimes
-and doesn't display the list of crime types. On top of that, the template we
-have so far isn't valid HTML at all; just a small snippet. Here's our take on
-fixing both those problems::
-
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-    <html lang="en">
-    <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <title>Crimes in my city</title>
-    </head>
-    <body>
-      {% if latest_crime_list %}
-        <h2>Latest crimes:</h2>
-        <ul>
-        {% for crime in latest_crime_list %}
-          <li>{{ crime.type }} at {{ crime.location }}
-                [{{ crime.when|date:"F j, P" }}]</li>
-        {% endfor %}
-        </ul>
-
-        <h2>Crimes by type:</h2>
-        <ul>
-        {% for type in type_list %}
-          <li><a href="types/{{ type.id }}/">{{ type }}</a></li>
-        {% endfor %}
-        </ul>
-
-      {% else %}
-        <p>No crimes are available.</p>
-      {% endif %}
-    </body>
-    </html>
-
-That's better. Now we've got a complete (if still minimal) HTML page
-displaying all the data available on the page. Let's focus on this template
-and explain all the bits and pieces that go into making it.
-
-What's a template
-=================
-
-First, though, what do we mean when we call the above a **template**? Well, a
-template is simply a text file. It can generate any text-based format (HTML,
-XML, CSV, etc.).
-
-To do anything useful, template contains **variables**, which get replaced
-with values when the template is evaluated, and **tags**, which control the
-logic of the template.
-
-.. admonition:: Philosophy
-
-    Why use a text-based template instead of an XML-based one (like Zope's
-    TAL)? We wanted Django's template language to be usable for more than
-    just XML/HTML templates. At World Online, we use it for e-mails,
-    JavaScript and CSV. You can use the template language for any text-based
-    format.
-
-    Oh, and one more thing: Making humans edit XML is just sadistic!
-
-Variables
-=========
-
-Variables look like this: ``{{ variable }}``. When the template engine
-encounters a variable, it evaluates that variable and replaces it with the
-result.
-
-Use a dot (``.``) to access attributes of a variable.
-
-.. admonition:: Behind the scenes
-
-    Technically, when the template system encounters a dot, it tries the
-    following lookups, in this order:
-
-        * Dictionary lookup
-        * Attribute lookup
-        * Method call
-        * List-index lookup
-
-In the above example, ``{{ crime.location }}`` will be replaced with the
-``location`` attribute of the ``crime`` object.
-
-Where did that ``crime`` object come from? It came from the context you
-created in the view and passed into the template. All variables are evaluated
-against the context that view creates.
-
-If you use a variable that doesn't exist, the template system will insert
-the value of the ``TEMPLATE_STRING_IF_INVALID`` setting which is set to an
-empty string by default.
-
-See "Using the built-in reference", below, for help on finding what variables
-are available in a given template.
-
-Filters
-=======
-
-You can modify variables for display by using **filters**.
-
-Filters look like this: ``{{ name|lower }}``. This displays the value of the
-``{{ name }}`` variable after being filtered through the ``lower`` filter,
-which converts text to lowercase. Use a pipe (``|``) to apply a filter.
-
-Filters can be "chained." The output of one filter is applied to the next.
-``{{ text|escape|linebreaks }}`` is a common idiom for escaping text contents,
-then converting line breaks to ``<p>`` tags.
-
-Some filters take arguments. A filter argument looks like this:
-``{{ bio|truncatewords:"30" }}``. This will display the first 30 words of the
-``bio`` variable. Filter arguments always are in double quotes.
-
-So, in the example above, ``{{ crime.when|date:"F j, P" }}`` outputs the value
-of the ``crime``'s ``when`` attribute, formatted with the ``date`` filter
-which is given the format string ``F j, P``. This ``date`` filter is based on
-PHP's ``date()`` function and is described fully along with all the other
-standard Django filters in Chapter XXX.
-
-Tags
-====
-
-Tags look like this: ``{% tag %}``. Tags are more complex than variables: Some
-create text in the output, some control flow by performing loops or logic, and
-some load external information into the template to be used by later
-variables.
-
-Some tags require beginning and ending tags (i.e. ``{% tag %} ... tag contents
-... {% endtag %}``). In the example above, both ``{% if %}`` and ``{% for %}``
-are tags, and both require ending tags.
-
-The built-in tag reference in Chapter XXX describes these and all the other
-built-in tags, and Chapter 9 explains how to create your own tags.
 
 Template inheritance
 ====================
