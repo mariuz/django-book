@@ -686,66 +686,136 @@ use Django's template-loading functionality rather than hard-coding the
 template paths. Returning to our ``current_datetime`` view, let's change it
 like so::
 
-    from django.template.loader import load_template
+    from django.template.loader import get_template
     from django.template import Context
     from django.http import HttpResponse
     import datetime
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        t = load_template('current_datetime.html')
+        t = get_template('current_datetime.html')
         html = t.render(Context({'current_date': now}))
         return HttpResponse(html)
 
-In this example, we're using the function ``django.template.loader.load_template()``
+In this example, we're using the function ``django.template.loader.get_template()``
 rather than loading the template from the filesystem manually. The
-``load_template()`` function takes a template name as its argument, figures out
+``get_template()`` function takes a template name as its argument, figures out
 where the template lives on the filesystem, opens that file and returns a
 compiled ``Template`` object.
 
-If ``load_template()`` cannot find the template with the given name, it raises
+If ``get_template()`` cannot find the template with the given name, it raises
 a ``TemplateDoesNotExist`` exception. To see what that looks like, fire up the
 Django development server again, as in Chapter 3, by running
 ``python manage.py runserver`` within your Django project's directory. Then,
-point your browser at the page that activates this view. Assuming your
-``DEBUG`` setting is set to ``True``, you should see a Django error page
-highlighting the ``TemplateDoesNotExist`` error.
+point your browser at the page that activates the ``current_datetime`` view
+(e.g., ``http://127.0.0.1:8000/now/``). Assuming your ``DEBUG`` setting is set
+to ``True`` and you haven't yet created a ``current_datetime.html`` template,
+you should see a Django error page highlighting the ``TemplateDoesNotExist``
+error.
 
+(We'll have a screenshot here.)
 
+This error page is similar to the one we explained in Chapter 3, with one
+additional piece of debugging information: a "Template-loader postmortem"
+section. This section tells you which templates Django tried to load, along
+with the reason each attempt failed (e.g., "File does not exist"). This
+information is invaluable when you're trying to debug template-loading errors.
 
+As you can probably tell by looking at the error messages, Django attempted to
+look for a template by combining the directory in your ``TEMPLATE_DIRS``
+setting with the template name you passed to ``get_template()``. So if your
+``TEMPLATE_DIRS`` contained ``'/home/django/templates'``, it would look for
+the file ``'/home/django/templates/current_datetime.html'``.
 
+Moving along, create the ``current_datetime.html`` file within your template
+directory, using the following template code::
 
+    <html><body>It is now {{ current_date }}.</body></html>
 
+Refresh the page in your Web browser, and you should see the fully rendered
+page.
 
+render_to_response()
+--------------------
 
+Because it's such a common idiom to load a template, fill a ``Context`` and
+return an ``HttpResponse`` object with the result of the rendered template,
+Django provides a shortcut that lets you do those things in one line of code.
+This shortcut is a function called ``render_to_response()``, which lives in the
+module ``django.shortcuts``. Most of the time, you'll be using
+``render_to_response()`` rather than loading templates and creating ``Context``
+and ``HttpResponse`` objects manually.
 
+Here's the ongoing ``current_datetime`` example rewritten to use
+``render_to_response()``::
 
-
-    First, create a directory, somewhere on your
-    filesystem, whose contents Django can access. (Django runs as the same user
-    as your web server.)  It doesn't really matter where these templates live; one
-    good place is ``mysite/templates`` directory.
-
-    Now edit ``TEMPLATE_DIRS`` in your ``settings.py`` to tell Django where it
-    can find templates, adding the full path to the template directory you just created.
-
-    When you've done that, create a new file, ``now.html`` in your template
-    directory, and place the HTML,
-    ``<html><body>It is now {{ current_date }}.</body></html>`` in it.
-
-    Next, change ``views.py`` to use load and use this template file::
-
-
-    from django.template import loader, Context
-    from django.http import HttpResponse
+    from django.shortcuts import render_to_response
     import datetime
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        t = loader.get_template('now.html')
-        html = t.render(Context({'current_date': now}))
-        return HttpResponse(html)
+        return render_to_response('current_datetime.html', {'current_date': now})
 
+What a difference! Let's step through the code changes::
+
+    * We no longer have to import ``get_template``, ``Template``, ``Context``
+      or ``HttpResponse``. Instead, we import
+      ``django.shortcuts.render_to_response``. The ``import datetime`` remains.
+
+    * Within the ``current_datetime`` function, we still calculate ``now``, but
+      the template loading, context creation, template rendering and
+      ``HttpResponse`` creation is all taken care of by the
+      ``render_to_response()`` call. Because ``render_to_response()`` returns
+      an ``HttpResponse`` object, we can simply ``return`` that value in the
+      view.
+
+The first argument to ``render_to_response()`` should be the name of the
+template to use, relative to your template directory. The second argument, if
+given, should be a dictionary to use in creating a ``Context`` for that
+template. If you don't provide a second argument, ``render_to_response()`` will
+use an empty dictionary.
+
+The locals() trick
+------------------
+
+Consider our latest incarnation of ``current_datetime``::
+
+    def current_datetime(request):
+        now = datetime.datetime.now()
+        return render_to_response('current_datetime.html', {'current_date': now})
+
+Many times, as in this example, you'll find yourself calculating some values,
+storing them in variables (e.g., ``now`` above) and sending those variables to
+the template. Particularly lazy programmers would note that it's slightly
+redundant to have to give names for temporary variables *and* give names for
+the template variables. Not only is it redundant; it's extra typing.
+
+So if you're one of those lazy programmers and you like keeping code
+particularly concise, you can take advantage of a built-in Python function
+called ``locals()``. ``locals()`` returns a dictionary of all variables defined
+within the local scope, along with their values. Thus, the above view could be
+rewritten like so::
+
+    def current_datetime(request):
+        current_date = datetime.datetime.now()
+        return render_to_response('current_datetime.html', locals())
+
+Here, instead of manually specifying the context dictionary as before, we
+instead pass the value of ``locals()``, which will include all variables
+defined at that point in the function's execution. As a consequence, we've
+renamed the ``now`` variable to ``current_date``, because that's the variable
+name that the template expects. In this example, ``locals()`` doesn't offer a
+*huge* improvement, but this technique can save you some typing if you've got
+several template variables to define -- or if you're lazy.
+
+One thing to watch out for when using ``locals()`` is that it includes *every*
+local variable, which may comprise more variables than you actually want your
+template to have access to. In the above example, ``locals()`` will also
+include ``request``. Whether this matters to you depends on your application.
+
+A final thing to consider is that ``locals()`` incurs a small bit of overhead,
+because when you call it, Python has to create the dictionary dynamically. If
+you specify the context dictionary manually, you avoid this overhead.
 
 Template system philosophy
 ==========================
@@ -1002,6 +1072,12 @@ chapter we'll plug that gap by explaining how Django does form processing.
 
 
 
+Multiple template directories
+=============================
+
+Template inheritance
+====================
+
 Philosophy
 ==========
 
@@ -1012,3 +1088,4 @@ Other template systems
 ======================
 
 Template syntax errors in the debug view
+========================================
