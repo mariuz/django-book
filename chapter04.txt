@@ -600,9 +600,6 @@ Django provides a convenient and powerful API for loading templates from disk,
 with the goal of removing redundancy both in your template-loading calls and in
 your templates themselves.
 
-Settings files
---------------
-
 In order to use this template-loading API, first you'll need to tell the
 framework where you store your templates. The place to do this is in your
 **settings file**.
@@ -621,9 +618,98 @@ not necessarily in this order)::
     USE_I18N = True
     ROOT_URLCONF = 'mysite.urls'
 
-Each one of these variables is a setting.
+This is pretty self-explanatory; the settings and their respective values are
+simple Python variables. And because the settings file is just a plain Python
+module, you can do dynamic things such as checking the value of one variable
+before setting another. (This also means that you should avoid Python syntax
+errors in your settings file.)
 
+We'll cover settings files in depth later in this book, but for now, have a
+look at the ``TEMPLATE_DIRS`` setting. This setting tells Django's template
+loading mechanism where to look for templates. By default, it's an empty tuple.
+Pick a directory where you'd like to store your templates, and add it to
+``TEMPLATE_DIRS``, like so::
 
+    TEMPLATE_DIRS = (
+        '/home/django/mysite/templates',
+    )
+
+A few things to note:
+
+    * You can specify any directory you want, as long as the directory and
+      templates within that directory are readable by the user account under
+      which your Web server runs. If you can't think of an obvious place to
+      put your templates, we recommend creating a ``templates`` directory
+      within your Django project (i.e., within the ``mysite`` directory you
+      created in Chapter 2, if you've been following along with our examples).
+
+    * Don't forget the comma at the end of the template-directory string!
+      Python requires commas within single-element tuples to disambiguate the
+      tuple from a parenthetical statement. This is a common newbie gotcha.
+
+      If you want to avoid this error, you can make ``TEMPLATE_DIRS`` a list
+      instead of a tuple, because single-element lists don't require a trailing
+      comma::
+
+          TEMPLATE_DIRS = [
+              '/home/django/mysite/templates'
+          ]
+
+      A tuple is slightly more efficient than a list, though, so we recommend
+      using a tuple for your ``TEMPLATE_DIRS`` setting.
+
+    * It's simplest to use absolute paths, i.e. directory paths that start at
+      the root of the filesystem. If you want to be a bit more flexible and
+      decoupled, though, you can take advantage of the fact that Django
+      settings files are just Python code by constructing the contents of
+      ``TEMPLATE_DIRS`` dynamically. For example::
+
+          import os.path
+
+          TEMPLATE_DIRS = (
+              os.path.join(os.path.basename(__file__), 'templates'),
+          )
+
+      This example uses the "magic" Python variable ``__file__``, which is
+      automatically set to the filename of the Python module in which the code
+      lives.
+
+    * If you're on Windows, include your drive letter and use Unix-style
+      forward slashes rather than backslashes. For example::
+
+          TEMPLATE_DIRS = (
+              'C:/www/django/templates',
+          )
+
+With ``TEMPLATE_DIRS`` set, the next step is to change the view code to
+use Django's template-loading functionality rather than hard-coding the
+template paths. Returning to our ``current_datetime`` view, let's change it
+like so::
+
+    from django.template.loader import load_template
+    from django.template import Context
+    from django.http import HttpResponse
+    import datetime
+
+    def current_datetime(request):
+        now = datetime.datetime.now()
+        t = load_template('current_datetime.html')
+        html = t.render(Context({'current_date': now}))
+        return HttpResponse(html)
+
+In this example, we're using the function ``django.template.loader.load_template()``
+rather than loading the template from the filesystem manually. The
+``load_template()`` function takes a template name as its argument, figures out
+where the template lives on the filesystem, opens that file and returns a
+compiled ``Template`` object.
+
+If ``load_template()`` cannot find the template with the given name, it raises
+a ``TemplateDoesNotExist`` exception. To see what that looks like, fire up the
+Django development server again, as in Chapter 3, by running
+``python manage.py runserver`` within your Django project's directory. Then,
+point your browser at the page that activates this view. Assuming your
+``DEBUG`` setting is set to ``True``, you should see a Django error page
+highlighting the ``TemplateDoesNotExist`` error.
 
 
 
