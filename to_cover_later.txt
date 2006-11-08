@@ -1,0 +1,290 @@
+====================
+Stuff to cover later
+====================
+
+This is a running list of stuff that hasn't yet been mentioned in the completed
+chapters of the book. It's kind of messy, as I copy and paste stuff in here en masse.
+
+
+
+
+
+
+
+
+Multiple template directories
+=============================
+
+When you edited the ``TEMPLATE_DIRS`` setting, you may have noticed
+``TEMPLATE_DIRS`` can be a list or tuple of strings, not just a single string.
+
+
+Using other template systems with Django
+========================================
+
+Overview of some common ones
+
+Template syntax errors in the debug view
+========================================
+
+
+Using the built-in reference
+============================
+
+Django's admin interface includes a complete reference of all template tags
+and filters available for a given site. To see it, go to your admin interface
+and click the "Documentation" link in the upper right of the page.
+
+The reference is divided into 4 sections: tags, filters, models, and views.
+
+The **tags** and **filters** sections describe all the built-in tags (in fact,
+the tag and filter references below come directly from those pages) as well as
+any custom tag or filter libraries available.
+
+The **views** page is the most valuable. Each URL in your site has a separate
+entry here, and clicking on a URL will show you:
+
+    * The name of the view function that generates that view.
+
+    * A short description of what the view does.
+
+    * The **context**, or a list of variables available in the view's
+      template.
+
+    * The name of the template or templates that are used for that view.
+
+Each view documentation page also has a bookmarklet that you can use to jump
+from any page to the documentation page for that view.
+
+Because Django-powered sites usually use database objects, the **models**
+section of the documentation page describes each type of object in the system
+along with all the fields available on that object.
+
+Taken together, the documentation pages should tell you every tag, filter,
+variable and object available to you in a given template.
+
+
+
+
+Custom tag and filter libraries
+===============================
+
+Certain applications provide custom tag and filter libraries. To access them
+in a template, use the ``{% load %}`` tag::
+
+    {% load comments %}
+
+    {% comment_form for blogs.entries entry.id with is_public yes %}
+
+In the above, the ``load`` tag loads the ``comments`` tag library, which then
+makes the ``comment_form`` tag available for use. Consult the documentation
+area in your admin to find the list of custom libraries in your installation.
+
+The ``{% load %}`` tag can take multiple library names, separated by spaces.
+Example::
+
+    {% load comments i18n %}
+
+Chapter 9 explains how you can write your own custom template tag libraries.
+
+Custom libraries and template inheritance
+-----------------------------------------
+
+When you load a custom tag or filter library, the tags/filters are only made
+available to the current template -- not any parent or child templates along
+the template-inheritance path.
+
+For example, if a template ``foo.html`` has ``{% load comments %}``, a child
+template (e.g., one that has ``{% extends "foo.html" %}``) will *not* have
+access to the comments template tags and filters. The child template is
+responsible for its own ``{% load comments %}``.
+
+This is a feature for the sake of maintainability and sanity.
+
+
+
+
+
+
+      Note that ``django.core.exceptions.ObjectDoesNotExist``, which is the
+      base class for all Django database API ``DoesNotExist`` exceptions, has
+      ``silent_variable_failure = True``. So if you're using Django templates
+      with Django model objects, any ``DoesNotExist`` exception will fail
+      silently.
+
+ The dynamically-generated ``delete()`` and
+      ``save()`` methods on Django model objects get ``alters_data=True``
+      automatically.
+
+
+For chapter 10:
+
+
+inserts the
+value of the ``TEMPLATE_STRING_IF_INVALID`` setting, which is set to ``''``
+(the empty string) by default.
+
+Filters that are applied to an invalid variable will only be applied if
+``TEMPLATE_STRING_IF_INVALID`` is set to ``''`` (the empty string). If
+``TEMPLATE_STRING_IF_INVALID`` is set to any other value, variable
+filters will be ignored.
+
+This behavior is slightly different for the ``if``, ``for`` and ``regroup``
+template tags. If an invalid variable is provided to one of these template
+tags, the variable will be interpreted as ``None``. Filters are always
+applied to invalid variables within these template tags.
+
+.. admonition:: For debug purposes only!
+
+    While ``TEMPLATE_STRING_IF_INVALID`` can be a useful debugging tool,
+    it is a bad idea to turn it on as a 'development default'.
+
+    Many templates, including those in the Admin site, rely upon the
+    silence of the template system when a non-existent variable is
+    encountered. If you assign a value other than ``''`` to
+    ``TEMPLATE_STRING_IF_INVALID``, you will experience rendering
+    problems with these templates and sites.
+
+    Generally, ``TEMPLATE_STRING_IF_INVALID`` should only be enabled
+    in order to debug a specific template problem, then cleared
+    once debugging is complete.
+
+
+
+Subclassing Context: RequestContext
+-----------------------------------
+
+Django comes with a special ``Context`` class,
+``django.template.RequestContext``, that acts slightly differently than
+the normal ``django.template.Context``. The first difference is that takes
+an `HttpRequest object`_ as its first argument. For example::
+
+    c = RequestContext(request, {
+        'foo': 'bar',
+    }
+
+The second difference is that it automatically populates the context with a few
+variables, according to your `TEMPLATE_CONTEXT_PROCESSORS setting`_.
+
+The ``TEMPLATE_CONTEXT_PROCESSORS`` setting is a tuple of callables -- called
+**context processors** -- that take a request object as their argument and
+return a dictionary of items to be merged into the context. By default,
+``TEMPLATE_CONTEXT_PROCESSORS`` is set to::
+
+    ("django.core.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n")
+
+Each processor is applied in order. That means, if one processor adds a
+variable to the context and a second processor adds a variable with the same
+name, the second will override the first. The default processors are explained
+below.
+
+Also, you can give ``RequestContext`` a list of additional processors, using the
+optional, third positional argument, ``processors``. In this example, the
+``RequestContext`` instance gets a ``ip_address`` variable::
+
+    def ip_address_processor(request):
+        return {'ip_address': request.META['REMOTE_ADDR']}
+
+    def some_view(request):
+        # ...
+        return RequestContext(request, {
+            'foo': 'bar',
+        }, [ip_address_processor])
+
+Note::
+    If you're using Django's ``render_to_response()`` shortcut to populate a
+    template with the contents of a dictionary, your template will be passed a
+    ``Context`` instance by default (not a ``RequestContext``). To use a
+    ``RequestContext`` in your template rendering, pass an optional third
+    argument to ``render_to_response()``: a ``RequestContext``
+    instance. Your code might look like this::
+
+        def some_view(request):
+            # ...
+            return render_to_response('my_template'html',
+                                      my_data_dictionary,
+                                      context_instance=RequestContext(request))
+
+Here's what each of the default processors does:
+
+.. _HttpRequest object: http://www.djangoproject.com/documentation/request_response/#httprequest-objects
+.. _TEMPLATE_CONTEXT_PROCESSORS setting: http://www.djangoproject.com/documentation/settings/#template-context-processors
+
+django.core.context_processors.auth
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
+``RequestContext`` will contain these three variables:
+
+    * ``user`` -- An ``auth.User`` instance representing the currently
+      logged-in user (or an ``AnonymousUser`` instance, if the client isn't
+      logged in). See the `user authentication docs`.
+
+    * ``messages`` -- A list of messages (as strings) for the currently
+      logged-in user. Behind the scenes, this calls
+      ``request.user.get_and_delete_messages()`` for every request. That method
+      collects the user's messages and deletes them from the database.
+
+      Note that messages are set with ``user.add_message()``. See the
+      `message docs`_ for more.
+
+    * ``perms`` -- An instance of
+      ``django.core.context_processors.PermWrapper``, representing the
+      permissions that the currently logged-in user has. See the `permissions
+      docs`_.
+
+.. _user authentication docs: http://www.djangoproject.com/documentation/authentication/#users
+.. _message docs: http://www.djangoproject.com/documentation/authentication/#messages
+.. _permissions docs: http://www.djangoproject.com/documentation/authentication/#permissions
+
+django.core.context_processors.debug
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
+``RequestContext`` will contain these two variables -- but only if your
+``DEBUG`` setting is set to ``True`` and the request's IP address
+(``request.META['REMOTE_ADDR']``) is in the ``INTERNAL_IPS`` setting:
+
+    * ``debug`` -- ``True``. You can use this in templates to test whether
+      you're in ``DEBUG`` mode.
+    * ``sql_queries`` -- A list of ``{'sql': ..., 'time': ...}`` dictionaries,
+      representing every SQL query that has happened so far during the request
+      and how long it took. The list is in order by query.
+
+django.core.context_processors.i18n
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
+``RequestContext`` will contain these two variables:
+
+    * ``LANGUAGES`` -- The value of the `LANGUAGES setting`_.
+    * ``LANGUAGE_CODE`` -- ``request.LANGUAGE_CODE``, if it exists. Otherwise,
+      the value of the `LANGUAGE_CODE setting`_.
+
+See the `internationalization docs`_ for more.
+
+.. _LANGUAGES setting: http://www.djangoproject.com/documentation/settings/#languages
+.. _LANGUAGE_CODE setting: http://www.djangoproject.com/documentation/settings/#language-code
+.. _internationalization docs: http://www.djangoproject.com/documentation/i18n/
+
+django.core.context_processors.request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
+``RequestContext`` will contain a variable ``request``, which is the current
+`HttpRequest object`_. Note that this processor is not enabled by default;
+you'll have to activate it.
+
+Writing your own context processors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A context processor has a very simple interface: It's just a Python function
+that takes one argument, an ``HttpRequest`` object, and returns a dictionary
+that gets added to the template context. Each context processor *must* return
+a dictionary.
+
+Custom context processors can live anywhere in your code base. All Django cares
+about is that your custom context processors are pointed-to by your
+``TEMPLATE_CONTEXT_PROCESSORS`` setting.
