@@ -1507,10 +1507,248 @@ this chapter. (Hint: Even if you think you understood everything, at least
 give these exercises, and their respective answers, a read. We introduce a
 couple of new tricks here.)
 
-    1. A key to mastering Django's template system is to know *what to pass* to
-       the template. Because templates do not have the full
-       programming-language power of an environment you might be used to, it's
-       more important in a Django environment to do as much *business logic*
+    1. You've got a list of musicians and what genre of music each musician
+       plays. This data is stored as a list of dictionaries, which will be
+       hard-coded in your view module. (Usually we'd use a database for this,
+       but we haven't yet covered Django's database layer.) The list looks like
+       this::
+
+           MUSICIANS = [
+               {'name': 'Django Reinhardt', 'genre': 'jazz'},
+               {'name': 'Jimi Hendrix',     'genre': 'rock'},
+               {'name': 'Louis Armstrong',  'genre': 'jazz'},
+               {'name': 'Pete Townsend',    'genre': 'rock'},
+               {'name': 'Yanni',            'genre': 'new age'},
+               {'name': 'Ella Fitzgerald',  'genre': 'jazz'},
+               {'name': 'Wesley Willis',    'genre': 'casio'},
+               {'name': 'John Lennon',      'genre': 'rock'},
+               {'name': 'Bono',             'genre': 'rock'},
+               {'name': 'Garth Brooks',     'genre': 'country'},
+               {'name': 'Duke Ellington',   'genre': 'jazz'},
+               {'name': 'Madonna',          'genre': 'pop'},
+           ]
+
+       Write a Django view and corresponding template(s) that display an HTML
+       ``<table>`` with a row for each musician in this list, in order. Each
+       row should have two columns: the musician's name and the type of music
+       he/she plays.
+
+    2. Once you've done that: For all the musicians who play jazz or rock
+       -- but *not* the others -- bold their names by applying a
+       ``class="bold"`` to their ``<td>`` cells.
+
+    3. Once you've done that: For all the musicians who have a one-word name --
+       but *not* the others -- display an asterisk after their name. Add a
+       footnote to the page that says "* Pretentious." Maintain the
+       ``class="bold"`` from the previous exercise.
+
+    4. Given the following three templates, devise a template-inheritance scheme
+       that removes as much redundancy as possible.
+
+       Template 1::
+
+           <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+           <html lang="en">
+           <head>
+               <link rel="stylesheet" href="default.css" type="text/css">
+               <title>My to-do list</title>
+           </head>
+           <body>
+               <h1 id="top">Latest tasks</h1>
+               {% if task_list %}
+                   <ul>
+                   {% for task in task_list %}<li>{{ task }}</li>{% endfor %}
+                   </ul>
+               {% else %}
+                   <p>You have no tasks.</p>
+               {% endif %}
+               <hr>
+               <p><a href="#top">Back to top</a>.</p>
+           </body>
+           </html>
+
+       Template 2::
+
+           <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+           <html lang="en">
+           <head>
+               <title>Task: {{ task.title }} | To-do list</title>
+               <link rel="stylesheet" href="default.css" type="text/css">
+           </head>
+           <body>
+               <h1 id="top">{{ task.title }}</h1>
+               <p>{{ task.description }}</p>
+               <hr>
+               <p><a href="#top">Back to top</a>.</p>
+           </body>
+           </html>
+
+       Template 3::
+
+           <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+           <html lang="en">
+           <head>
+               <title>Completed tasks | To-do list</title>
+               <link rel="stylesheet" href="default.css" type="text/css">
+               <script type="text/javascript" src="completed.js">
+           </head>
+           <body>
+               <h1 id="top">{{ task.title }}</h1>
+               <p>{{ task.description }}</p>
+               <hr>
+               <p><a href="#top">Back to top</a>.</p>
+           </body>
+           </html>
+
+Answers to exercises
+====================
+
+    1. Here's one possible implementation of the view::
+
+           from django.shortcuts import render_to_response
+
+           MUSICIANS = [
+               # ...
+           ]
+
+           def musician_list(request):
+               return render_to_response('musician_list.html', {'musicians': MUSICIANS})
+
+       And here's the template::
+
+           <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+           <html lang="en">
+           <head>
+               <title>Musician list</title>
+           </head>
+           <body>
+               <table>
+               <tr><th>Musician</th><th>Genre</th></tr>
+               {% for musician in musicians %}
+                   <tr>
+                   <td>{{ musician.name }}</td>
+                   <td>{{ musician.genre }}</td>
+                   </tr>
+               {% endfor %}
+               </table>
+           </body>
+           </html>
+
+    2. A rather clumsy way to do this would be to use ``{% ifequal %}`` in the
+       template. The view would stay the same as in the answer to the last
+       exercise, and the template's ``{% for %}`` loop would change to
+       something like this::
+
+           {% for musician in musicians %}
+               <tr>
+               <td {% ifequal musician.genre 'jazz' %}class="bold"{% endifequal %}
+                   {% ifequal musician.genre 'rock' %}class="bold"{% endifequal %}>
+                 {{ musician.name }}
+               </td>
+               <td>{{ musician.genre }}</td>
+               </tr>
+           {% endfor %}
+
+       This is overly verbose, repetitive and error-prone -- and it illustrates
+       an important point. A key to mastering Django's template system is to
+       know *what to pass* to the template. Because templates do not have the
+       full programming-language power of an environment you might be used to,
+       it's more important in a Django environment to do as much *business logic*
        (as opposed to *presentation logic*) in your view.
 
-       With that in mind, write
+       In this case, a cleaner way of solving the problem would be to have the
+       view precalculate whether a musician's name is bolded. After all, this
+       business logic, not presentation logic. The presentation logic dictates
+       *how* the special-case genres should be displayed, not *which* genres
+       are special-cased. This is an important distinction.
+
+       Here's one way to code the view::
+
+           def musician_list(request):
+               musicians = []
+               for m in MUSICIANS:
+                   musicians.append({
+                       'name': m['name'],
+                       'genre': m['genre'],
+                       'is_important': m['genre'] in ('rock', 'jazz'),
+                   })
+               return render_to_response('musician_list.html', {'musicians': musicians})
+
+       And with that view, you could use this template code::
+
+           {% for musician in musicians %}
+               <tr>
+               <td{% if musician.is_important %} class="bold"{% endif %}>
+                 {{ musician.name }}
+               </td>
+               <td>{{ musician.genre }}</td>
+               </tr>
+           {% endfor %}
+
+       See how cleaner that is in the template? Granted, our view is more
+       complex, but we could tighten it up by using a Python list
+       comprehension::
+
+           def musician_list(request):
+               musicians = [{'name': m['name'], 'genre': m['genre'], 'is_important': m['genre'] in ('rock', 'jazz')}
+                   for m in MUSICIANS]
+               return render_to_response('musician_list.html', {'musicians': musicians})
+
+       Even this is more complex than it usually will be, because usually
+       you'll be dealing with database objects, and database objects can have
+       custom methods (such as ``is_important()``). We'll cover database
+       objects in the next chapter.
+
+    3. This is a similar problem to the previous exercise, and the solution is
+       also similar. The key is to precalculate whether a musician deserves an
+       asterisk next to his or her name. Because that's business logic, it
+       belongs in the view.
+
+       Here's one possible view implementation::
+
+           def musician_list(request):
+               musicians = []
+               for m in MUSICIANS:
+                   musicians.append({
+                       'name': m['name'],
+                       'genre': m['genre'],
+                       'is_important': m['genre'] in ('rock', 'jazz'),
+                       'has_asterisk': ' ' not in m['name'],
+                   })
+               return render_to_response('musician_list.html', {'musicians': musicians})
+
+       We're using the expression ``' ' not in m['name']``, which returns
+       ``True`` if ``m['name']`` includes a space. You could also use the
+       ``.find()`` method, like this::
+
+           'has_asterisk': m['name'].find(' ') == -1
+
+       With that view, you could use this template code::
+
+           {% for musician in musicians %}
+               <tr>
+               <td{% if musician.is_important %} class="bold"{% endif %}>
+                 {% if musician.has_asterisk %}* {% endif %}{{ musician.name }}
+               </td>
+               <td>{{ musician.genre }}</td>
+               </tr>
+           {% endfor %}
+
+       Don't forget the "* Pretentious." at the bottom of the template.
+
+    4. Here's one way to write the base template::
+
+           <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+               <html lang="en">
+               <head>
+                   <link rel="stylesheet" href="default.css" type="text/css">
+                   <title>{% block title %}{% endblock %}</title>
+                   {% block extrahead %}{% endblock %}
+               </head>
+               <body>
+                   <h1 id="top">{% block title %}{% endblock %}</h1>
+                   {% block content %}{% endblock %}
+                   <hr>
+                   <p><a href="#top">Back to top</a>.</p>
+               </body>
+               </html>
