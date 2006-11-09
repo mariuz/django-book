@@ -9,16 +9,23 @@ Andrew Johnson	anjohnson@iee.org	rewording
 Daniel	daniel.tietze@go4teams.com	rewording
 Tipa	tipa@westkarana.com	typo
 Vitaliy	vitaliyf@gameaholic.com	punctuation
-Nick	nick@efford.org	punctuation
+Nick	nick@efford.org	punctuation,typo,rewording
 Brad Fults	bfults@gmail.com	punctuation
 James Wondrasek	jimmy@silver-tongued-devil.com	rewording
 Brenden Bixler	brenden.bixler@gmail.com	typo
 Harley	topdeckmail@gmail.com	rewording
 Rod Begbie	rod-django@arsecandle.org	linksuggestion
 Itai	itai@platonix.com	brokenlink
-Lawrence Oluyede	l.oluyede@gmail.com	brokenlink
+Lawrence Oluyede	l.oluyede@gmail.com	brokenlink,rewording,typo
 Carlo C8E Miron	carlo.miron@gmail.com	brokenlink
 intgr	intgr@juffo.org	typo
 Jeff Croft	jeff@jeffcroft.com	rewording
 Don Arbow	donarb@nwlink.com	rewording
 Jorge	jorge.gajon@gmail.com	rewording
+Vugar	evugar@gmail.com	rewording
+Radek	djangobook@svarz.cz	typo
+Jason Kotenko	jasonkotenko@yahoo.com	typo
+mrben	mrben@jedimoose.org	typo
+Gulopine	gulopine@gamemusic.org	rewording
+Paul	pb@e-scribe.com	rewording
+Bradley Peters	brad@moberley.com	rewording
