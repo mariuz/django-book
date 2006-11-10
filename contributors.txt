@@ -30,3 +30,7 @@ Gulopine	gulopine@gamemusic.org	rewording
 Paul	pb@e-scribe.com	rewording
 Bradley Peters	brad@moberley.com	rewording
 brad harder	bharder@methodlogic.net	rewording
+Steve	scblock@ev-15.com	rewording
+Dan Watson	dcwatson@gmail.com	typo
+Hendré	hwassermann@eml.cc	typo
+Simon Greenhill	dev@simon.net.nz	idea
