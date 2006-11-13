@@ -6,9 +6,8 @@ There's one part of web development we've always hated: writing administration
 interfaces. Developing the parts of the site that the general public sees is
 always different and interesting, but the bits that the administrators use to
 modify the site are always the same. You've got to deal with authenticating
-users to make sure that they are allowed to edit the content, display and
-handle forms, deal with tricky validation issues... it's boring, and it's
-repetitive.
+users, display and handle forms, deal with tricky validation issues... it's
+boring, and it's repetitive.
 
 Django's approach to this boring, repetitive task? Do it all for you -- in
 just a couple of lines of code, no less.
@@ -207,21 +206,21 @@ representation of the model we added to its ``__str__``. This works fine for
 just a few books, but if we had hundreds or thousands of books, it would be
 very hard to locate a single needle in the haystack. However, we can easily
 add some display, searching, and filtering functions to this interface. Change
-the ``Admin`` declaration to::
+the ``Admin`` declaration to:
 
     .. parsed-literal::
 
-    class Book(models.Model):
-        title = models.CharField(maxlength=100)
-        authors = models.ManyToManyField(Author)
-        publisher = models.ForeignKey(Publisher)
-        publication_date = models.DateField()
+        class Book(models.Model):
+            title = models.CharField(maxlength=100)
+            authors = models.ManyToManyField(Author)
+            publisher = models.ForeignKey(Publisher)
+            publication_date = models.DateField()
 
-        class Admin:
-            list_display   = ('title', 'publisher', 'publication_date')
-            list_filter    = ('publisher', 'publication_date')
-            ordering       = ('-publication_date',)
-            search_fields  = ('title',)
+            class Admin:
+                **list_display   = ('title', 'publisher', 'publication_date')**
+                **list_filter    = ('publisher', 'publication_date')**
+                **ordering       = ('-publication_date',)**
+                **search_fields  = ('title',)**
 
 These four lines of code dramatically change our list interface:
 
