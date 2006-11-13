@@ -11,7 +11,7 @@ In many modern Web applications, the *arbitrary logic* involves interacting
 with a database. Behind the scenes, a so-called **database-driven Web site**
 connects to a database server, retrieves some data out of it and displays that
 data, nicely formatted, on a Web page. Or, similarly, the site could provide
-HTML forms that let site visitors populate the database on their own.
+functionality that lets site visitors populate the database on their own.
 
 Many complex Web sites provide some combination of the two. Amazon.com, for
 instance, is a great example of a database-driven site. Each product page is
@@ -19,17 +19,81 @@ essentially an HTML view into Amazon's product database, and when you post a
 customer review, it gets inserted into the database of reviews.
 
 Django is very well-suited for making database-driven Web sites, as it comes
-with easy yet powerful ways of performing database queries with Python. This
+with easy yet powerful ways of performing database queries using Python. This
 chapter explains that functionality -- Django's database layer.
 
-(Note: We'll assume you are familiar with basic database theory and SQL. An
-introduction to those concepts is out of the scope of this book.)
+(Note: While it's not strictly necessary to know basic database theory and SQL
+in order to use Django's database layer, it's highly recommended. An
+introduction to those concepts is out of the scope of this book, but keep
+reading even if you're a database newbie. You'll probably be able to follow
+along and grasp concepts based on context.)
+
+The "dumb" way to do database queries in views
+==============================================
+
+Just as the previous chapter detailed a "dumb" way to output HTML within a
+view (by hard-coding HTML directly within the view), there's a "dumb" way to
+retrieve data from a database in a view. It's simple: Just use any existing
+Python library to execute an SQL query and do something with the results.
+
+In this example, we use the ``MySQLdb`` library (available at
+http://sourceforge.net/projects/mysql-python) to connect to a MySQL database,
+retrieve some records and feed them to a template for display as a Web page::
+
+    from django.shortcuts import render_to_response
+    import MySQLdb
+
+    def book_list(request):
+        db = MySQLdb.connect(user='me', db='mydb', passwd='secret', host='localhost')
+        cursor = db.cursor()
+        cursor.execute('SELECT name FROM books ORDER BY name')
+        names = [row[0] for row in cursor.fetchall()]
+        db.close()
+        return render_to_response('book_list.html', {'names': names})
+
+This approach works, but some problems should jump out at you immediately:
+
+    * We're hard-coding the database connection parameters. Ideally, these
+      parameters would be stored in the Django configuration.
+
+    * We're having to write a fair bit of boilerplate code: creating a
+      connection, creating a cursor, executing a statement and closing the
+      connection. Ideally, all we'd have to do is specify which results we
+      wanted.
+
+    * It ties us to MySQL. If, down the road, we switch from MySQL to
+      PostgreSQL, we'll have to rewrite the connection parameters and --
+      depending on the nature of the SQL statement -- possibly the SQL.
+      Ideally, the database server we're using would be abstracted.
+
+
+
+
+
+
+
+
+
+
 
 The MTV development pattern
 ===========================
 
-Before we delve into code, let's a moment to consider the overall design of a
-database-driven Django Web application.
+Before we delve into code, let's take a moment to consider the overall design
+of a database-driven Django Web application.
+
+As we've mentioned in previous chapters, Django is designed to encourage loose
+coupling and strict separation between pieces of an application; if you follow
+this philosophy, it's easy to make changes to one particular piece of the
+application without affecting other pieces of the application. With respect to
+view functions, for instance, we discussed the importance of separating the
+business logic from the presentation logic by using a template system. As
+
+
+
+
+
+
 
 Your first app
 ==============
@@ -97,7 +161,7 @@ After all, the data will eventually be stored in a database, so why not simply
 define your models there first? While this logic makes sense on the surface,
 we disagree:
 
-    * Writing SQL can be tough.  Different databases require you to do things
+    * Writing SQL can be tough. Different databases require you to do things
       differently, and having to write three different versions of your
       data definitions is the opposite of elegant.
 
@@ -110,10 +174,8 @@ we disagree:
       of how you created it. If you created it using SQL, you'd have to repeat
       yourself. Don't Repeat Yourself.
 
-    * Writing Python is fun! Django does its best to keep you writing Python
-      all the time.
-
-.. XXX JGD Added a fourth reason.
+    * Writing Python is fun, and keeping everything in Python limits the number
+      of times your brain has to do a "context switch."
 
 Creating models
 ===============
@@ -250,7 +312,7 @@ database. ``Crime.objects.all()`` is how you fetch a list of already-created
 
 ..note::
 
-    ``Crime.objects`` is a "manager" object; see Chapter XXX for more 
+    ``Crime.objects`` is a "manager" object; see Chapter XXX for more
     information about managers.
 
 There's quite a lot more you can do here -- and in fact Chapter XXX has a
@@ -435,8 +497,8 @@ say "yes" and the old tables will be dropped and new ones created.
 Using relations in the Python API
 =================================
 
-Now that we've got CrimeType defined in the database, we'll set up a few 
-example Crimes using the new ``CrimeType`` to explore the Django API for 
+Now that we've got CrimeType defined in the database, we'll set up a few
+example Crimes using the new ``CrimeType`` to explore the Django API for
 foreign keys.  Back to the shell::
 
     $ python manage.py shell
@@ -444,10 +506,10 @@ foreign keys.  Back to the shell::
     >>> from datetime import datetime
     >>> jaywalking = CrimeType(name="Jaywakling", is_felony=False)
     >>> jaywalking.save()
-    >>> florida_jaywalking = Crime(when=datetime.now(), 
+    >>> florida_jaywalking = Crime(when=datetime.now(),
     ...                            location="1211 Florida St", type=jaywalking)
     >>> florida_jaywalking.save()
-    >>> fortysecond_jaywalking = Crime(when=datetime.now(), 
+    >>> fortysecond_jaywalking = Crime(when=datetime.now(),
     ...                            location="1301 W. 42nd St", type=jaywalking)
     >>> fortysecond_jaywalking.save()
 
@@ -485,6 +547,3 @@ At this point you know enough (with the help of the reference in Chapter XXX)
 to start writing your own models. However, in the next chapter we'll step
 aside to look at the best-looking piece of Django: the automatic admin
 interface.
-
-So what are you waiting for? Turn the page!
-
