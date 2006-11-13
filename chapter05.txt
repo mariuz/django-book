@@ -69,6 +69,18 @@ This approach works, but some problems should jump out at you immediately:
       that a database server change could be made in a single place.
 
 As you might expect, Django's database layer aims to solve these problems.
+Here's a sneak preview of how the above view can be rewritten using Django's
+database API::
+
+    from django.shortcuts import render_to_response
+    from mysite.books.models import Book
+
+    def book_list(request):
+        books = Book.objects.order_by('name')
+        return render_to_response('book_list.html', {'books': books})
+
+We'll explain this code a little later in this chapter. For now, just get a
+feel for how it looks.
 
 The MTV development pattern
 ===========================
@@ -136,14 +148,203 @@ similar frameworks suggest that the controller's job includes deciding which
 data gets presented to the user, whereas the view is strictly *how* the data
 looks, not *which* data is presented.
 
-At the end of the day, of course, neither interpretation is more "correct" than
-the other. The important thing is to understand the underlying concepts.
+Neither interpretation is more "correct" than the other. The important thing is
+to understand the underlying concepts.
 
+Configuring the database
+========================
 
+With all of that philosophy in mind, let's start exploring Django's database
+layer. First, we need to take care of some initial configuration; we need to
+tell Django which database server to use and how to connect to it.
 
+As ``TEMPLATE_DIRS`` in the previous chapter, database configuration lives in
+the Django settings file, called ``settings.py`` by default. Edit that file and
+look for the database settings::
+
+    DATABASE_ENGINE = ''
+    DATABASE_NAME = ''
+    DATABASE_USER = ''
+    DATABASE_PASSWORD = ''
+    DATABASE_HOST = ''
+    DATABASE_PORT = ''
+
+Here's a rundown of each setting.
+
+    * ``DATABASE_ENGINE`` tells Django which database engine to use. If you're
+      using a database with Django, ``DATABASE_ENGINE`` must be set to one of
+      the following strings::
+
+          =======================  ====================  ==============================================
+          Setting                  Database              Required adapter
+          =======================  ====================  ==============================================
+          ``postgresql``           PostgreSQL            ``psycopg`` version 1.x,
+                                                         http://initd.org/projects/psycopg1
+          ``postgresql_psycopg2``  PostgreSQL            ``psycopg`` version 2.x,
+                                                         http://initd.org/projects/psycopg2
+          ``mysql``                MySQL                 ``MySQLdb``,
+                                                         http://sourceforge.net/projects/mysql-python
+          ``sqlite3``              SQLite                No adapter needed if using Python 2.5+.
+                                                         Otherwise, ``pysqlite``,
+                                                         http://initd.org/tracker/pysqlite
+          ``ado_mssql``            Microsoft SQL Server  ``adodbapi`` version 2.0.1+,
+                                                         http://adodbapi.sourceforge.net/
+          ``oracle``               Oracle                ``cx_Oracle``,
+                                                         http://www.python.net/crew/atuining/cx_Oracle/
+          =======================  ====================  ==============================================
+
+      Note that for whichever database backend you use, you'll need to download
+      and install the appropriate database adapter. Each one is available for
+      free on the Web.
+
+    * ``DATABASE_NAME`` tells Django what the name of your database is. If
+      you're using SQLite, specify the full filesystem path to the database
+      file on your filesystem.
+
+    * ``DATABASE_USER`` tells Django which username to use when connecting to
+      your database. If you're using SQLite, leave this blank.
+
+    * ``DATABASE_PASSWORD`` tells Django which password to use when connecting
+      to your database. If you're using SQLite or have an empty password, leave
+      this blank.
+
+    * ``DATABASE_HOST`` tells Django which host to use when connecting to your
+      database. If your database is on the same computer as your Django
+      installation (i.e., localhost), leave this blank. If you're using SQLite,
+      leave this blank.
+
+      MySQL is a special case here. If this value starts with a forward slash
+      (``'/'``) and you're using MySQL, MySQL will connect via a Unix socket to
+      the specified socket. For example::
+
+          DATABASE_HOST = '/var/run/mysql'
+
+      If you're using MySQL and this value *doesn't* start with a forward
+      slash, then this value is assumed to be the host.
+
+    * ``DATABASE_PORT`` tells Django which port to use when connecting to your
+      database. If you're using SQLite, leave this blank. Otherwise, if you
+      leave this blank, the underlying database adapter will use whichever
+      port is default for your given database server. In most cases, the
+      default port is fine, so you can leave this blank.
+
+Once you've entered those settings, test your configuration. First, from within
+the ``mysite`` project directory you created in Chapter 2, run the command
+``python manage.py shell``.
+
+You'll notice this starts a Python interactive interpreter. Looks can be
+deceiving, though! There's an important difference between running the command
+``python manage.py shell`` within your Django project directory and the more
+generic ``python``. The latter is the basic Python shell, but the former tells
+Django which settings file to use before it starts the shell. This is a key
+requirement for doing database queries: Django needs to know which settings
+file to use in order to get your database connection information.
+
+Behind the scenes, ``python manage.py shell`` sets the environment variable
+``DJANGO_SETTINGS_MODULE``. We'll cover the subtleties of this later, but for
+now, just know that you should use ``python manage.py shell`` whenever you need
+to drop into the Python interpreter to do Django-specific tinkering.
+
+Once you've entered the shell, type these commands to test your database
+configuration::
+
+    >>> from django.db import connection
+    >>> cursor = connection.cursor()
+
+If nothing happens, then your database is configured properly. Otherwise, check
+the error message for clues about what's wrong. Here are some common errors::
+
+    ======================================  ==========================================
+    Error message                           Solution
+    ======================================  ==========================================
+    ``You haven't set the DATABASE_ENGINE   Set the ``DATABASE_ENGINE`` setting to
+    setting yet.``                          something other than an empty string.
+    ``Environment variable
+    DJANGO_SETTINGS_MODULE is undefined.``  Run the command ``python manage.py shell``
+                                            rather than ``python``.
+    ``Error loading _____ module: No        You haven't installed the appropriate
+    module named _____.``                   database-specific adapter (e.g.
+                                            ``psycopg`` or ``MySQLdb``).
+    ``_____ isn't an available database     Set your ``DATABASE_ENGINE`` setting to
+    backend. Available backends are ...``   one of the valid engine settings described
+                                            above. Perhaps you made a typo?
+    ``database _____ does not exist``       Change the ``DATABASE_NAME`` setting to
+                                            point to a database that exists, or
+                                            execute the appropriate
+                                            ``CREATE DATABASE`` statement in order to
+                                            create it.
+    ``role _____ does not exist``           Change ``DATABASE_USER`` setting to point
+                                            to a user that exists, or create the user
+                                            in your database.
+    ``could not connect to server...``      Make sure ``DATABASE_HOST`` and
+                                            ``DATABASE_PORT`` are set correctly.
+    ======================================  ==========================================
 
 Your first app
 ==============
+
+As an ongoing example in this chapter and the next chapter, we'll focus on a
+basic book/author/publisher data model. We use this as our example because the
+conceptual relationships between books, authors and publishers are well-known,
+and they're a common data model used in introductory SQL textbooks.
+
+We'll suppose these fields and relationships:
+
+    * An author has a salutation (e.g., Mr. or Mrs.), a first name, a last
+      name, an e-mail address and a headshot photo.
+
+    * A publisher has a name, a street address, a city, a state/province, a
+      country and a Web site.
+
+    * A book has a title and a publication date. It also has one or more
+      authors (a many-to-many relationship to author) and a single publisher
+      (a one-to-many relationship, aka foreign key, to publisher).
+
+The first step to use this database layout with Django is to express it as
+Python code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Publisher(models.Model):
+    name = models.CharField(maxlength=30)
+    address = models.CharField(maxlength=50)
+    city = models.CharField(maxlength=60)
+    state_province = models.CharField(maxlength=30)
+    country = models.CharField(maxlength=50)
+    website = models.URLField()
+
+class Author(models.Model):
+    salutation = models.CharField(maxlength=10, choices=SALUTATIONS)
+    first_name = models.CharField(maxlength=30)
+    last_name = models.CharField(maxlength=40)
+    email = models.EmailField()
+    headshot = models.ImageField()
+
+class Book(models.ModelField):
+    title = models.CharField(maxlength=100)
+    authors = models.ManyToManyField(Author)
+    publisher = models.ForeignKey(Publisher)
+    publication_date = models.DateField()
+
+
+
+
+
+
+
+
 
 Database setup
 ==============
