@@ -317,16 +317,17 @@ this scheme; it's flexible. If you're building a simple Web site, you may only
 use a single app. If you're building a complex Web site with several seemingly
 unrelated pieces such as an e-commerce system and a message board, you'll
 probably want to split those into separate apps so that you'll be able to reuse
-them on their own.
+them individually.
 
-Indeed, you don't necessarily have to *use* apps at all, as evidenced by the
+Indeed, you don't necessarily have to create apps at all, as evidenced by the
 example view functions we've created so far in this book. In those cases, we
 simply created a file called ``views.py``, filled it with view functions and
-pointed our URLconf at those functions.
+pointed our URLconf at those functions. No "apps" were needed.
 
 However, there's one requirement regarding the app convention: If you're using
-Django's database layer (models), the model code has to live in a Django app.
-Thus, in order to start writing our models, we'll need to create a new app.
+Django's database layer (models), you must create a Django app. Models must
+live within apps. Thus, in order to start writing our models, we'll need to
+create a new app.
 
 Within the ``mysite`` project directory you created in Chapter 2, type this
 command to create a new app::
@@ -344,20 +345,85 @@ of that directory::
         models.py
         views.py
 
-These files are:
-
-    ``models.py``
-        A Python module that contains your Django models for this app.
-
-    ``views.py``
-        A Python module that contains your Django views for this app.
+These files will contain your models and views for this app.
 
 Have a look at ``models.py`` and ``views.py`` in your favorite text editor.
-Both files are empty, save for an import in ``models.py``. This is the blank
-slate for your Django application.
+Both files are empty, except for an import in ``models.py``. This is the blank
+slate for your Django app.
 
-Your first models
-=================
+Your first model
+================
+
+As we discussed above, the "M" in "MTV" stands for "Model." A Django model is a
+description of the data in your database, represented as Python code. It's your
+data layout -- the equivalent of your SQL ``CREATE TABLE`` statements -- except
+it's in Python instead of SQL. Django uses it to execute SQL code behind the
+scenes and return convenient Python data structures representing the rows in
+your database tables.
+
+If you're familiar with databases, your immediate thought might be, "Isn't it
+redundant to define data models in Python *and* in SQL?"
+
+
+
+
+
+
+
+
+
+
+it's redundant to define a
+data layout in Python code
+
+A drawback of this approach is that it's possible for the Python code to get out of sync with what's actually in the database.
+
+
+
+
+Some other Web development platforms require that you define your models using
+SQL rather than a high-level programming language such as Python. At first,
+this philosophy makes sense: After all, the data is stored in a database, and a
+database knows its own data layout, so why not define your models there first?
+Wouldn't it be redundant to define data models in *both* Python *and* SQL?
+
+While this logic makes sense on the surface, Django takes the opposite approach
+for several reasons:
+
+    * Introspection is expensive.
+
+    * Writing SQL can be tough. Different databases require you to do things
+      differently, and having to write three different versions of your
+      data definitions is the opposite of elegant.
+
+    * Having your data definitions stored in the database instead of in code
+      means it's harder to keep your models under version control. Django does
+      its best to support development best practices, which certainly includes
+      the use of source control.
+
+    * Your application will need to work with the database design regardless
+      of how you created it. If you created it using SQL, you'd have to repeat
+      yourself. Don't Repeat Yourself.
+
+    * Writing Python is fun, and keeping everything in Python limits the number
+      of times your brain has to do a "context switch."
+
+    * Introspection is expensive.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 As an ongoing example in this chapter and the next chapter, we'll focus on a
 basic book/author/publisher data model. We use this as our example because the
@@ -409,37 +475,10 @@ command, type the following code::
 
 
 
-Database setup
-==============
 
-Now, edit ``settings.py``. It's a normal Python module with module-level
-variables representing Django settings. Change these settings to match your
-database's connection parameters:
 
-    ``DATABASE_ENGINE``
-        Either 'postgresql', 'mysql', 'sqlite3', `ado_mssql`, or `oracle`. See
-        `Setting up a database` for more information about each database
-        Django supports.
 
-    ``DATABASE_NAME``
-        The name of your database, or the full (absolute) path to the database
-        file if you're using SQLite.
 
-    ``DATABASE_USER``
-        Your database username (not used for SQLite).
-
-    ``DATABASE_PASSWORD``
-        Your database password (not used for SQLite).
-
-    ``DATABASE_HOST``
-        The host your database is on. Leave this as an empty string if your
-        database server is on the same physical machine (not used for SQLite).
-
-.. note::
-
-    Make sure you've created a database within your database application by
-    this point. Do that with "``CREATE DATABASE database_name;``" within your
-    database's interactive prompt (such as ``psql`` or ``mysql``).
 
 Run the following command to initialize your database with Django's default
 installed apps::
@@ -458,35 +497,7 @@ display the tables Django created.
 What's a model?
 ===============
 
-In a nutshell, a model describes your data. They're like a blueprint: they
-explain what types of objects you'll use, what fields those objects have, and
-how it all fits together. In Django, models definitions also contain metadata
-about your models that Django uses to build APIs -- more on that later.
 
-In Django, you define these models as Python modules and then use tools to
-turn those models into SQL data definitions that create tables in your
-database.
-
-Now, many web development platforms want you to define your models using SQL.
-After all, the data will eventually be stored in a database, so why not simply
-define your models there first? While this logic makes sense on the surface,
-we disagree:
-
-    * Writing SQL can be tough. Different databases require you to do things
-      differently, and having to write three different versions of your
-      data definitions is the opposite of elegant.
-
-    * Having your data definitions stored in the database instead of in code
-      means it's harder to keep your models under version control. Django does
-      its best to support development best practices, which certainly includes
-      the use of source control.
-
-    * Your application will need to work with the database design regardless
-      of how you created it. If you created it using SQL, you'd have to repeat
-      yourself. Don't Repeat Yourself.
-
-    * Writing Python is fun, and keeping everything in Python limits the number
-      of times your brain has to do a "context switch."
 
 Creating models
 ===============
