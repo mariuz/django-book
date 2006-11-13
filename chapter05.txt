@@ -62,35 +62,82 @@ This approach works, but some problems should jump out at you immediately:
       wanted.
 
     * It ties us to MySQL. If, down the road, we switch from MySQL to
-      PostgreSQL, we'll have to rewrite the connection parameters and --
-      depending on the nature of the SQL statement -- possibly the SQL.
-      Ideally, the database server we're using would be abstracted.
+      PostgreSQL, we'll have to use a different database adapter (e.g.,
+      ``psycopg`` rather than ``MySQLdb``), alter the connection parameters
+      and -- depending on the nature of the SQL statement -- possibly rewrite
+      the SQL. Ideally, the database server we're using would be abstracted, so
+      that a database server change could be made in a single place.
 
-
-
-
-
-
-
-
-
-
+As you might expect, Django's database layer aims to solve these problems.
 
 The MTV development pattern
 ===========================
 
-Before we delve into code, let's take a moment to consider the overall design
-of a database-driven Django Web application.
+Before we delve into any more code, let's take a moment to consider the overall
+design of a database-driven Django Web application.
 
 As we've mentioned in previous chapters, Django is designed to encourage loose
-coupling and strict separation between pieces of an application; if you follow
+coupling and strict separation between pieces of an application. If you follow
 this philosophy, it's easy to make changes to one particular piece of the
-application without affecting other pieces of the application. With respect to
-view functions, for instance, we discussed the importance of separating the
-business logic from the presentation logic by using a template system. As
+application without affecting other pieces of the application. In view
+functions, for instance, we discussed the importance of separating the business
+logic from the presentation logic by using a template system. With the database
+layer, we're applying that same philosophy to data-access logic.
 
+Those three pieces together -- data-access logic, business logic and presentation
+logic -- comprise a concept that's sometimes called the "Model View Controller"
+(MVC) pattern of software architecture. In this pattern, "Model" refers to the
+data-access layer, "View" refers to the part of the system that selects what to
+display and how to display it, and "Controller" refers to the part of the
+system that decides which view to use, depending on user input, accessing the
+model as needed.
 
+.. admonition:: Why the acronym?
 
+    MVC? MTV? What's the point of these terms?
+
+    The goal of explicitly defining patterns such as MVC is mostly to
+    streamline communication among developers. Instead of having to tell your
+    coworkers, "Let's make an abstraction of the data-access, then have a
+    separate layer that handles data display, and let's put a layer in the
+    middle that regulates this," you can take advantage of a shared vocabulary
+    and say, "Let's use the MVC pattern here."
+
+Django follows this MVC pattern closely enough that it can be called an MVC
+framework. Here's roughly how the M, V and C break down in Django:
+
+    * **M**, the data-access portion, is handled by Django's database layer,
+      which is described in this chapter.
+
+    * **V**, the portion that selects which data to display and how to displapy
+      it, is handled by views and templates.
+
+    * **C**, the portion that delegates to a view depending on user input, is
+      handled by the framework itself by following your URLconf and calling the
+      appropriate Python function for the given URL.
+
+Because the "C" is handled by the framework itself and most of the excitement
+in Django happens in models, templates and views, Django has been referred to
+as an **MTV framework**. In the so-called MTV development pattern,
+
+    * "M" stands for model, the data-access layer.
+
+    * "T" stands for template, the presentation layer.
+
+    * "V" stands for view, the business-logic layer.
+
+If you're familiar with other MVC Web-development frameworks, such as Ruby on
+Rails, you may consider Django views to be the "controllers" and Django
+templates to be the "views." This is an unfortunate confusion brought about by
+differing interpretations of MVC. In Django's interpretation of MVC, the "view"
+describes the data that gets presented to the user; it's not necessarily *how*
+the data looks, but *which* data is presented. In contrast, Ruby on Rails and
+similar frameworks suggest that the controller's job includes deciding which
+data gets presented to the user, whereas the view is strictly *how* the data
+looks, not *which* data is presented.
+
+At the end of the day, of course, neither interpretation is more "correct" than
+the other. The important thing is to understand the underlying concepts.
 
 
 
