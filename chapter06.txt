@@ -101,6 +101,7 @@ features of the admin are in order.
 The first thing you'll see is a login screen:
 
 .. image:: http://media.djangobook.com/content/chapter06/login.png
+   :class: full
 
 You'll use the username and password you set up when you first ran ``syncdb``
 here. Once you've logged in, you'll see that you can manage users, groups, and
@@ -111,10 +112,12 @@ Links to add and change objects lead to two pages we refer to as object
 "change lists" and "edit forms":
 
 .. image:: http://media.djangobook.com/content/chapter06/admin_index.png
+   :class: full
 
 Change lists are essentially index pages of objects in the system:
 
 .. image:: http://media.djangobook.com/content/chapter06/changelist.png
+   :class: full
 
 There are a number of options that can control which fields appear on these
 lists and the appearance of extra features like date drill downs, search
@@ -126,13 +129,15 @@ types get different widgets (i.e. date/time fields have calendar controls;
 foreign keys use a select box, etc.):
 
 .. image:: http://media.djangobook.com/content/chapter06/editform.png
-
+   :class: full
+   
 You'll notice that the admin also handles input validation for you; try
 leaving a required field blank, or putting an invalid time into a time field
 and you'll see those errors when you try to save:
 
 .. image:: http://media.djangobook.com/content/chapter06/editform_errors.png
-
+   :class: full
+   
 This validation actually is done with a powerful validation framework which is
 discussed in Chapter 7.
 
@@ -141,14 +146,16 @@ upper-right. Every change made through the admin is logged, and you can
 examine this log by clicking the history button:
 
 .. image:: http://media.djangobook.com/content/chapter06/history.png
-
+   :class: full
+   
 Deletions in the admin cascade. That is, when deleting an existing object,
 you'll see that the admin asks you to confirm the delete action to avoid
 costly mistakes. What might not be instantly obvious is that this page will
 show you all the related objects that will be deleted as well:
-
+
 .. image:: http://media.djangobook.com/content/chapter06/delete_confirm.png
-      
+   :class: full
+   
 Users, groups, and permissions
 ------------------------------
 
@@ -225,7 +232,8 @@ the ``Admin`` declaration to:
 These four lines of code dramatically change our list interface:
 
 .. image:: http://media.djangobook.com/content/chapter06/changelist2.png
-
+   :class: full
+   
 Each of those lines instructed the admin to construct a different piece of
 this interface:
 
