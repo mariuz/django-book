@@ -158,6 +158,11 @@ With all of that philosophy in mind, let's start exploring Django's database
 layer. First, we need to take care of some initial configuration; we need to
 tell Django which database server to use and how to connect to it.
 
+We'll assume you've set up a database server, activated it and created a
+database within it (e.g., using a ``CREATE DATABASE`` statement). SQLite is a
+special case; in that case, there's no database to create, because SQLite uses
+standalone files on the filesystem to store its data.
+
 As ``TEMPLATE_DIRS`` in the previous chapter, database configuration lives in
 the Django settings file, called ``settings.py`` by default. Edit that file and
 look for the database settings::
@@ -283,10 +288,81 @@ the error message for clues about what's wrong. Here are some common errors::
 Your first app
 ==============
 
+Now that you've verified the connection is working, it's time to create a
+**Django app** -- a bundle of Django code, including models and views, that
+lives together in a single Python package and represents a full Django
+application.
+
+It's worth explaining the terminology here, because this tends to trip up
+beginners. We'd already created a *project*, in Chapter 2, so what's the
+difference between a *project* and an *app*? The difference is that of
+configuration vs. code:
+
+    * A project is an instance of a certain set of Django apps, plus the
+      configuration for those apps.
+
+      Technically, the only requirement of a project is that it supplies a
+      settings file, which defines the database connection information, the
+      list of installed apps, the ``TEMPLATE_DIRS``, etc.
+
+    * An app is a portable set of Django functionality, usually including
+      models and views, that lives together in a single Python package.
+
+      For example, Django comes with a number of apps, such as a commenting
+      system and an automatic admin interface. A key thing to note about these
+      apps is that they're portable and reusable across multiple projects.
+
+There are very few hard-and-fast rules about how you fit your Django code into
+this scheme; it's flexible. If you're building a simple Web site, you may only
+use a single app. If you're building a complex Web site with several seemingly
+unrelated pieces such as an e-commerce system and a message board, you'll
+probably want to split those into separate apps so that you'll be able to reuse
+them on their own.
+
+Indeed, you don't necessarily have to *use* apps at all, as evidenced by the
+example view functions we've created so far in this book. In those cases, we
+simply created a file called ``views.py``, filled it with view functions and
+pointed our URLconf at those functions.
+
+However, there's one requirement regarding the app convention: If you're using
+Django's database layer (models), the model code has to live in a Django app.
+Thus, in order to start writing our models, we'll need to create a new app.
+
+Within the ``mysite`` project directory you created in Chapter 2, type this
+command to create a new app::
+
+    python manage.py startapp books
+
+(Why ``books``? That's the sample book app we'll be building together.)
+
+This command does not result in any output, but it will have created a
+``books`` directory within the ``mysite`` directory. Let's look at the contents
+of that directory::
+
+    books/
+        __init__.py
+        models.py
+        views.py
+
+These files are:
+
+    ``models.py``
+        A Python module that contains your Django models for this app.
+
+    ``views.py``
+        A Python module that contains your Django views for this app.
+
+Have a look at ``models.py`` and ``views.py`` in your favorite text editor.
+Both files are empty, save for an import in ``models.py``. This is the blank
+slate for your Django application.
+
+Your first models
+=================
+
 As an ongoing example in this chapter and the next chapter, we'll focus on a
 basic book/author/publisher data model. We use this as our example because the
 conceptual relationships between books, authors and publishers are well-known,
-and they're a common data model used in introductory SQL textbooks.
+and this is a common data model used in introductory SQL textbooks.
 
 We'll suppose these fields and relationships:
 
@@ -301,42 +377,29 @@ We'll suppose these fields and relationships:
       (a one-to-many relationship, aka foreign key, to publisher).
 
 The first step to use this database layout with Django is to express it as
-Python code.
+Python code. In the ``models.py`` file that was created by the ``startapp``
+command, type the following code::
 
+    class Publisher(models.Model):
+        name = models.CharField(maxlength=30)
+        address = models.CharField(maxlength=50)
+        city = models.CharField(maxlength=60)
+        state_province = models.CharField(maxlength=30)
+        country = models.CharField(maxlength=50)
+        website = models.URLField()
 
+    class Author(models.Model):
+        salutation = models.CharField(maxlength=10)
+        first_name = models.CharField(maxlength=30)
+        last_name = models.CharField(maxlength=40)
+        email = models.EmailField()
+        headshot = models.ImageField()
 
-
-
-
-
-
-
-
-
-
-
-
-
-class Publisher(models.Model):
-    name = models.CharField(maxlength=30)
-    address = models.CharField(maxlength=50)
-    city = models.CharField(maxlength=60)
-    state_province = models.CharField(maxlength=30)
-    country = models.CharField(maxlength=50)
-    website = models.URLField()
-
-class Author(models.Model):
-    salutation = models.CharField(maxlength=10, choices=SALUTATIONS)
-    first_name = models.CharField(maxlength=30)
-    last_name = models.CharField(maxlength=40)
-    email = models.EmailField()
-    headshot = models.ImageField()
-
-class Book(models.ModelField):
-    title = models.CharField(maxlength=100)
-    authors = models.ManyToManyField(Author)
-    publisher = models.ForeignKey(Publisher)
-    publication_date = models.DateField()
+    class Book(models.ModelField):
+        title = models.CharField(maxlength=100)
+        authors = models.ManyToManyField(Author)
+        publisher = models.ForeignKey(Publisher)
+        publication_date = models.DateField()
 
 
 
