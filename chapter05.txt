@@ -580,11 +580,108 @@ which command-line client to run, depending on your ``DATABASE_SERVER``
 setting. The latter is almost always more convenient.
 
 
-Playing with the Python API
-===========================
+Saving objects to the database
+==============================
 
 Once you've created a model, Django automatically provides a high-level Python
-API for working with those models. Let's try it out -- try the following::
+API for working with those models. Try it out by running
+``python manage.py shell`` and typing the following::
+
+    >>> from books.models import Publisher
+    >>> p = Publisher(name='Apress', address='2560 Ninth St.',
+    ...     city='Berkeley', state_province='CA', country='U.S.A.',
+    ...     website='http://www.apress.com/')
+    >>> p.save()
+    >>> p = Publisher(name="O'Reilly", address='10 Fawcett St.',
+    ...     city='Cambridge', state_province='MA', country='U.S.A.',
+    ...     website='http://www.oreilly.com/')
+    >>> p.save()
+    >>> publisher_list = Publisher.objects.all()
+    >>> publisher_list
+    [<Publisher: Publisher object>, <Publisher: Publisher object>]
+
+Although it's only a few lines of code, this actually does quite a bit. The
+highlights:
+
+    * To create an object, just import the appropriate model class and
+      instantiate it by passing in values for each field.
+
+    * To save the object to the database, call the ``save()`` method on the
+      object. Behind the scenes, Django executes an SQL ``INSERT`` statement
+      here.
+
+    * To retrieve objects from the database, use ``Publisher.objects``. Fetch a
+      list of all ``Publisher`` objects in the database with the statement
+      ``Publisher.objects.all()``. Behind the scenes, Django executes an SQL
+      ``SELECT`` statement here.
+
+There's quite a lot more you can do here -- and, in fact, Appendix 3 has a
+complete reference to this database API -- but first, let's take care of a
+small annoyance. Above, when we printed out the list of publishers, all we got
+was an unhelpful display::
+
+    [<Publisher: Publisher object>, <Publisher: Publisher object>]
+
+We can fix this easily by adding a method called ``__str__()`` to our
+``Publisher`` object. A ``__str__()`` method tells Python how to display the
+"string" representation of an object. You can see this in action by adding a
+``__str__()`` method to the three models:
+
+.. parsed-literal::
+
+    class Publisher(models.Model):
+        name = models.CharField(maxlength=30)
+        address = models.CharField(maxlength=50)
+        city = models.CharField(maxlength=60)
+        state_province = models.CharField(maxlength=30)
+        country = models.CharField(maxlength=50)
+        website = models.URLField()
+
+        **def __str__(self):**
+            **return self.name**
+
+    class Author(models.Model):
+        salutation = models.CharField(maxlength=10)
+        first_name = models.CharField(maxlength=30)
+        last_name = models.CharField(maxlength=40)
+        email = models.EmailField()
+        headshot = models.ImageField()
+
+        **def __str__(self):**
+            **return '%s %s' % (self.first_name, self.last_name)**
+
+    class Book(models.Model):
+        title = models.CharField(maxlength=100)
+        authors = models.ManyToManyField(Author)
+        publisher = models.ForeignKey(Publisher)
+        publication_date = models.DateField()
+
+        **def __str__(self):**
+            **return self.title**
+
+As you can see, a ``__str__()`` method can do whatever it needs to do in order
+to return a string representation. Here, the ``__str__()`` methods for
+``Publisher`` and ``Book`` simply return the object's name and title,
+respectively, but the ``__str__()`` for ``Author`` is slightly more complex --
+it pieces together the ``first_name`` and ``last_name`` fields. The only
+requirement for ``__str__()`` is that it return a string. If ``__str__()``
+doesn't return a string -- if it returns, say, an integer -- then Python will
+raise a ``TypeError`` with a message like ``"__str__ returned non-string"``.
+
+For the changes to take effect, exit out of the Python shell and enter it again
+with ``python manage.py shell``. (This is the easiest way to make code changes
+take effect.) Now, the list of ``Publisher`` objects is much easier to
+understand::
+
+    >>> from books.models import Publisher
+    >>> publisher_list = Publisher.objects.all()
+    >>> publisher_list
+    [<Publisher: Apress>, <Publisher: O'Reilly>]
+
+You'll want to make sure any model you define has a ``__str__()`` method -- not
+only for your own convenience when using the interactive interpreter, but also
+because Django uses the output of ``__str__()`` in several places when it needs
+to display objects.
 
 
 
@@ -594,88 +691,6 @@ API for working with those models. Let's try it out -- try the following::
 
 
 
-
-
-
-
-
-    $ python manage.py shell
-
-    >>> from crimes.models import Crime
-    >>> from datetime import datetime
-
-    >>> c = Crime(when=datetime.now(), location="1137 Vermont St",
-    ...           description="Breaking and Entering")
-    ...
-    >>> c.save()
-
-    >>> c2 = Crime(when=datetime.now(), location="1208 Florida St",
-    ...           description="Reckless driving")
-    ...
-    >>> c2.save()
-
-    >>> crime_list = Crime.objects.all()
-    >>> print crime_list
-    [<Crime: Crime object>, <Crime: Crime object>]
-
-
-Although it's only a few lines of code, this actually does quite a bit. You
-can see how objects are created (Django objects are simply Python classes) and
-saved to the database (all Django objects have a ``save()`` method which saves
-the object to the database).
-
-You can also see how objects are retrieved from the database:
-``Crime.objects`` lets you interact with the objects already stored in the
-database. ``Crime.objects.all()`` is how you fetch a list of already-created
-``Crime`` objects from the database.
-
-..note::
-
-    ``Crime.objects`` is a "manager" object; see Chapter XXX for more
-    information about managers.
-
-There's quite a lot more you can do here -- and in fact Chapter XXX has a
-complete reference to this object API -- but first let's take care of a small
-annoyance.
-
-As you can see above, when we printed out the list of crimes, all we got was
-the unhelpful::
-
-    [<Crime: Crime object>, <Crime: Crime object>]
-
-We can fix that easily by adding a method to our ``Crime`` object that handles
-conversion to a string. This takes the shape of a Python "magic method" called
-``__str__``; you can see it in action by adding one to your ``Crime`` class::
-
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        description = models.TextField()
-
-        def __str__(self):
-            return "Crime at %s on %s" % \
-                (self.location, self.when.strftime("%Y-%m-%d"))
-
-Now, printing the list of crimes looks a lot better::
-
-    >>> Crime.objects.all()
-    [<Crime: Crime at 1137 Vermont St on 2006-05-16>,
-     <Crime: Crime at 1208 Florida St on 2006-05-16>]
-
-.. XXX JGD Seeing this change requires reloading the Crime model, no?  Maybe explain that or
-.. XXX JGD show it by doing from crimes import models and referring to models.Crime,
-.. XXX JGD so you can reload(models).  Or am I being stupid?
-
-You'll want to make sure that any model you define has the ``__str__`` method.
-Django uses this method anywhere a human-readable version of the object needs
-to be displayed.
-
-.. XXX JGD A note explaining that user-facing pages generally won't be relying on __str__
-.. XXX JGD would be good.  __str__ is mostly helpful terminal and admin, right?  Or, put
-.. XXX JGD  another way, if too much relies on __str__, when __str__ needs to change for
-.. XXX JGD   some need, all places relying on __str__ will need to change.  This is the
-.. XXX JGD    same reason surrogate keys (aka id sequence) are used in DBs even if a natural
-.. XXX JGD     key exists.
 
 Customizing object metadata
 ===========================
