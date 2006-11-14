@@ -357,16 +357,17 @@ Defining models in Python
 As we discussed above, the "M" in "MTV" stands for "Model." A Django model is a
 description of the data in your database, represented as Python code. It's your
 data layout -- the equivalent of your SQL ``CREATE TABLE`` statements -- except
-it's in Python instead of SQL. Django uses it to execute SQL code behind the
-scenes and return convenient Python data structures representing the rows in
-your database tables. Django also uses models to represent higher-level
-concepts that SQL can't necessarily handle.
+it's in Python instead of SQL, and it includes more than just database
+definitions. Django uses a model to execute SQL code behind the scenes and
+return convenient Python data structures representing the rows in your database
+tables. Django also uses models to represent higher-level concepts that SQL
+can't necessarily handle.
 
 If you're familiar with databases, your immediate thought might be, "Isn't it
 redundant to define data models in Python *and* in SQL?" Django works the way
 it does for several reasons:
 
-    * Introspection requires overhead and is not a complete solution.
+    * Introspection requires overhead and is imperfect.
 
       In order to provide convenient data-access APIs, Django needs to know the
       database layout *somehow*, and there are two ways of accomplishing this.
@@ -375,38 +376,41 @@ it does for several reasons:
       the data models.
 
       This second way seems cleaner, because the metadata about your tables
-      only lives in one place, but it's got a few problems. First,
+      only lives in one place, but it introduces a few problems. First,
       introspecting a database at runtime obviously requires overhead. If the
       framework had to introspect the database each time it processed a
-      request, or even when the Web server was initialized, this would incur a
-      level of overhead unacceptable to the framework's developers. Django is
-      intended to be as efficient as possible. Second, some databases, notably
-      older versions of MySQL, do not store an amount of table metadata that's
-      sufficient enough for accurate introspection.
+      request, or even when the Web server was initialized, this would incur an
+      unacceptable level of overhead. Second, some databases, notably older
+      versions of MySQL, do not store an amount of table metadata that's
+      sufficient enough for accurate and complete introspection.
 
     * Writing Python is fun, and keeping everything in Python limits the number
-      of times your brain has to do a "context switch."
+      of times your brain has to do a "context switch." It helps productivity
+      if you keep yourself in a single programming environment/mentality for as
+      long as possible. Having to write SQL, then Python, then SQL again, is
+      disruptive.
 
     * Having data models stored as code rather than in your database makes it
-      easier to keep your models under version control.
+      easier to keep your models under version control. This way, you can
+      easily keep track of changes to your data layouts.
 
     * SQL only allows for a certain level of metadata about a data layout. Most
       database systems, for example, do not provide a specialized data type for
-      representing e-mail addresses or URLs, whereas Django models do, for
-      convenience.
+      representing e-mail addresses or URLs. Django models do. The advantage of
+      higher-level data types is higher productivity and more reusable code.
 
     * SQL is inconsistent across database platforms. If you're distributing a
-      Web application, for example, it's much more convenient to distribute a
-      Python module that describes your data layout than a set of MySQL
-      ``CREATE TABLE`` statements, PostgreSQL ``CREATE TABLE`` statements and
-      SQLite ``CREATE TABLE`` statements.
+      Web application, for example, it's much more pragmatic to distribute a
+      Python module that describes your data layout than separate sets of
+      ``CREATE TABLE`` statements for MySQL, PostgreSQL and SQLite.
 
 A drawback of this approach, however, is that it's possible for the Python code
 to get out of sync with what's actually in the database. If you make changes to
 a Django model, you'll need to make the same changes inside your database to
-keep your database consistent with the model.
+keep your database consistent with the model. We'll detail some strategies for
+handling this problem later in this chapter.
 
-Finally, we should note that Django includes a utility that can create models
+Finally, we should note that Django includes a utility that can generate models
 by introspecting an existing database. This is useful for quickly getting up
 and running with legacy data.
 
@@ -418,7 +422,7 @@ basic book/author/publisher data layout. We use this as our example because the
 conceptual relationships between books, authors and publishers are well-known,
 and this is a common data layout used in introductory SQL textbooks.
 
-We'll suppose these fields and relationships:
+We'll suppose the following concepts, fields and relationships:
 
     * An author has a salutation (e.g., Mr. or Mrs.), a first name, a last
       name, an e-mail address and a headshot photo.
@@ -449,7 +453,7 @@ command, enter the following::
         first_name = models.CharField(maxlength=30)
         last_name = models.CharField(maxlength=40)
         email = models.EmailField()
-        headshot = models.ImageField()
+        headshot = models.ImageField(upload_to='/tmp')
 
     class Book(models.Model):
         title = models.CharField(maxlength=100)
@@ -461,7 +465,7 @@ We will cover model syntax and options throughout this chapter, but let's
 quickly examine this code to cover the basics. The first thing to notice is
 that each model is represented by a Python class that is a subclass of
 ``django.db.models.Model``. The parent class, ``Model``, contains all the
-functionality necessary to make these objects capable of interacting with a
+machinery necessary to make these objects capable of interacting with a
 database -- and that leaves our models responsible solely for defining their
 fields, in a nice and compact syntax. Believe it or not, this is all the code
 we need to write to have basic data access with Django.
@@ -539,8 +543,91 @@ comma.)
 of packages, separated by dots, leading to the app package.
 
 Now that the Django app has been activated in the settings file, we can create
-the database tables in our database. To do that, run this command from within
-your project directory::
+the database tables in our database. First, let's validate the models by
+running this command::
+
+    python manage.py validate
+
+The ``validate`` command checks whether your models' syntax and logic are
+correct. If all is well, you'll see the message ``0 errors found``. If you
+don't, make sure you typed in the model code correctly. The error output should
+give you helpful information about what was wrong with the code.
+
+Any time you think you have problems with your models, run
+``python manage.py validate``. It tends to catch all the common model problems.
+
+If your models are valid, run the following command for Django to generate
+``CREATE TABLE`` statements for your models in the ``books`` app, with colorful
+syntax highlighting (Unix only)::
+
+    python manage.py sqlall books
+
+In this command, ``books`` is the name of the app. It's what you specified when
+you ran the command ``manage.py startapp``. When you run the command, you
+should see something like this::
+
+    BEGIN;
+    CREATE TABLE "books_publisher" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "name" varchar(30) NOT NULL,
+        "address" varchar(50) NOT NULL,
+        "city" varchar(60) NOT NULL,
+        "state_province" varchar(30) NOT NULL,
+        "country" varchar(50) NOT NULL,
+        "website" varchar(200) NOT NULL
+    );
+    CREATE TABLE "books_book" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "title" varchar(100) NOT NULL,
+        "publisher_id" integer NOT NULL REFERENCES "books_publisher" ("id"),
+        "publication_date" date NOT NULL
+    );
+    CREATE TABLE "books_author" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "salutation" varchar(10) NOT NULL,
+        "first_name" varchar(30) NOT NULL,
+        "last_name" varchar(40) NOT NULL,
+        "email" varchar(75) NOT NULL,
+        "headshot" varchar(100) NOT NULL
+    );
+    CREATE TABLE "books_book_authors" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "book_id" integer NOT NULL REFERENCES "books_book" ("id"),
+        "author_id" integer NOT NULL REFERENCES "books_author" ("id"),
+        UNIQUE ("book_id", "author_id")
+    );
+    CREATE INDEX books_book_publisher_id ON "books_book" ("publisher_id");
+    COMMIT;
+
+Note the following:
+
+    * Table names are automatically generated by combining the name of the app
+      (``books``) and the lowercase name of the model -- ``publisher``,
+      ``book`` and ``author``. You can override this behavior, as we'll see
+      later in this chapter.
+
+    * As we mentioned above, Django adds a primary key for each table
+      automatically -- the ``id`` fields. You can override this, too.
+
+    * By convention, Django appends ``"_id"`` to the foreign key field name. As
+      you might have guessed, you can override this behavior, too.
+
+    * The foreign key relationship is made explicit by a ``REFERENCES``
+      statement.
+
+    * These ``CREATE TABLE`` statements are tailored to the database you're
+      using, so database-specific field types such as ``auto_increment``
+      (MySQL), ``serial`` (PostgreSQL), or ``integer primary key`` (SQLite) are
+      handled for you automatically. The same goes for quoting of column names
+      -- e.g., using double quotes or single quotes. This example output is in
+      PostgreSQL syntax.
+
+The ``sqlall`` command doesn't actually create the tables or otherwise touch
+your database -- it just prints output to the screen so you can see what SQL
+Django would execute if you asked it. If you wanted to, you could copy and
+paste this SQL into your database client. However, Django provides an easier
+way of committing the SQL to the database. Run the ``syncdb`` command, like
+so::
 
     python manage.py syncdb
 
@@ -557,20 +644,11 @@ checks the database to see whether the appropriate tables exist yet, and
 creates the tables if they don't yet exist. Note that ``syncdb`` does *not*
 sync changes in models or deletions of models; if you make a change to a model
 or delete a model, and you want to update the database, ``syncdb`` will not
-handle that.
+handle that. (More on this later.)
 
 To prove it, run ``python manage.py syncdb`` again. Nothing happens -- because
 you haven't added any models to the ``books`` app, or added any apps to
 ``INSTALLED_APPS``.
-
-What databases did Django install? Run this command to see the ``CREATE TABLE``
-SQL that Django executed behind the scenes, with pretty syntax highlighting
-(Unix only)::
-
-    python manage.py sqlall books
-
-In this command, ``books`` is the name of the app. It's what you specified when
-you ran the command ``manage.py startapp``.
 
 If you're interested, take a moment to dive into your database server's
 command-line client and see the database tables Django created. You can
@@ -579,9 +657,8 @@ you can run the command ``python manage.py dbshell``, which will figure out
 which command-line client to run, depending on your ``DATABASE_SERVER``
 setting. The latter is almost always more convenient.
 
-
-Saving objects to the database
-==============================
+Basic data access
+=================
 
 Once you've created a model, Django automatically provides a high-level Python
 API for working with those models. Try it out by running
@@ -600,8 +677,7 @@ API for working with those models. Try it out by running
     >>> publisher_list
     [<Publisher: Publisher object>, <Publisher: Publisher object>]
 
-Although it's only a few lines of code, this actually does quite a bit. The
-highlights:
+In only a few lines of code, this has accomplished quite a bit. The highlights:
 
     * To create an object, just import the appropriate model class and
       instantiate it by passing in values for each field.
@@ -610,15 +686,20 @@ highlights:
       object. Behind the scenes, Django executes an SQL ``INSERT`` statement
       here.
 
-    * To retrieve objects from the database, use ``Publisher.objects``. Fetch a
-      list of all ``Publisher`` objects in the database with the statement
-      ``Publisher.objects.all()``. Behind the scenes, Django executes an SQL
-      ``SELECT`` statement here.
+    * To retrieve objects from the database, use the attribute
+      ``Publisher.objects``. Fetch a list of all ``Publisher`` objects in the
+      database with the statement ``Publisher.objects.all()``. Behind the
+      scenes, Django executes an SQL ``SELECT`` statement here.
 
-There's quite a lot more you can do here -- and, in fact, Appendix 3 has a
-complete reference to this database API -- but first, let's take care of a
-small annoyance. Above, when we printed out the list of publishers, all we got
-was an unhelpful display::
+Naturally, you can do quite a lot with the Django database API -- but first,
+let's take care of a small annoyance.
+
+Adding model string representations
+===================================
+
+Above, when we printed out the list of publishers, all we got was this
+unhelpful display that makes it difficult to tell the ``Publisher`` objects
+apart::
 
     [<Publisher: Publisher object>, <Publisher: Publisher object>]
 
@@ -645,7 +726,7 @@ We can fix this easily by adding a method called ``__str__()`` to our
         first_name = models.CharField(maxlength=30)
         last_name = models.CharField(maxlength=40)
         email = models.EmailField()
-        headshot = models.ImageField()
+        headshot = models.ImageField(upload_to='/tmp')
 
         **def __str__(self):**
             **return '%s %s' % (self.first_name, self.last_name)**
@@ -678,206 +759,18 @@ understand::
     >>> publisher_list
     [<Publisher: Apress>, <Publisher: O'Reilly>]
 
-You'll want to make sure any model you define has a ``__str__()`` method -- not
-only for your own convenience when using the interactive interpreter, but also
-because Django uses the output of ``__str__()`` in several places when it needs
-to display objects.
+Make sure any model you define has a ``__str__()`` method -- not only for your
+own convenience when using the interactive interpreter, but also because Django
+uses the output of ``__str__()`` in several places when it needs to display
+objects.
 
+Finally, note that ``__str__()`` is a good example of adding *behavior* to
+models. A Django model describes more than the database table layout for an
+object; it also describes any functionality that object knows how to do.
+``__str__()`` is one example of such functionality -- a model knows how to
+display itself.
 
+Creating and modifying objects
+==============================
 
-
-
-
-
-
-
-
-Customizing object metadata
-===========================
-
-To save you time, Django automatically derives the name of the database table
-from the name of your model class and the app that contains it. A model's
-database table name is constructed by joining the model's "app label" -- the
-name you used in ``manage.py startapp`` -- to the model's class name, with an
-underscore between them.
-
-So, if you examine your database now (or the output of ``manage.py sql
-crimes``) you'll see that Django has automatically named the ``Crime`` table
-``crimes_crime``.
-
-So what if you're sharing a database with other users and you need to be
-careful about table names, or what if you just don't like the automatic name?
-Well, each Django model can define metadata about that object; this is done by
-defining an inner class called ``Meta``::
-
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        description = models.TextField()
-
-        class Meta:
-            db_table = "crimes"
-
-The ``db_table`` option overrides the default table name that Django uses.
-There's really no reason to use this option now, so for the rest of this
-walkthrough we'll assume you removed it.
-
-.. admonition:: Philosophy
-
-    You'll see this pattern repeated everywhere in Django.  The framework
-    provides sensible defaults, but always lets you override them if you
-    need more fine-grained control.
-
-.. XXX JGD No nod/snark to "convention over configuration"?
-
-Of course, there are other ``Meta`` options available; refer to Chapter XXX
-for a complete reference.
-
-Relations
-=========
-
-Of course, what's the point of using a relational database if we don't use
-relations? Let's refine our ``Crime`` object to be somewhat better designed.
-Right now, we're simply stuffing a description of the crime into the
-``description`` field, but that will quickly fill up with duplicate values
-like "carjacking" and "distributing cigarettes to minors". Let's break those
-crime types out into a related object::
-
-    class CrimeType(models.Model):
-        name        = models.CharField(maxlength=250)
-        is_felony   = models.BooleanField()
-
-        def __str__(self):
-            return self.name
-
-.. XXX JGD This has to be in the models.py file before Crime, right?  It'd be good to note it.
-
-Here we've defined a "crime type" object which we'll populate with all the
-possible crimes on the books. Now we'll modify the exiting ``Crime`` object to
-replace the ``description`` field with a relation to this one::
-
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        type        = models.ForeignKey(CrimeType)
-
-.. XXX JGD You're both modifying an existing bit of code and excluding
-.. XXX JGD some previously-added code.  It'd be good to make it clear that the other
-.. XXX JGD code is not to be removed.  Perhaps a small
-.. XXX JGD admonition at the first occurrence of this in the book?
-
-This defines a foreign key on the ``type`` field which points to a ``CrimeType``.
-
-.. admonition:: Huh?
-
-    What's a "foreign key"?  If you're not familiar with database terminology,
-    XXX what should they do??? XXX
-
-.. XXX JGD We could just have a glossary for the book (which could include any DB terms
-.. XXX JGD you don't want to assume).  Or, if it's not too political, you could recommend
-.. XXX JGD a couple books (one for each popular backend?).
-.. XXX JGD Lastly, Wikipedia has nice relation data modeling coverage:
-.. XXX JGD http://en.wikipedia.org/wiki/Category:Data_modeling
-
-Modifying models
-================
-
-If you actually try to use these models at this point, you'll quickly find
-problems. Although you've changed the ``Crime`` model, those changes can't
-automatically be transfered into the database. You've got to inform the
-database that you've changed the model, and you've got two options::
-
-    1. Use SQL to modify the database tables.  That is, use ``ALTER TABLE``
-       commands to modify the database directly to match the model.
-
-       This is the approach you have to take if you've already got important
-       data stored in the database.
-
-    2. If, however, you don't care about the data in the database, you can
-       "reset" a given model, dropping and restoring the tables involved.
-
-Since we've just started, we'll take the second route.  Run::
-
-    $ python manage.py reset crimes
-
-Django will ask you if you're *sure* that this is something you want to do;
-say "yes" and the old tables will be dropped and new ones created.
-
-.. admonition:: Philosophy:
-
-    Yes, you're right to think that option 1 looks pretty difficult.  If
-    you've got to make a schema change in an application with a bunch of
-    existing data it can indeed be time-consuming.
-
-    However, automated tools could be very dangerous here. Django won't
-    automatically modify your database for you; that could lead to
-    catastrophic data loss.
-
-    So, spend a little extra time up front making sure your models are
-    well-defined and future-proof.  You'll recover that time in spades
-    in the future -- trust us!
-
-.. XXX JGD It's impossible to future-proof, and its wrong to suggest it is possible.
-.. XXX JGD As a newcomer to Django, this looks suspiciously like the Python-defined
-.. XXX JGD models is necessary but not sufficient for the DRY principle.
-.. XXX JGD Migration code obviously shouldn't be automated.
-.. XXX JGD What's up with http://code.djangoproject.com/wiki/SchemaEvolution#conclusions ?
-.. XXX JGD Assuming that won't be done, the book should at least go through one
-.. XXX JGD real-worldy model design update process.
-.. XXX JGD Another thing that would help is to explain the thought process involved in
-.. XXX JGD future-proofing (with your crystal ball).
-.. XXX JGD I'm not tryin' to be a jerk, but you can't pretend it's not an issue.  :)
-
-Using relations in the Python API
-=================================
-
-Now that we've got CrimeType defined in the database, we'll set up a few
-example Crimes using the new ``CrimeType`` to explore the Django API for
-foreign keys.  Back to the shell::
-
-    $ python manage.py shell
-    >>> from crimes.models import Crime, CrimeType
-    >>> from datetime import datetime
-    >>> jaywalking = CrimeType(name="Jaywakling", is_felony=False)
-    >>> jaywalking.save()
-    >>> florida_jaywalking = Crime(when=datetime.now(),
-    ...                            location="1211 Florida St", type=jaywalking)
-    >>> florida_jaywalking.save()
-    >>> fortysecond_jaywalking = Crime(when=datetime.now(),
-    ...                            location="1301 W. 42nd St", type=jaywalking)
-    >>> fortysecond_jaywalking.save()
-
-Now you can retrieve all Crimes of the same CrimeType for any given Crime::
-
-    >>> fortysecond_jaywalking.type.crime_set.all()
-    [<Crime: Crime at 1211 Florida St on 2006-05-17>, <Crime: Crime at 1301 W. 42nd St on 2006-05-17>]
-
-Those Crimes refer to the same CrimeType object so that changes in the
-CrimeType are reflected in all Crimes::
-
-    >>> jaywalking.crime_set.all()[0].type
-    <CrimeType: Jaywakling>
-    >>> jaywalking.name="Jaywalking"
-    >>> jaywalking.save()
-    >>> jaywalking.crime_set.all()[0].type
-    <CrimeType: Jaywalking>
-    >>> jaywalking.crime_set.all()[1].type
-    <CrimeType: Jaywalking>
-
-XXX explain interesting code here
-
-.. XXX: talk about M2M next, or leave that for the ref?
-
-.. XXX JGD Is there an M2M in chicrime that's not too out of the way?
-
-.. XXX JGD Also, I think it'd be good to talk about model cycles.
-.. XXX JGD A Person is holding an Event which has a list of Invitees.
-.. XXX JGD This may be a pet issue since I ran into it w/ MediaWiki's existing schema.
-
-What's next?
-============
-
-At this point you know enough (with the help of the reference in Chapter XXX)
-to start writing your own models. However, in the next chapter we'll step
-aside to look at the best-looking piece of Django: the automatic admin
-interface.
+This chapter is not yet finished.
