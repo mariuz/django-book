@@ -1,0 +1,54 @@
+=======================================
+Chapter 11: Generating non-HTML content
+=======================================
+
+The vast majority of content on the Web is some flavor of HTML (XXX% according
+to a study by Google). Thus, Django is logically optimized towards producing
+HTML content; most defaults, and shortcuts like ``render_to_response``, expect
+that you're producing HTML in your views.
+
+There are, of course, times when you're going to want to produce something other
+than HTML, and luckily Django makes that super-easy, too.  
+
+The basics
+==========
+
+- HttpResponse (and subclasses)
+- HttpResponse is a file-like-object
+- the mimetype argument to HttpResponse
+
+Django handles some of the common types for you...
+
+Syndication feeds
+=================
+
+Take from syndication doc
+
+Google sitemaps
+===============
+
+Take from sitemaps doc
+
+Serialized objects
+==================
+
+- view examples
+- JSON format
+- XML format
+
+Other text and binary formats
+=============================
+
+The sky's the limit, but here are some examples
+
+Writing CSV with Python's standard library
+------------------------------------------
+
+Generating images with PIL
+--------------------------
+
+Producing JSON with ``simplejson``
+----------------------------------
+
+Generating PDFs with ``reportlab``
+----------------------------------
