@@ -14,7 +14,7 @@ certain common idioms and patterns in view development and abstract them so
 that you can quickly write common views of onto data without having to write
 too much code.
 
-In fact, nearly every example in the preceeding chapters could be re-written
+In fact, nearly every example in the preceding chapters could be re-written
 with the help of generic views.
 
 Django contains generic views to do the following:
@@ -226,18 +226,42 @@ The list-detail generic views (in the module
 list of items at one view, and individual "detail" views of those items at
 another.
 
-For the examples in this section, we'll be working with the simple ``Crime`` and 
-``CrimeType`` objects from Chapter XXX::
+For the examples in the rest of this chapter, we'll be working with the simple
+book/author/publisher objects from chapters 5 and 6::
 
-    class CrimeType(models.Model):
-        name        = models.CharField(maxlength=250)
-        is_felony   = models.BooleanField()
+    class Publisher(models.Model):
+        name = models.CharField(maxlength=30)
+        address = models.CharField(maxlength=50)
+        city = models.CharField(maxlength=60)
+        state_province = models.CharField(maxlength=30)
+        country = models.CharField(maxlength=50)
+        website = models.URLField()
+
+    class Author(models.Model):
+        salutation = models.CharField(maxlength=10)
+        first_name = models.CharField(maxlength=30)
+        last_name = models.CharField(maxlength=40)
+        email = models.EmailField()
+        headshot = models.ImageField()
+
+    class Book(models.ModelField):
+        title = models.CharField(maxlength=100)
+        authors = models.ManyToManyField(Author)
+        publisher = models.ForeignKey(Publisher)
+        publication_date = models.DateField()
+
+We'll also be working with a URL module; if you're following along, you can start
+with an skeleton URL config in ``bookstore.urls``::
+
+    from django.conf.urls.defaults import *
+    from django.views.generic import list_detail, date_based
+    from bookstore.models import Publisher, Author, Book
     
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        type        = models.ForeignKey(CrimeType)
-    
+    urlpatterns = patterns('',
+        # We'll add URL patterns here.
+    )
+
+We'll build this up with generic views as we go.
 
 Lists of objects
 ----------------
@@ -245,30 +269,27 @@ Lists of objects
 The view ``django.views.generic.list_detail.object_list`` is used to create a
 page representing a list of objects.
 
+
 Example
 ```````
 
-We can use the ``object_list`` view to show a simple list of all crimes in the
-system. First, we'll need to construct a info dictionary for the generic view.
-Add the following to the top of the ``mysite/crimes/urls.py`` file::
+We can use the ``object_list`` view to show a simple list of all authors in the
+bookstore. First, we'll need to construct a info dictionary for the generic view.
+Add the following to the top of the ``bookstore/urls.py`` file::
 
-    from mysite.crimes.models import Crime
-
-    crime_list_info = {
-        'queryset' :   Crime.objects.all(),
+    author_list_info = {
+        'queryset' :   Author.objects.all(),
         'allow_empty': True,
     }
 
-Then, we need to register this view at a certain URL.  Add this to the bottom
-of that same file::
+Then, we need to register this view at a certain URL. We can do that by adding
+this URL config piece (inside the ``patterns`` directive)::
 
-    urlpatterns += patterns('django.views.generic.list_detail',
-        (r'^/crimes/all/$', 'object_list', crime_list_info),
-    )
+    (r'authors/$', list_detail.object_list, author_list_info)
 
 From there, we just need to make a template for this generic view to render.
-Since we didn't provide the ``template_name`` paramater (see below), Django
-will guess the name of the template; here it'll use ``crimes/crime_list.html``.
+Since we didn't provide the ``template_name`` parameter (see below), Django
+will guess the name of the template; here it'll use ``bookstore/author_list.html``.
 See below for more details on how this "guess" is made.
 
 Required arguments
@@ -288,7 +309,7 @@ Optional arguments
         ``page`` variable specified in the URLconf. See "Notes on pagination"
         below.
 
-Additionally, this view may take any of these common arguments decribed above:
+Additionally, this view may take any of these common arguments described above:
 
     * ``allow_empty``
     * ``context_processors``
@@ -307,9 +328,9 @@ model name are derived from the ``queryset`` parameter: the app label is the
 name of the app that the model is defined in, and the model name is the
 lower-cased version of the name of the model class.
 
-So, if we passed ``Crime.objects.all()`` as the ``queryset``, the app label
-would be ``crimes`` and the model name would be ``crime``. This means the
-default template would be ``crimes/crime_list.html``.
+So, if we passed ``Author.objects.all()`` as the ``queryset``, the app label
+would be ``bookstore`` and the model name would be ``author``. This means the
+default template would be ``bookstore/author_list.html``.
 
 Template context
 ````````````````
@@ -384,22 +405,21 @@ of a single object.
 Example
 ```````
 
-Extending the example above, we could make a detail view for a given crime.
+Extending the example above, we could make a detail view for a given author.
 Given an info dict like this::
 
-    crime_detail_info = {
-        "queryset" : Crime.objects.all(),
-        "template_name" : "crimes/crime_detail.html",
-        "template_object_name" : "crime",
+    author_detail_info = {
+        "queryset" : Author.objects.all(),
+        "template_object_name" : "author",
     }
 
 We could use a urlpattern like::
 
-    (r'^/crimes/(?P<object_id>\d+)/$', 'object_detail', crime_detail_info),
+    (r'^authors/(?P<object_id>\d+)/$', list_detail.object_detail, author_detail_info),
 
-to show details about a given crime, rendered in the
-``crimes/crime_detail.html`` template. In that template, the ``Crime`` object
-itself would be put into the ``{{ crime }}`` variable.
+to show details about a given book, rendered in the
+``bookstore/author_detail.html`` template. In that template, the ``Author``
+object itself would be put into the ``{{ author }}`` variable.
 
 Required arguments
 ``````````````````
@@ -470,19 +490,10 @@ Date-based generic views are generally used to provide a set of "archive"
 pages for dated material. Think year/month/day archives for a newspaper, or a
 blog like the official Django blog described at the beginning of this chapter.
 
-We'll use this blog example through this section; here's a simple entry model
-to use for the examples::
-
-    class Entry(models.Model):
-        pub_date = models.DateTimeField()
-        title = models.CharField(maxlength=200)
-        slug = models.SlugField()
-        body = models.TextField()
-        
-The examples below will create a set of archives for this entry model.
-
+For the examples, we'll be using the ``Book`` object from above, and build up
+a way to browse books by year, month, and day published.
 Notice that for each of these views, we have to tell Django the name of the
-date field we want to key off of. We have to provide this information ince
+date field we want to key off of. We have to provide this information since
 models could contain multiple date or datetime fields.
 
 .. admonition:: Into the future...
@@ -510,18 +521,18 @@ top-level index page showing the "latest" objects, by date.
 Example
 ```````
 
-On a typical blog, the index page provides a certain number of recent entries
+A typical publisher probably wants to highlight recently-published books.
 We can use the ``archive_index`` view for this common task.  Here's a info dict::
 
-    entry_info = {
-        "queryset"   : Entry.objects.all(),
-        "date_field" : "pub_date"
+    book_info = {
+        "queryset"   : Book.objects.all(),
+        "date_field" : "publication_date"
     }
     
 And the corresponding urlconf piece (which roots this index at the bottom level
 of wherever it's included)::
 
-    (r'^$', 'archive_index', entry_info),
+    (r'^books/$', date_based.archive_index, book_info),
 
 Required arguments
 ``````````````````
@@ -588,13 +599,17 @@ archive page showing all available months in a given year.
 Example
 ```````
 
-As with the previous example, most blogs have some sort of a yearly blog
-index. For this one, let's actually build a list of every blog entry posted
-this year (instead of just linking to each month's entry list). We'll continue
-to use the same ``entry_info`` dict from above, but this time we'll wire 
-it up to the ``archive_year`` view::
+Contuting on with our example, we'll want to add a way to view all the books
+published in a given year.  We can keep using the ``book_info`` dictionary
+from the above example, but this time we'll wire it up to the ``archive_year``
+view::
 
-    (r'^(?P<year>\d{4})/?$', 'archive_year', entry_info),
+    (r'^books/(?P<year>\d{4})/?$', date_based.archive_year, book_info),
+
+Since there are likely many, many books published each year, we won't
+display them on this page, just a list of years in which books are
+available.  Conveniently for us, this is what Django does by default; to
+change it we could use the ``make_object_list`` argument; see below.
 
 Required arguments
 ``````````````````
@@ -616,7 +631,7 @@ Optional arguments
         A boolean specifying whether to retrieve the full list of objects for
         this year and pass those to the template. If ``True``, this list of
         objects will be made available to the template as ``object_list``.
-        (The name ``object_list`` may be different; see the docs for
+        (The name ``object_list`` may be different; see the information about
         ``object_list`` in the "Template context" section below.) By default,
         this is ``False``.
     
@@ -673,10 +688,9 @@ archive page showing all objects in a given month.
 Example
 ```````
 
-Continuing on with our example, creating month views should look mighty familiar.
-The info corresponding urlconf piece::
+Continuing on with our example, creating month views should look mighty familiar::
 
-    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/$', 'archive_month', entry_info),
+    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/$', date_based.archive_month, book_info),
 
 
 Required arguments
@@ -765,10 +779,11 @@ a given week.
 Example
 ```````
 
-Once again, we can use the same ``entry_info`` dict from above with a new
-urlconf peice::
+Are you starting to see a pattern here yet?
 
-    (r'^(?P<year>\d{4})/(?P<week>\d{2})/$', 'archive_week', entry_info),
+::
+
+    (r'^(?P<year>\d{4})/(?P<week>\d{2})/$', date_based.archive_week, book_info),
 
 Required arguments
 ``````````````````
@@ -833,9 +848,9 @@ showing all objects in a given day.
 Example
 ```````
 
-Keep on keepin' on (with the same continuing example)::
+Keep on keepin' on::
 
-    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/$', 'archive_day', entry_info),
+    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/$', date_based.archive_day, book_info),
 
 Required arguments
 ``````````````````
@@ -943,17 +958,13 @@ This one differs (slightly) from all the other examples in that we need to
 either provide an object ID or a slug so that Django can look up the object
 in question.  
 
-Since the object we're using has a slug field, we'll choose
-the latter (and the nicer URLs that go along with it). This means we need to 
-provide an extra argument, ``slug_field``, to let Django know which field
-contains the slug.  So we'll construct a new dictionary from the original one
-to hold this new peice of information::
+Since the object we're using doesn't have a slug field, we'll use the slightly
+uglyier ID-based URLs.  In practice we'd prefer to use a slug field, but
+in the interest of simplicity we'll let it go.
 
-    entry_detail_info = dict(entry_info, slug_field="slug").
-    
-Now, our urlconf piece looks like::
+We'll add the following to the URLconf::
 
-    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/(?P<slug>[\w-]+)/$', 'object_detail', entry_detail_info),
+    (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/(?P<day>\d{2})/(?P<object_id>[\w-]+)/$', date_based.object_detail, book_info),
 
 Required arguments
 ``````````````````
