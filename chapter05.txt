@@ -36,7 +36,7 @@ view (by hard-coding HTML directly within the view), there's a "dumb" way to
 retrieve data from a database in a view. It's simple: Just use any existing
 Python library to execute an SQL query and do something with the results.
 
-In this example, we use the ``MySQLdb`` library (available at
+In this example view, we use the ``MySQLdb`` library (available at
 http://sourceforge.net/projects/mysql-python) to connect to a MySQL database,
 retrieve some records and feed them to a template for display as a Web page::
 
@@ -121,7 +121,7 @@ framework. Here's roughly how the M, V and C break down in Django:
     * **M**, the data-access portion, is handled by Django's database layer,
       which is described in this chapter.
 
-    * **V**, the portion that selects which data to display and how to displapy
+    * **V**, the portion that selects which data to display and how to display
       it, is handled by views and templates.
 
     * **C**, the portion that delegates to a view depending on user input, is
@@ -142,11 +142,11 @@ If you're familiar with other MVC Web-development frameworks, such as Ruby on
 Rails, you may consider Django views to be the "controllers" and Django
 templates to be the "views." This is an unfortunate confusion brought about by
 differing interpretations of MVC. In Django's interpretation of MVC, the "view"
-describes the data that gets presented to the user; it's not necessarily *how*
-the data looks, but *which* data is presented. In contrast, Ruby on Rails and
-similar frameworks suggest that the controller's job includes deciding which
-data gets presented to the user, whereas the view is strictly *how* the data
-looks, not *which* data is presented.
+describes the data that gets presented to the user; it's not necessarily just
+*how* the data looks, but *which* data is presented. In contrast, Ruby on Rails
+and similar frameworks suggest that the controller's job includes deciding
+which data gets presented to the user, whereas the view is strictly *how* the
+data looks, not *which* data is presented.
 
 Neither interpretation is more "correct" than the other. The important thing is
 to understand the underlying concepts.
@@ -204,7 +204,7 @@ Here's a rundown of each setting.
 
     * ``DATABASE_NAME`` tells Django what the name of your database is. If
       you're using SQLite, specify the full filesystem path to the database
-      file on your filesystem.
+      file on your filesystem, e.g., ``'/home/django/mydata.db'``
 
     * ``DATABASE_USER`` tells Django which username to use when connecting to
       your database. If you're using SQLite, leave this blank.
@@ -314,12 +314,12 @@ configuration vs. code:
 
 There are very few hard-and-fast rules about how you fit your Django code into
 this scheme; it's flexible. If you're building a simple Web site, you may only
-use a single app. If you're building a complex Web site with several seemingly
+use a single app. If you're building a complex Web site with several rather
 unrelated pieces such as an e-commerce system and a message board, you'll
 probably want to split those into separate apps so that you'll be able to reuse
-them individually.
+them individually in the future.
 
-Indeed, you don't necessarily have to create apps at all, as evidenced by the
+Indeed, you don't necessarily need to create apps at all, as evidenced by the
 example view functions we've created so far in this book. In those cases, we
 simply created a file called ``views.py``, filled it with view functions and
 pointed our URLconf at those functions. No "apps" were needed.
@@ -351,84 +351,72 @@ Have a look at ``models.py`` and ``views.py`` in your favorite text editor.
 Both files are empty, except for an import in ``models.py``. This is the blank
 slate for your Django app.
 
-Your first model
-================
+Defining models in Python
+=========================
 
 As we discussed above, the "M" in "MTV" stands for "Model." A Django model is a
 description of the data in your database, represented as Python code. It's your
 data layout -- the equivalent of your SQL ``CREATE TABLE`` statements -- except
 it's in Python instead of SQL. Django uses it to execute SQL code behind the
 scenes and return convenient Python data structures representing the rows in
-your database tables.
+your database tables. Django also uses models to represent higher-level
+concepts that SQL can't necessarily handle.
 
 If you're familiar with databases, your immediate thought might be, "Isn't it
-redundant to define data models in Python *and* in SQL?"
+redundant to define data models in Python *and* in SQL?" Django works the way
+it does for several reasons:
 
+    * Introspection requires overhead and is not a complete solution.
 
+      In order to provide convenient data-access APIs, Django needs to know the
+      database layout *somehow*, and there are two ways of accomplishing this.
+      The first way would be to explicitly describe the data in Python, and the
+      second way would be to introspect the database at runtime to determine
+      the data models.
 
-
-
-
-
-
-
-
-it's redundant to define a
-data layout in Python code
-
-A drawback of this approach is that it's possible for the Python code to get out of sync with what's actually in the database.
-
-
-
-
-Some other Web development platforms require that you define your models using
-SQL rather than a high-level programming language such as Python. At first,
-this philosophy makes sense: After all, the data is stored in a database, and a
-database knows its own data layout, so why not define your models there first?
-Wouldn't it be redundant to define data models in *both* Python *and* SQL?
-
-While this logic makes sense on the surface, Django takes the opposite approach
-for several reasons:
-
-    * Introspection is expensive.
-
-    * Writing SQL can be tough. Different databases require you to do things
-      differently, and having to write three different versions of your
-      data definitions is the opposite of elegant.
-
-    * Having your data definitions stored in the database instead of in code
-      means it's harder to keep your models under version control. Django does
-      its best to support development best practices, which certainly includes
-      the use of source control.
-
-    * Your application will need to work with the database design regardless
-      of how you created it. If you created it using SQL, you'd have to repeat
-      yourself. Don't Repeat Yourself.
+      This second way seems cleaner, because the metadata about your tables
+      only lives in one place, but it's got a few problems. First,
+      introspecting a database at runtime obviously requires overhead. If the
+      framework had to introspect the database each time it processed a
+      request, or even when the Web server was initialized, this would incur a
+      level of overhead unacceptable to the framework's developers. Django is
+      intended to be as efficient as possible. Second, some databases, notably
+      older versions of MySQL, do not store an amount of table metadata that's
+      sufficient enough for accurate introspection.
 
     * Writing Python is fun, and keeping everything in Python limits the number
       of times your brain has to do a "context switch."
 
-    * Introspection is expensive.
+    * Having data models stored as code rather than in your database makes it
+      easier to keep your models under version control.
 
+    * SQL only allows for a certain level of metadata about a data layout. Most
+      database systems, for example, do not provide a specialized data type for
+      representing e-mail addresses or URLs, whereas Django models do, for
+      convenience.
 
+    * SQL is inconsistent across database platforms. If you're distributing a
+      Web application, for example, it's much more convenient to distribute a
+      Python module that describes your data layout than a set of MySQL
+      ``CREATE TABLE`` statements, PostgreSQL ``CREATE TABLE`` statements and
+      SQLite ``CREATE TABLE`` statements.
 
+A drawback of this approach, however, is that it's possible for the Python code
+to get out of sync with what's actually in the database. If you make changes to
+a Django model, you'll need to make the same changes inside your database to
+keep your database consistent with the model.
 
+Finally, we should note that Django includes a utility that can create models
+by introspecting an existing database. This is useful for quickly getting up
+and running with legacy data.
 
-
-
-
-
-
-
-
-
-
-
+Your first model
+================
 
 As an ongoing example in this chapter and the next chapter, we'll focus on a
-basic book/author/publisher data model. We use this as our example because the
+basic book/author/publisher data layout. We use this as our example because the
 conceptual relationships between books, authors and publishers are well-known,
-and this is a common data model used in introductory SQL textbooks.
+and this is a common data layout used in introductory SQL textbooks.
 
 We'll suppose these fields and relationships:
 
@@ -442,9 +430,11 @@ We'll suppose these fields and relationships:
       authors (a many-to-many relationship to author) and a single publisher
       (a one-to-many relationship, aka foreign key, to publisher).
 
-The first step to use this database layout with Django is to express it as
+The first step in using this database layout with Django is to express it as
 Python code. In the ``models.py`` file that was created by the ``startapp``
-command, type the following code::
+command, enter the following::
+
+    from django.db import models
 
     class Publisher(models.Model):
         name = models.CharField(maxlength=30)
@@ -461,146 +451,153 @@ command, type the following code::
         email = models.EmailField()
         headshot = models.ImageField()
 
-    class Book(models.ModelField):
+    class Book(models.Model):
         title = models.CharField(maxlength=100)
         authors = models.ManyToManyField(Author)
         publisher = models.ForeignKey(Publisher)
         publication_date = models.DateField()
 
+We will cover model syntax and options throughout this chapter, but let's
+quickly examine this code to cover the basics. The first thing to notice is
+that each model is represented by a Python class that is a subclass of
+``django.db.models.Model``. The parent class, ``Model``, contains all the
+functionality necessary to make these objects capable of interacting with a
+database -- and that leaves our models responsible solely for defining their
+fields, in a nice and compact syntax. Believe it or not, this is all the code
+we need to write to have basic data access with Django.
 
+Each model generally corresponds to a single database table, and each attribute
+on a model generally corresponds to a column in that database table. The
+attribute name corresponds to the column's name, and the type of field (e.g.,
+``CharField``) corresponds to the database column type (e.g., ``varchar``). For
+example, the ``Publisher`` model is equivalent to the following table (assuming
+PostgreSQL ``CREATE TABLE`` syntax)::
 
-
-
-
-
-
-
-
-
-
-
-
-Run the following command to initialize your database with Django's default
-installed apps::
-
-    python manage.py syncdb
-
-The ``syncdb`` command takes care of initalizing your database with any tables
-not yet defined. You'll run it any time you add new models to your project;
-see Chapter 3 for more information on the ``manage.py`` utility and the
-``syncdb`` command.
-
-If you're interested, run the command-line client for your database and type
-``\dt`` (PostgreSQL), ``SHOW TABLES;`` (MySQL), or ``.schema`` (SQLite) to
-display the tables Django created.
-
-What's a model?
-===============
-
-
-
-Creating models
-===============
-
-Right, enough propaganda.  What does a model look like?
-
-::
-
-    from django.db import models
-
-    class Crime(models.Model):
-        when        = models.DateTimeField()
-        location    = models.CharField(maxlength=300)
-        description = models.TextField()
-
-This describes a super-simple ``Crime`` model (which we'll expand over the
-course of the next few chapters). Each ``Crime`` object has
-
-    * a ``when`` field which is a date/time object
-    * a ``location`` field which is a character field with a maximum length of
-      300 characters,
-    * and a ``description`` field which is a (unlimited length) text field.
-
-Unless you instruct it otherwise (see XXX), Django will also automatically
-create an integer primary key field called ``id``.
-
-At this point, this is pretty much equivalent to the following SQL when using
-PostgreSQL as the backend. ::
-
-    CREATE TABLE "crimes_crime" (
+    CREATE TABLE "books_publisher" (
         "id" serial NOT NULL PRIMARY KEY,
-        "when" timestamp with time zone NOT NULL,
-        "location" varchar(300) NOT NULL,
-        "description" text NOT NULL
+        "name" varchar(30) NOT NULL,
+        "address" varchar(50) NOT NULL,
+        "city" varchar(60) NOT NULL,
+        "state_province" varchar(30) NOT NULL,
+        "country" varchar(50) NOT NULL,
+        "website" varchar(200) NOT NULL
     );
 
-In fact, we can generate that SQL above using Django itself.
+Indeed, Django can generate that ``CREATE TABLE`` statement itself, as we'll
+see in a moment.
 
-Installing models
-=================
+The exception to the one-class-per-database-table rule is the case of
+many-to-many relationships. In our example models, ``Book`` has a
+``ManyToManyField`` called ``authors``. This designates that a book has one or
+many authors, but the ``Book`` database table doesn't get an ``authors``
+column. Rather, Django creates an additional table -- a many-to-many "join
+table" -- that handles the mapping of books to authors.
 
-First, though, we'll need to put this code into the place that Django expects
-it to be. We'll put this code inside the first project you created in Chapter
-2 (so go back and do that if you haven't already). You'll want to drop into a
-shell, and in the project directory you created before, do::
+Finally, note we haven't explicitly defined a primary key in any of these
+models. Unless you instruct it otherwise, Django automatically gives every
+model an integer primary key field called ``id``. Each Django model is required
+to have a single-column primary key.
 
-    $ python manage.py startapp crimes
+Installing the model
+====================
 
-This will create a ``crimes`` package for you to put your code in. This
-directory now contains two files, ``models.py`` and ``views.py``; you'll want
-to put the model code above into the ``models.py`` file.
+We've written the code; now, let's create the tables in our database. In order
+to do that, the first step is to *activate* these models in our Django project.
+We do that by adding this ``books`` app to the list of installed apps in the
+settings file.
 
-You've now created a model, but there's one more step to getting this model
-registered with Django. In your ``settings.py`` file, you'll see a list called
-``INSTALLED_APPS``. This list tells a given Django instance which apps should
-be considered "active" for that instance. This lets you have a large library
-of models and select which ones you want enabled on a site-by-site basis.
-You'll want to modify ``INSTALLED_APPS`` so that it looks like::
+Edit the ``settings.py`` file again, and look for the ``INSTALLED_APPS``
+setting. ``INSTALLED_APPS`` tells Django which apps are activated for a given
+project. By default, it looks something like this::
 
     INSTALLED_APPS = (
         'django.contrib.auth',
         'django.contrib.contenttypes',
         'django.contrib.sessions',
         'django.contrib.sites',
-        'mysite.crimes',         # <-- add this line
     )
 
-Now your app is registered with this Django project. The first thing you'll
-want to do to celebrate is to make sure you've got the model defined
-correctly. Try this::
+Temporarily comment out all four of those strings by putting a hash character
+(``#``) in front of them. (They're included by default as a common-case
+convenience, but we'll activate them and discuss them later.) Then, add
+``'mysite.books'`` to the ``INSTALLED_APPS`` list, so the setting ends up
+looking like this::
 
-    $ python manage.py validate
+    INSTALLED_APPS = (
+        #'django.contrib.auth',
+        #'django.contrib.contenttypes',
+        #'django.contrib.sessions',
+        #'django.contrib.sites',
+        'mysite.books',
+    )
 
-Django should spit out ``0 errors found``; if it doesn't, it means you've got
-errors defined in your model somewhere. Check that you've copied the code
-above correctly.
+(As we're dealing with a single-element tuple here, don't forget the trailing
+comma.)
 
-From here, you'll probably want to install this model into you database so you
-can start reading and writing data from and to the database. Run::
+``'mysite.books'`` refers to the ``books`` app we're working on. Each app in
+``INSTALLED_APPS`` is represented by its full Python path -- that is, the path
+of packages, separated by dots, leading to the app package.
 
-    $ python manage.py syncdb
+Now that the Django app has been activated in the settings file, we can create
+the database tables in our database. To do that, run this command from within
+your project directory::
 
-This automatically creates the tables for this model in the database. You'll
-re-run ``syncdb`` every time you add new models to your project so that Django
-creates the related tables in the database.
+    python manage.py syncdb
 
-If you want to see the SQL that Django is running against your database, you
-can run::
+You'll see something like this::
 
-    $ python manage.py sql crimes
+    Creating table books_publisher
+    Creating table books_book
+    Creating table books_author
+    Installing index for books.Book model
 
-to have Django print the SQL for the ``crimes`` model to the console (with
-pretty syntax highlighting on \*nix). There's also quite a number of other
-things you can do with ``manage.py``; see Chapter XXX for a complete
-reference.
+The ``syncdb`` command is a simple "sync" of your models to your database. It
+looks at all of the models in each app in your ``INSTALLED_APPS`` setting,
+checks the database to see whether the appropriate tables exist yet, and
+creates the tables if they don't yet exist. Note that ``syncdb`` does *not*
+sync changes in models or deletions of models; if you make a change to a model
+or delete a model, and you want to update the database, ``syncdb`` will not
+handle that.
 
-.. XXX JGD This command shows nothing after running syncdb.  It should be noted that the output changes depending on whether your DB's already been synced for a given installed app.
+To prove it, run ``python manage.py syncdb`` again. Nothing happens -- because
+you haven't added any models to the ``books`` app, or added any apps to
+``INSTALLED_APPS``.
+
+What databases did Django install? Run this command to see the ``CREATE TABLE``
+SQL that Django executed behind the scenes, with pretty syntax highlighting
+(Unix only)::
+
+    python manage.py sqlall books
+
+In this command, ``books`` is the name of the app. It's what you specified when
+you ran the command ``manage.py startapp``.
+
+If you're interested, take a moment to dive into your database server's
+command-line client and see the database tables Django created. You can
+manually run the command-line client -- e.g., ``psql`` for PostgreSQL -- or
+you can run the command ``python manage.py dbshell``, which will figure out
+which command-line client to run, depending on your ``DATABASE_SERVER``
+setting. The latter is almost always more convenient.
+
 
 Playing with the Python API
 ===========================
 
 Once you've created a model, Django automatically provides a high-level Python
 API for working with those models. Let's try it out -- try the following::
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     $ python manage.py shell
 
