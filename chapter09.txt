@@ -2,17 +2,19 @@
 Chapter 9: Generic views
 ========================
 
-Here again is a recurring theme of this book: at it worst web development is
-boring and monotonous. So far you've seen how Django tries to take away some
-of that monotony at the model and template layers, but web developers also
-experience this boredom at the view level.
+Here again is a recurring theme of this book: at its worst, web development is
+boring and monotonous.
+
+So far we've covered how Django tries to take away some of that monotony at
+the model and template layers, but web developers also experience this boredom
+at the view level.
 
 Django's **generic views** were to developed to ease that pain. They take
 certain common idioms and patterns in view development and abstract them so
 that you can quickly write common views of onto data without having to write
 too much code.
 
-In fact, nearly every example in the preceding chapters could be re-written
+In fact, nearly every view example in the preceding chapters could be re-written
 with the help of generic views.
 
 Django contains generic views to do the following:
@@ -34,11 +36,10 @@ Django contains generic views to do the following:
       news archives, and a whole host of others.
 
     * Allow users to create, update, and delete objects -- with or
-      without authorization.  We'll show how to replace the views
-      from Chapter 7 with these views below.
+      without authorization.
 
 Taken together, these views provide easy interfaces to perform the most common
-tasks we encounter.
+tasks developers encounter.
 
 Using generic views
 ===================
@@ -82,7 +83,7 @@ arguments may either come from the URL pattern (as ``month``, ``day``,
 ``queryset``, ``date_field``, etc.).
 
 Most generic views require the ``queryset`` key, which is a ``QuerySet``
-instance; see the database API reference in Chapter XXX for more information
+instance; see the database API reference in Appendix 3 for more information
 about ``QuerySet`` objects.
 
 Most views also take an optional ``extra_context`` dictionary that you can use
@@ -191,7 +192,7 @@ these views, so many of the views below refer back to this list of optional argu
 
     ``context_processors``
         A list of template-context processors to apply to the view's template.
-        See Chapter XXX for information on template context processors.
+        See Chapter 10 for information on template context processors.
 
     ``extra_context``
         A dictionary of values to add to the template context. By default,
@@ -204,7 +205,7 @@ these views, so many of the views below refer back to this list of optional argu
         
     ``template_loader``
         The template loader to use when loading the template. By default, it's
-        ``django.template.loader``.  See Chapter XXX for information on
+        ``django.template.loader``.  See Chapter 10 for information on
         template loaders.
 
     ``template_name``
@@ -946,7 +947,7 @@ page in their respective URLs; the ``object_detail`` view uses URLs like
 
     If you're using date-based detail pages with slugs in the URLs, you
     probably also want to use the ``unique_for_date`` option on the slug field
-    to validate that slugs aren't duplicated in a single day. See Chapter XXX
+    to validate that slugs aren't duplicated in a single day. See Appendix 2
     for details on ``unique_for_date``.
     
 Example
