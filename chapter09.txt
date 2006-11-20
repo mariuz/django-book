@@ -84,7 +84,7 @@ arguments may either come from the URL pattern (as ``month``, ``day``,
 ``queryset``, ``date_field``, etc.).
 
 Most generic views require the ``queryset`` key, which is a ``QuerySet``
-instance; see the database API referenecce in Chapter XXX for more information
+instance; see the database API reference in Chapter XXX for more information
 about ``QuerySet`` objects.
 
 Most views also take an optional ``extra_context`` dictionary that you can use
@@ -154,7 +154,7 @@ This example returns a 410 HTTP error for requests to ``/bar/``::
 Required arguments
 ``````````````````
 
-    ``url``:
+    ``url``
         The URL to redirect to, as a string. Or ``None`` to return a 410 ("gone")
         HTTP response.
         
@@ -254,7 +254,7 @@ We'll also be working with a URL module; if you're following along, you can star
 with an skeleton URL config in ``bookstore.urls``::
 
     from django.conf.urls.defaults import *
-    from django.views.generic import list_detail, date_based
+    from django.views.generic import list_detail, date_based, create_update
     from bookstore.models import Publisher, Author, Book
     
     urlpatterns = patterns('',
@@ -1011,7 +1011,7 @@ Optional arguments
 
     ``month_format``
         A format string that regulates what format the
-      ``month`` parameter uses.  See the detailed explanation above.
+        ``month`` parameter uses.  See the detailed explanation above.
 
     ``slug_field``
         The name of the field on the object containing the slug. This is
@@ -1057,21 +1057,43 @@ In addition to ``extra_context``, the template's context will be:
 Create/update/delete generic views
 ==================================
 
+.. note::
+
+    These views will change slightly when Django's revised form architecture 
+    (currently under development as ``django.newforms``) is finalized. This 
+    section will be updated accordingly.
+
 The ``django.views.generic.create_update`` module contains a set of functions
 for creating, editing and deleting objects.
 
 Create object view
 ------------------
 
-The ``django.views.generic.create_update.create_object`` view displays a form for
-creating an object, redisplays the form with validation errors (if there are
-any) and saves the object. This uses the automatic manipulators that come
+The ``django.views.generic.create_update.create_object`` view displays a form
+for creating an object, redisplays the form with validation errors (if there
+are any) and saves the object. This uses the automatic manipulators that come
 with Django models.
+
+These views all present forms if accessed with a ``GET`` and perform the
+requested action (create/update/delete) if accessed via ``POST``.
+
+Note that these views all have a very rough idea of security. Although they
+take a ``login_required`` attribute which if given will restrict access to
+logged-in users, that's as far as it goes. They won't, for example, check that
+the user editing an object is the same user that created it, nor will they
+validate any sort of permissions.
+
+Much of the time, however, those features can be accomplished by writing a
+small wrapper around the generic view; see "extending generic views", below,
+for more about this topic.
 
 Example
 ```````
 
-XXX FIXME XXX
+If we wanted to allow users to create new books in our database, we could do
+something like this::
+
+    (r'^create/$', create_update.create_object, {'model' : Book}),
 
 Required arguments
 ``````````````````
@@ -1081,8 +1103,8 @@ Required arguments
 
 .. note::
 
-    Notice that this view takes the *model* to be created, not a QuerySet
-    (as all the views above do).
+    Notice that this view takes the *model* to be created, not a ``QuerySet``
+    (as all the list/detail/date-based views above do).
 
 Optional arguments
 ``````````````````
@@ -1147,7 +1169,10 @@ an existing object instead of the creation of a new one.
 Example
 ```````
 
-XXX FIXME XXX
+Following the above example, we could provide an edit interface for a single
+book with this URLconf snippet::
+
+    (r'^edit/(?P<object_id>\d+)/$', create_update.update_object, {'model' : Book}),
 
 Required arguments
 ``````````````````
@@ -1203,9 +1228,9 @@ Delete object view
 The ``django.views.generic.create_update.delete_object`` view is also very
 similar to the other two.
 
-If this view is fetched with GET, it will display a confirmation page (i.e. 
-"do you really want to delete this object?").  If the view is submitted 
-with POST, the object will be deleted.
+If this view is fetched with ``GET``, it will display a confirmation page
+(i.e. "do you really want to delete this object?"). If the view is submitted
+with ``POST``, the object will be deleted without confirmation.
 
 All the arguments are the same as for the update object view, as is the
 context; the template name for this view is
