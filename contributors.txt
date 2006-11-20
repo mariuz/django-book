@@ -33,4 +33,7 @@ brad harder	bharder@methodlogic.net	rewording
 Steve	scblock@ev-15.com	rewording
 Dan Watson	dcwatson@gmail.com	typo
 Hendré	hwassermann@eml.cc	typo
-Simon Greenhill	dev@simon.net.nz	idea
+Simon Greenhill	dev@simon.net.nz	idea,rewording
+JM	james.mulholland@gmail.com	rewording
+Chris Dary	umbrae@gmail.com	rewording
+Fredrik Lundh	fredrik@effbot.org	correction
