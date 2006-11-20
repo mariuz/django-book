@@ -2,8 +2,6 @@
 Chapter 9: Generic views
 ========================
 
-.. contents::
-
 Here again is a recurring theme of this book: at it worst web development is
 boring and monotonous. So far you've seen how Django tries to take away some
 of that monotony at the model and template layers, but web developers also
@@ -1093,7 +1091,7 @@ Example
 If we wanted to allow users to create new books in our database, we could do
 something like this::
 
-    (r'^create/$', create_update.create_object, {'model' : Book}),
+    (r'^books/create/$', create_update.create_object, {'model' : Book}),
 
 Required arguments
 ``````````````````
@@ -1172,7 +1170,7 @@ Example
 Following the above example, we could provide an edit interface for a single
 book with this URLconf snippet::
 
-    (r'^edit/(?P<object_id>\d+)/$', create_update.update_object, {'model' : Book}),
+    (r'^books/edit/(?P<object_id>\d+)/$', create_update.update_object, {'model' : Book}),
 
 Required arguments
 ``````````````````
@@ -1239,3 +1237,183 @@ context; the template name for this view is
 Extending generic views
 =======================
 
+There's no question that using generic views can speed up development
+substantially. In most projects, however, there comes a moment when the
+generic views no longer suffice. Indeed, the most common question asked by new
+Django developers is about how to make generic views handle a wider array of
+situations.
+
+Luckily, in nearly every one of these cases, there are ways to simply extend
+generic views to handle a larger array of use cases. These situations usually
+fall into a couple of patterns:
+
+Adding extra context
+--------------------
+
+Often you simply need to present some extra information than that provided by
+the generic view. For example, think of showing a list of all publishers on a
+book's detail page; the ``object_detail`` generic view provides the book to
+the context, but it seems there's no way to get a list of publishers in that
+template.
+
+But there is: all generic views take an extra optional parameter
+``extra_context``. This is a dictionary of extra objects which will be added
+to the template's context.  So, to provide the list of publishers in the
+book detail view, we'd use an info dict like this::
+    
+    book_info = {
+        "queryset"   : Book.objects.all(),
+        "date_field" : "publication_date",
+        "extra_context" : {
+            "publisher_list" : Publisher.objects.all(),
+        }
+    }
+    
+This would populate a ``{{ publisher_list }}`` variable in the template
+context. This pattern can be used to pass any information down into the
+template for the generic view; it's very handy.
+
+More complex filtering with wrapper functions
+---------------------------------------------
+
+Another common need is to filter down the objects given in a list page by some
+key in the URL. For example, let's look at providing an interface to browse
+books by title. We'd like to provide URLs of the form ``/books/by-title/a/``,
+``/books/by-title/b/``, etc. -- one list page for each letter of the alphabet.
+
+The problem seems to be that the generic view has no concept of reading
+variables from the URL; if we wired a URL pattern matching those URLs up to
+the ``object_list`` view, we'd get twenty-six pages displaying all the books.
+Although we *could* write twenty-six different info dicts (each with a
+different ``queryset`` argument), that's just silly. The right technique
+involves writing a simple "wrapper" function around the generic view.
+
+In our alphabetic-browsing example, we'd start by adding a small bit to the
+URLconf:
+
+.. parsed-literal::
+ 
+    from bookstore.views import browse_alphabetically
+
+    urlpatterns = patterns('', 
+        # ...
+        **(r'^books/by-title/([a-z])/$', browse_alphabetically)**
+    )
+
+As you can see, this wires the set of URLs to the ``browse_alphabetically``
+function, so let's take a look at how that function could be written::
+
+    from bookstore.models. import Book
+    from django.views.generic import list_detail
+    
+    def browse_alphabetically(request, letter):
+        return list_detail.object_list(
+            request,
+            queryset = Book.objects.filter(title__istartswith=letter),
+            template_name = "bookstore/browse_alphabetically.html",
+            extra_context = {
+                'letter' : letter,
+            }
+        )
+
+That's it!
+
+This works because there's really nothing special about generic views --
+they're just Python functions. Like any view function, generic views expect a
+certain set of arguments and return ``HttpResponse`` objects. Thus, it's
+incredibly easy to wrap a small function around a generic view that does
+additional work before -- or after; see below -- handing things off to the
+generic view.
+
+.. note::
+
+    Notice that in the above example we've passed the current letter being
+    display in the ``extra_context``. This is usually a good idea in wrappers
+    of this nature; it lets the template know which letter is currently being
+    browsed.
+    
+    Also (while we're on the topic of templates) notice that we've passed in
+    a custom template name. Without that, it would try to use the same
+    template as a "vanilla" ``object_list``, which could conflict with other
+    generic views.
+
+
+Performing extra work
+---------------------
+
+The last common pattern we'll look at involves doing some extra work before
+or after calling the generic view.
+
+Imagine we had a ``last_accessed`` field on our ``Author`` object that we were
+using to keep track of the last time a anybody looked at that author.  The generic
+``object_detail`` view, of course, wouldn't know anything about this field, but
+once again we could easily write a custom view to keep that field updated.
+
+First, we'd need to modify the author detail bit in the URLconf to point to a
+custom view:
+
+.. parsed-literal::
+
+    from bookstore.views import author_detail
+    
+    urlpatterns = patterns('',
+        #...
+        **(r'^authors/(?P<author_id>\d+)/$', author_detail),**
+    )
+
+Then we'd write our wrapper function::
+
+    import datetime
+    from bookstore.models import Author
+    from django.views.generic import list_detail
+    from django.shortcuts import get_object_or_404
+
+    def author_detail(request, author_id):
+        # Look up the Author (and raise a 404 if she's not found)
+        author = get_object_or_404(Author, pk=author_id)
+        
+        # Record the last accessed date
+        author.last_accessed = datetime.datetime.now()
+        author.save()
+        
+        # Show the detail page
+        return list_detail.object_detail(
+            request,
+            queryset = Author.objects.all(),
+            object_id = author_id,
+        )
+
+.. note::
+
+    This code won't actually work unless you add the ``last_accessed`` field
+    to your ``Author`` model.
+    
+We can use a similar idiom to alter the response returned by the generic view.
+If we wanted to provide a downloadable plain-text version of the list of authors,
+we could use a view like this::
+
+    def author_list_plaintext(request):
+        response = list_detail.object_list(
+            queryset = Author.objects.all(),
+            mimetype = "text/plain",
+            template_name = "bookstore/author_list.txt"
+        )
+        response["Content-Disposition"] = "attachment; filename=authors.txt"
+        return response
+        
+This works because the generic views return simple ``HttpResponse`` objects
+which can be treated like dictionaries to set HTTP headers. This
+``Content-Disposition`` business, by the way, instructs the browser to
+download and save the page instead of displaying it in the browser.
+
+What's next?
+============
+
+Until now, we've treated the template engine as a mostly static tool you can
+use to render your content. It's true that most of the time you'll just treat
+it in that way, but the template engine is actually quite extensible.
+
+In the next chapter we'll delve deep into the inner workings of Django's
+templates, showing all the cool ways it can be extended.
+
+Onward, comrades!
