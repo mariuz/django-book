@@ -102,7 +102,8 @@ Advantages of the function object approach are:
     * It allows for easy "wrapping" of view functions. See "Wrapping view
       functions" later in this chapter.
 
-    * It's more "Pythonic" -- that is, it's more in line with Python tradition.
+    * It's more "Pythonic" -- that is, it's more in line with the Python
+      tradition of passing functions as objects.
 
 Both approaches are valid, and you can even mix and match them within the same
 URLconf. The choice is yours.
@@ -122,8 +123,8 @@ Old::
 
     urlpatterns = patterns('',
         (r'^/?$', 'mysite.views.archive_index'),
-        (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/$', 'mysite.views.archive_month'),
-        (r'^tag/(?P<tag>\w+)/$', 'weblog.views.tag'),
+        (r'^(\d{4})/([a-z]{3})/$', 'mysite.views.archive_month'),
+        (r'^tag/(\w+)/$', 'weblog.views.tag'),
     )
 
 New::
@@ -132,14 +133,70 @@ New::
 
     urlpatterns = patterns('mysite.views',
         (r'^/?$', 'archive_index'),
-        (r'^(?P<year>\d{4})/(?P<month>[a-z]{3})/$','archive_month'),
+        (r'^(\d{4})/([a-z]{3})/$','archive_month'),
     )
 
     urlpatterns += patterns('weblog.views',
-        (r'^tag/(?P<tag>\w+)/$', 'tag'),
+        (r'^tag/(\w+)/$', 'tag'),
     )
 
+Named groups
+------------
 
+In all of our URLconf examples so far, we've used simple, *non-named*
+regular-expression groups -- i.e., we've put parentheses around parts of the
+URL we wanted to capture, and Django passes that captured text to the view
+function as a positional argument. In more advanced usage, it's possible to use
+*named* regular-expression groups to capture URL bits and pass them as
+*keyword* arguments to a view.
+
+In Python regular expressions, the syntax for named regular-expression groups
+is ``(?P<name>pattern)``, where ``name`` is the name of the group and
+``pattern`` is some pattern to match.
+
+Here's an example URLconf that uses nonnamed groups::
+
+    from django.conf.urls.defaults import *
+    from mysite import views
+
+    urlpatterns = patterns('',
+        (r'^articles/(\d{4})/$', views.year_archive),
+        (r'^articles/(\d{4})/(\d{2})/$', views.month_archive),
+    )
+
+Here's the same URLconf, rewritten to use named groups::
+
+    from django.conf.urls.defaults import *
+    from mysite import views
+
+    urlpatterns = patterns('',
+        (r'^articles/(?P<year>\d{4})/$', views.year_archive),
+        (r'^articles/(?P<year>\d{4})/(?P<month>\d{2})/$', views.month_archive),
+    )
+
+This accomplishes exactly the same thing as the previous example, with one
+subtle difference: The captured values are passed to view functions as keyword
+arguments rather than positional arguments.
+
+For example, with nonnamed groups, a request to ``/articles/2006/03/`` would
+result in a function call equivalent to this::
+
+    month_archive(request, '2006', '03')
+
+With named groups, though, the same request would result in this function call::
+
+    month_archive(request, year='2006', month='03')
+
+In practice, using named groups makes your URLconfs slightly more explicit and
+less prone to argument-order bugs -- and you can reorder the arguments in your
+views' function definitions. Following the above example, if we wanted to
+change the URLs to contain the month *before* the year, and we were using
+nonnamed groups, we'd have to remember to change the order of arguments in the
+``month_archive`` view. If we were using named groups, changing the order of
+the captured parameters in the URL would have no effect on the view.
+
+Of course, the benefits of named groups come at the cost of brevity; some
+developers find the named-group syntax ugly and too verbose.
 
 
 
