@@ -2,10 +2,6 @@
 Chapter 10: Inside the template engine
 ======================================
 
-.. Nearly all of this chapter comes from the "templates_python.txt" Django doc, with only light edits.
-
-.. contents::
-
 Most of your interaction with Django's template language will probably be in
 the role of a template author. This chapter delves much deeper into the guts
 of Django's template system; read on if you need to extend the template
@@ -13,14 +9,14 @@ system, or if you're just curious about how it works internally.
 
 If you're looking to use the Django template system as part of another
 application -- i.e., without the rest of the framework -- make sure to read
-the `configuration`_ section later in this document.
+the configuration section later in this document.
 
 Basics
 ======
 
-A **template** is a text document, or a normal Python string, that is marked-up
-using the Django template language. A template can contain **block tags** or
-**variables**.
+A **template** is a text document, or a normal Python string, that is
+marked-up using the Django template language. A template can contain **block
+tags** or **variables**.
 
 A **block tag** is a symbol within a template that does something.
 
@@ -48,7 +44,7 @@ that is passed to a template.
 A template **renders** a context by replacing the variable "holes" with values
 from the context and executing all block tags.
 
-Using the template system
+Using the template object
 =========================
 
 At its lowest level, using the template system in Python is a two-step
@@ -248,11 +244,13 @@ dictionary syntax::
     >>> c['newvariable']
     'hello'
 
-Furthermore, a ``Context`` object acts like a stack. That is, you can ``push()`` and ``pop()`` 
-additional contexts onto the stack.  All setting operations happen to the top-most context
-on the stack, but get operations search the stack (top-down) until a value is found.
+Furthermore, a ``Context`` object acts like a stack. That is, you can
+``push()`` and ``pop()`` additional contexts onto the stack. All setting
+operations happen to the top-most context on the stack, but get operations
+search the stack (top-down) until a value is found.
 
-If you ``pop()`` too much, you'll get a ``django.template.ContextPopException``.
+If you ``pop()`` too much, you'll get a
+``django.template.ContextPopException``.
 
 Here's an example of how these multiple levels might work::
 
@@ -299,8 +297,8 @@ normal ``django.template.Context``. The first difference is that takes an
         'foo': 'bar',
     }
 
-The second difference is that it automatically populates the context with a few
-variables, according to your ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
+The second difference is that it automatically populates the context with a
+few variables, according to your ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
 
 The ``TEMPLATE_CONTEXT_PROCESSORS`` setting is a tuple of callables called
 **context processors** that take a request object as their argument and
@@ -390,7 +388,7 @@ contain these two variables:
         ``request.LANGUAGE_CODE``, if it exists. Otherwise, the value of the
         ``LANGUAGE_CODE`` setting
 
-Chapter XXX has more information about these two settings.
+Appendix XXX has more information about these two settings.
 
 ``django.core.context_processors.request``
 ``````````````````````````````````````````
@@ -420,8 +418,8 @@ your template directory(ies)::
     )
 
 Your templates can go anywhere you want, as long as the directories and
-templates are readable by the Web server. They can have any extension you want,
-such as ``.html`` or ``.txt``, or they can have no extension at all.
+templates are readable by the Web server. They can have any extension you
+want, such as ``.html`` or ``.txt``, or they can have no extension at all.
 
 Note that these paths should use Unix-style forward slashes, even on Windows.
 
@@ -447,8 +445,8 @@ order:
     * ``/home/html/templates/lawrence.com/story_detail.html``
     * ``/home/html/templates/default/story_detail.html``
 
-If you call ``select_template(['story_253_detail.html', 'story_detail.html'])``,
-here's what Django will look for:
+If you call ``select_template(['story_253_detail.html',
+'story_detail.html'])``, here's what Django will look for:
 
     * ``/home/html/templates/lawrence.com/story_253_detail.html``
     * ``/home/html/templates/default/story_253_detail.html``
@@ -492,8 +490,8 @@ Again, use UNIX-style forward slashes, even on Windows.
 Template loaders
 ````````````````
 
-By default, Django loads templates from the filesystem, but Django comes
-with a few other **template loaders** which know how to load templates from other
+By default, Django loads templates from the filesystem, but Django comes with
+a few other **template loaders** which know how to load templates from other
 sources.
 
 Some of these other loaders are disabled by default, but you can activate them
@@ -508,11 +506,11 @@ template loaders ship with Django:
 
     ``django.template.loaders.app_directories.load_template_source``
         Loads templates from Django apps on the filesystem. For each app in
-        ``INSTALLED_APPS``, the loader looks for a ``templates`` subdirectory. If
-        the directory exists, Django looks for templates in there.
+        ``INSTALLED_APPS``, the loader looks for a ``templates`` subdirectory.
+        If the directory exists, Django looks for templates in there.
 
-        This means you can store templates with your individual apps. This also
-        makes it easy to distribute Django apps with default templates.
+        This means you can store templates with your individual apps. This
+        also makes it easy to distribute Django apps with default templates.
 
         For example, if ``INSTALLED_APPS`` contains ``('myproject.polls',
         'myproject.music')``, then ``get_template('foo.html')`` will look for
@@ -528,8 +526,8 @@ template loaders ship with Django:
         This loader is enabled by default.
 
     ``django.template.loaders.eggs.load_template_source``
-        Just like ``app_directories`` above, but it loads templates from Python
-        eggs rather than from the filesystem.
+        Just like ``app_directories`` above, but it loads templates from
+        Python eggs rather than from the filesystem.
         
         This loader is disabled by default; you'll need to enable it if you're
         using eggs to distribute your app.
@@ -563,11 +561,11 @@ you'd do the following in a template::
 
     {% load poll_extras %}
 
-The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only allows
-the loading of template libraries within installed Django apps. This is a
-security feature: It allows you to host Python code for many template libraries
-on a single computer without enabling access to all of them for every Django
-installation.
+The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only
+allows the loading of template libraries within installed Django apps. This is
+a security feature: It allows you to host Python code for many template
+libraries on a single computer without enabling access to all of them for
+every Django installation.
 
 If you write a template library that isn't tied to any particular
 models/views, it's perfectly OK to have a Django app package that only
@@ -607,8 +605,8 @@ Custom filters are just Python functions that take one or two arguments:
     * The value of the argument, which this can have a default value, or be
       left out altogether.
 
-For example, in the filter ``{{ var|foo:"bar" }}``, the filter ``foo`` would be
-passed the variable ``var`` and the argument ``"bar"``.
+For example, in the filter ``{{ var|foo:"bar" }}``, the filter ``foo`` would
+be passed the variable ``var`` and the argument ``"bar"``.
 
 Filter functions should always return something. They shouldn't raise
 exceptions and should fail silently. If there's an error, they should return
@@ -624,15 +622,15 @@ And here's an example of how that filter would be used::
 
     {{ somevariable|cut:"0" }}
 
-Most filters don't take arguments. In this case, just leave the argument out of
-your function::
+Most filters don't take arguments. In this case, just leave the argument out
+of your function::
 
     def lower(value): # Only one argument.
         "Converts a string into all lowercase"
         return value.lower()
 
-When you've written your filter definition, you need to register it with
-your ``Library`` instance, to make it available to Django's template language::
+When you've written your filter definition, you need to register it with your
+``Library`` instance, to make it available to Django's template language::
 
     register.filter('cut', cut)
     register.filter('lower', lower)
@@ -688,7 +686,8 @@ Writing the compilation function
 
 For each template tag the template parser encounters, it calls a Python
 function with the tag contents and the parser object itself. This function is
-responsible for returning a ``Node`` instance based on the contents of the tag.
+responsible for returning a ``Node`` instance based on the contents of the
+tag.
 
 For example, let's write a template tag, ``{% current_time %}``, that displays
 the current date/time, formatted according to a parameter given in the tag, in
@@ -746,7 +745,7 @@ There's actually a lot going here:
       leading and trailing quotes from the template tag are removed with
       ``format_string[1:-1]``.
       
-    * Template tag complilation functions **must** return a ``Node`` subclass;
+    * Template tag compilation functions **must** return a ``Node`` subclass;
       any other return value is an error.
 
     * The parsing is very low-level. We've experimented with writing small
@@ -772,9 +771,9 @@ has a ``render()`` method. Continuing the above example, we need to define
             return datetime.datetime.now().strftime(self.format_string)
 
 These two functions (``__init__`` and ``render``) map directly to the two
-steps in template processing (compilation and rendering).  Thus, the initialization
-function only needs to store the format string for later use, and the ``render()``
-function does the real work.
+steps in template processing (compilation and rendering). Thus, the
+initialization function only needs to store the format string for later use,
+and the ``render()`` function does the real work.
 
 Like template filters, these rendering functions should fail silently instead
 of raising errors.  The only time that template tags are allowed to raise
@@ -1096,7 +1095,117 @@ without any arguments, like so::
 Note that when you're using ``takes_context=True``, there's no need to pass
 arguments to the template tag. It automatically gets access to the context.
 
-.. _configuration:
+
+Writing custom template loaders
+-------------------------------
+
+Django's built-in template loaders will usually cover all your
+template-loading needs, but it's pretty easy to write your own if you need
+special loading logic.
+
+A template loader -- that is, each entry in the ``TEMPLATE_LOADERS`` settings
+-- is expected to be a callable with this interface::
+
+    load_template_source(template_name, template_dirs=None)
+    
+The ``template_name`` argument is the name of the template to load (as passed
+to ``loader.get_template()`` or ``loader.select_template()``), and
+``template_dirs`` is an optional list of directories to search instead of
+``TEMPLATE_DIRS``.
+
+If a loader is able to successfully load a template, it should return a tuple:
+``(template_source, template_path)``. Here, ``template_source`` is the
+template string which will be compiled by the template engine, and
+``template_path`` is the path the template was loaded from. That path might be
+shown to the user for debugging purposes, so it should quickly identify where
+the template was loaded from.
+
+If the loader is unable to load a template, it should raise
+``django.template.TemplateDoesNotExist``.
+
+Each loader function should also have an ``is_usable`` function attribute.
+This is a boolean that informs the template engine whether or not this loader
+is available in the current Python installation.
+
+For example, the eggs loader (which is capable of loading templates from
+Python eggs) sets ``is_usable`` to ``False`` if the ``pkg_resources`` module
+isn't installed, because ``pkg_resources`` is necessary to read data from
+eggs.
+
+An example should help clarify all of this. Here's a template loader function
+that can load templates from a ZIP file. It uses a custom setting,
+``TEMPLATE_ZIP_FILES`` as a search path instead of ``TEMPLATE_DIRS``, and
+expects each item on that path to be a ZIP file containing templates::
+
+    import zipfile
+    from django.conf import settings
+    from django.template import TemplateDoesNotExist
+    
+    def load_template_source(template_name, template_dirs=None):
+        """Template loader that loads templates from a ZIP file."""
+        
+        # Lookup ZIP file list from settings if it's not already given.
+        if template_zipfiles is None:
+            template_zipfiles = getattr(settings, "TEMPLATE_ZIP_FILES", [])
+        
+        # Try each ZIP file in TEMPLATE_ZIP_FILES.
+        for fname in template_zipfiles:
+            try:
+                z = zipfile.ZipFile(fname)
+                source = z.read(template_name)
+            except (IOError, KeyError):
+                continue
+            
+            # We found a template, so return the source.
+            template_path = "%s:%s" % (fname, template_name)
+            return (source, template_path)
+    
+        # If we reach here, the template couldn't be loaded
+        raise TemplateDoesNotExist(template_name)
+    
+    # This loader is always usable (since zipfile is a Python standard library function)
+    load_template_source.is_usable = True
+
+The only step left if we wanted to use this loader is to add it to the
+``TEMPLATE_LOADERS`` setting. If we put this code in a module called
+``myproject.zip_loader``, then we'd add ``
+myproject.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
+
+Using the built-in template reference
+-------------------------------------
+
+Django's admin interface includes a complete reference of all template tags
+and filters available for a given site. It's designed to be a tool that Django
+programmers give to template developers. To see it, go to your admin interface
+and click the "Documentation" link in the upper right of the page.
+
+The reference is divided into 4 sections: tags, filters, models, and views.
+
+The **tags** and **filters** sections describe all the built-in tags (in fact,
+the tag and filter references below come directly from those pages) as well as
+any custom tag or filter libraries available.
+
+The **views** page is the most valuable. Each URL in your site has a separate
+entry here, and clicking on a URL will show you:
+
+    * The name of the view function that generates that view.
+
+    * A short description of what the view does.
+
+    * The **context**, or a list of variables available in the view's
+      template.
+
+    * The name of the template or templates that are used for that view.
+
+Each view documentation page also has a bookmarklet that you can use to jump
+from any page to the documentation page for that view.
+
+Because Django-powered sites usually use database objects, the **models**
+section of the documentation page describes each type of object in the system
+along with all the fields available on that object.
+
+Taken together, the documentation pages should tell you every tag, filter,
+variable and object available to you in a given template.
 
 Configuring the template system in standalone mode
 ==================================================
@@ -1118,7 +1227,7 @@ than dealing with settings files and pointing to them via environment
 variables.
 
 To solve this problem, you need to use the manual configuration option
-described in Chpater XXX.
+described in Appendix XXX.
 
 Simply import the appropriate pieces of the template system and then, *before*
 you call any of the template functions, call
