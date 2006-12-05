@@ -207,7 +207,7 @@ some things to keep in mind:
             sensitive_function.alters_data = True
             
       The dynamically-generated ``delete()`` and ``save()`` methods on Django
-      model objects get ``alters_data=True`` automatically. For example
+      model objects get ``alters_data=True`` automatically, for example.
 
 How invalid variables are handled
 `````````````````````````````````
@@ -1168,8 +1168,8 @@ expects each item on that path to be a ZIP file containing templates::
 
 The only step left if we wanted to use this loader is to add it to the
 ``TEMPLATE_LOADERS`` setting. If we put this code in a module called
-``myproject.zip_loader``, then we'd add ``
-myproject.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
+``myproject.zip_loader``, then we'd add 
+``myproject.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
 
 Using the built-in template reference
 -------------------------------------
