@@ -2,12 +2,12 @@
 Chapter 14: Caching
 ===================
 
-A fundamental tradeoff in dynamic Web sites is, well, they're dynamic. Each
-time a user requests a page, the Web server makes all sorts of calculations --
-from database queries to template rendering to business logic -- to create the
-page that your site's visitor sees. This is a lot more expensive, from a
-processing-overhead perspective, than your standard read-a-file-off-the-filesystem
-server arrangement.
+Static websites, in which simple files are served directly to the web, scale 
+like crazy.  A fundamental tradeoff in dynamic Web sites is, well, they're 
+dynamic. Each time a user requests a page, the Web server makes all sorts of 
+calculations -- from database queries to template rendering to business logic -- 
+to create the page that your site's visitor sees.  From a processing-overhead 
+perspective, this is a lot more expensive.
 
 For most Web applications, this overhead isn't a big deal. Most Web
 applications aren't washingtonpost.com or slashdot.org; they're simply small-
@@ -55,9 +55,9 @@ Memcached
 
 By far the fastest, most efficient type of cache available to Django, Memcached
 is an entirely memory-based cache framework originally developed to handle high
-loads at LiveJournal.com and subsequently open-sourced by Danga Interactive.
-It's used by sites such as Slashdot and Wikipedia to reduce database access and
-dramatically increase site performance.
+loads at LiveJournal.com and subsequently open-sourced by Danga 
+Interactive(http://www.danga.com).  It's used by sites such as Slashdot and 
+Wikipedia to reduce database access and dramatically increase site performance.
 
 Memcached is available for free at http://danga.com/memcached/ . It runs as a
 daemon and is allotted a specified amount of RAM. Its primary feature is to
@@ -167,7 +167,7 @@ Local-memory caching
 
 If you want the speed advantages of in-memory caching but don't have the
 capability of running Memcached, consider the local-memory cache backend. This
-cache is multi-process and thread-safe.
+cache is multi-process and thread-safe, but isn't as efficient as Memcached due to its simplistic locking and memory allocation strategies.
 
 To use it, set ``CACHE_BACKEND`` to ``"locmem:///"``. For example::
 
@@ -207,10 +207,10 @@ the ``CACHE_BACKEND`` setting. Valid arguments are::
       the maximum number of entries allowed in the cache before old values are
       cleaned. Defaults to 300.
 
-    * ``cull_percentage`` -- The percentage of entries that are culled when
-        ``max_entries`` is reached. The actual percentage is
-        ``1/cull_percentage``, so set ``cull_percentage=3`` to cull 1/3 of the
-        entries when ``max_entries`` is reached.
+    * ``cull_ratio`` -- The ratio of entries that are culled when ``max_entries``
+      is reached. The actual ratio is ``1/cull_ratio``, so set 
+      ``cull_ratio=2`` to cull 1/2 of the entries when ``max_entries`` is 
+      reached.  Defaults to 3.
 
         A value of ``0`` for ``cull_percentage`` means that the entire cache
         will be dumped when ``max_entries`` is reached. This makes culling
@@ -218,11 +218,11 @@ the ``CACHE_BACKEND`` setting. Valid arguments are::
 
 In this example, ``timeout`` is set to ``60``::
 
-    CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=60"
+    CACHE_BACKEND = "locmem:///?timeout=60"
 
 In this example, ``timeout`` is ``30`` and ``max_entries`` is ``400``::
 
-    CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=30&max_entries=400"
+    CACHE_BACKEND = "locmem:///?timeout=30&max_entries=400"
 
 Invalid arguments are silently ignored, as are invalid values of known
 arguments.
@@ -291,8 +291,9 @@ The per-view cache
 ==================
 
 A more granular way to use the caching framework is by caching the output of
-individual views. This has the same effects as the per-site cache, but it only
-applies to the views you specify.
+individual views. This has the same effects as the per-site cache (including the 
+ommission of caching on requests with GET and POST parameters).  It applies to 
+whichever views you specify rather than the whole site.
 
 Do this by using a decorator -- a wrapper around your view function that alters
 its behavior to use caching. The per-view cache decorator is called
@@ -366,22 +367,19 @@ The low-level cache API
 Sometimes, caching an entire rendered page doesn't gain you very much and is,
 in fact, inconvenient overkill.
 
-Perhaps, for instance, your site's templates change frequently, but the
-underlying database queries do not change. In this case, it would not be ideal
-to use the full-page caching that the per-site or per-view cache strategies
-offer, because you wouldn't want to cache the page layout (to enable quick
-template changes) but you'd still want to cache the database activity, because
-that part is resource intensive.
+Perhaps, for instance, your site includes a view whose results depend on 
+several expensive queries, the results of which change at different intervals.
+In this case, it would not be ideal to use the full-page caching that the 
+per-site or per-view cache strategies offer, because you wouldn't want to 
+cache entire result (since some of the data changes often), but you'd still 
+want to cache the results which rarely change.
 
-In cases like this, you can use the low-level cache API to store objects in the
-cache with any level of granularity you like. You can cache any Python object
-that can be "pickled" safely -- strings, dictionaries, lists of model objects,
-etc. (Most common Python objects can be pickled; refer to the Python
-documentation for more information about pickling.)
-
-Django exposes a simple, low-level cache API, which lives in the module
-``django.core.cache``. To use it, import the object ``cache`` from that module,
-and treat it as your data store.
+For cases like this, Django exposes a simple, low-level cache API, which lives 
+in the module ``django.core.cache``.  You can use the low-level cache API to 
+store objects in the cache with any level of granularity you like. You can cache 
+any Python object that can be "pickled" safely -- strings, dictionaries, lists 
+of model objects, etc. (Most common Python objects can be pickled; refer to the 
+Python documentation for more information about pickling.)
 
 Here's how to import it::
 
@@ -396,7 +394,8 @@ The basic interface is ``set(key, value, timeout_seconds)`` and ``get(key)``::
 The ``timeout_seconds`` argument is optional and defaults to the ``timeout``
 argument in the ``CACHE_BACKEND`` setting explained above.
 
-If the object doesn't exist in the cache, ``cache.get()`` returns ``None``::
+If the object doesn't exist in the cache (or the cache backend is unreachable), 
+``cache.get()`` returns ``None``::
 
     >>> cache.get('some_other_key')
     None
@@ -407,8 +406,8 @@ If the object doesn't exist in the cache, ``cache.get()`` returns ``None``::
     None
 
 We advise against storing the literal value ``None`` in the cache, because you
-won't be able to distinguish between your ``None`` value and the ``None``
-signified by a cache miss.
+won't be able to distinguish between your stored ``None`` value and a cache 
+miss signified by a return value of ``None``.
 
 ``cache.get()`` can take a ``default`` argument. This specifies which value to
 return if the object doesn't exist in the cache::
@@ -653,4 +652,4 @@ Put the ``CacheMiddleware`` after any middlewares that might add something to
 the ``Vary`` header. The following middlewares do so:
 
     * ``SessionMiddleware`` adds ``Cookie``
-    * ``GZipMiddleware`` adds ``Accept-Encoding``
+    * ``GZipMiddleware`` adds ``Content-Encoding``

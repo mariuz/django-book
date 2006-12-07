@@ -37,3 +37,7 @@ Simon Greenhill	dev@simon.net.nz	idea,rewording
 JM	james.mulholland@gmail.com	rewording
 Chris Dary	umbrae@gmail.com	rewording
 Fredrik Lundh	fredrik@effbot.org	correction
+Kevin Menard	kmenard@servprise.com	rewording	/comment/1173/
+Gulopine	gulopine@gamemusic.org	rewording	/comment/988/
+polaar		steven.vereecken@gmail.com		rewording	/comment/1005/
+Simon Willison	simon@simonwillison.net			idea		/comment/979/
