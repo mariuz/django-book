@@ -1,0 +1,35 @@
+/* 
+  The CSS for the tabs comes from the Yahoo! design patterns
+  See http://developer.yahoo.com/ypatterns/examples/tabs.html for more details
+ */
+.tabset {border-bottom:1px solid #999;}
+.tabset h3, .tabset h4 {position:absolute;left:-1000em;margin:0;}
+.tabset .hd li em {font-weight:bold;}
+.tabset .hd li a {color:#666;}
+.tabset .hd li a:hover {text-decoration:none;}
+.tabset .hd li.on em, .tabset .hd li.on strong a {color:#3366cc;} /* selected tab */
+.tabset .hd li.on strong {background-color:white;border-bottom:1px solid white;} /* border-color should match selected color */
+.tabset .hd li.orphan, .tabset .hd li.orphan a {color:#999;}
+
+/* bg images, defaults to #999 border-color on white bg */
+.tabset .hd li a, .tabset .hd li strong {background:#ccc url(http://us.i1.yimg.com/us.yimg.com/i/us/nt/el/tb/tr_999.gif) no-repeat top right;}
+.tabset .hd li em {background:transparent url(http://us.i1.yimg.com/us.yimg.com/i/us/nt/el/tb/tl_999.gif) no-repeat;}
+
+.tabset {width:100%;} /* IE: width */
+.tabset a {text-decoration:none;}
+.tabset ul, .tabset li {margin:0;padding:0;list-style:none;}
+.tabset li {float:left;display:inline;cursor:pointer;}
+.tabset li.on {cursor:default;}
+.tabset li.disabled {cursor:default;color:#cccccc;}
+.tabset li.disabled em {color:#aaa;}
+.tabset li a:hover {text-decoration:underline;}
+.tabset ul:after {clear:both;content:'.';display:block;height:0;visibility:hidden;} /* clear non-IE */
+.tabset ul {zoom:1;} /* clear IE */
+
+.tabset .hd ul {font:bold 78%/1.2em verdana;margin-bottom:-1px;padding-left:.3em;position:relative;} /* IE quirks mode: relative */
+.tabset .hd li {margin-right:.33em;padding:0;}
+.tabset .hd li.on strong a {cursor:default;}
+.tabset .hd li a, .tabset .hd li strong, .tabset .hd li em {display:block;}
+.tabset .hd li a, .tabset .hd li strong {*display:inline-block;}  /* IE: 100% clickable */
+.tabset .hd li em {font-style:normal;padding:.5em .6em;}
+.tabset .hd li.orphan, .tabset .hd li.orphan a, .tabset .hd li.orphan em {background:transparent none;border-width:0;margin:0;}
