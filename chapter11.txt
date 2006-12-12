@@ -2,6 +2,8 @@
 Chapter 11: Generating non-HTML content
 =======================================
 
+.. contents::
+
 Usually when we talk about developing web sites, we're talking about producing
 some flavor of HTML. Of course, there's a lot more to the web than HTML,
 though; we use the web to distribute all kinds of content, not just HTML.
@@ -313,24 +315,677 @@ implement them:
 In general, any Python library capable of writing to a file can be hooked into
 Django; the possibilities really are endless.
 
-Django's built-in content generation tools
-==========================================
+Now that we've looked at the basics of generating non-HTML content, let's step
+up a level of abstraction. Django ships with some pretty nifty built-in tools
+for generating some common types of non-HTML content.
 
-(intro)
+The syndication feed framework
+==============================
 
-Syndication feeds
------------------
+.. This is taken more or less verbatim from syndication_feeds.txt
 
-Take from syndication doc
+Django comes with a high-level syndication-feed-generating framework that
+makes creating RSS  and Atom feeds easy.
 
-Sitemaps
---------
+.. admonition:: What's RSS? What's Atom?
 
-Take from sitemaps doc -- make sure to mention it's not Google any more.
+    RSS and Atom are both XML-based formats you can use to provide
+    automatically updating "feeds" of your site's content. Read more about RSS
+    at http://www.whatisrss.com/, and more about Atom at
+    http://www.atomenabled.org/.
 
-Serialized objects
-------------------
+To create any syndication feed, all you have to do is write a short Python
+class. You can create as many feeds as you want.
 
-- view examples
-- JSON format
-- XML format
+Django also comes with a lower-level feed-generating API. Use this if you want
+to generate feeds outside of a Web context, or in some other lower-level way.
+
+The high-level framework
+------------------------
+
+Overview
+````````
+
+The high-level feed-generating framework is a view that's hooked to
+``/feeds/`` by default. Django uses the remainder of the URL (everything after
+``/feeds/``) to determine which feed to output.
+
+To create a feed, just write a ``Feed`` class and point to it in your URLconf (see Chapters 3 and 8 fore more about URLconfs).
+
+Initialization
+``````````````
+
+To activate syndication feeds on your Django site, add this line to your
+URLconf::
+
+    (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed', {'feed_dict': feeds}),
+
+This tells Django to use the RSS framework to handle all URLs starting with
+``"feeds/"``. (You can change that ``"feeds/"`` prefix to fit your own needs.)
+
+This URLconf line has an extra argument: ``{'feed_dict': feeds}``. Use this
+extra argument to pass the syndication framework the feeds that should be
+published under that URL.
+
+Specifically, ``feed_dict`` should be a dictionary that maps a feed's slug
+(short URL label) to its ``Feed`` class.
+
+You can define the ``feed_dict`` in the URLconf itself. Here's a full example
+URLconf::
+
+    from django.conf.urls.defaults import *
+    from myproject.feeds import LatestEntries, LatestEntriesByCategory
+
+    feeds = {
+        'latest': LatestEntries,
+        'categories': LatestEntriesByCategory,
+    }
+
+    urlpatterns = patterns('',
+        # ...
+        (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
+            {'feed_dict': feeds}),
+        # ...
+    )
+
+The above example registers two feeds:
+
+    * The feed represented by ``LatestEntries`` will live at
+      ``feeds/latest/``.
+      
+    * The feed represented by ``LatestEntriesByCategory`` will live at
+      ``feeds/categories/``.
+
+Once that's set up, you just need to define the ``Feed`` classes themselves.
+
+Feed classes
+````````````
+
+A ``Feed`` class is a simple Python class that represents a syndication feed.
+A feed can be simple (e.g., a "site news" feed, or a basic feed displaying the
+latest entries of a blog) or more complex (e.g., a feed displaying all the
+blog entries in a particular category, where the category is variable).
+
+``Feed`` classes must subclass ``django.contrib.syndication.feeds.Feed``. They
+can live anywhere in your code tree.
+
+A simple example
+````````````````
+
+This simple example, taken from chicagocrime.org, describes a feed of the
+latest five news items::
+
+    from django.contrib.syndication.feeds import Feed
+    from chicagocrime.models import NewsItem
+
+    class LatestEntries(Feed):
+        title = "Chicagocrime.org site news"
+        link = "/sitenews/"
+        description = "Updates on changes and additions to chicagocrime.org."
+
+        def items(self):
+            return NewsItem.objects.order_by('-pub_date')[:5]
+
+The important things to notice here:
+
+    * The class subclasses ``django.contrib.syndication.feeds.Feed``.
+    
+    * ``title``, ``link`` and ``description`` correspond to the standard RSS
+      ``<title>``, ``<link>`` and ``<description>`` elements, respectively.
+      
+    * ``items()`` is simply a method that returns a list of objects that
+      should be included in the feed as ``<item>`` elements. Although this
+      example returns ``NewsItem`` objects using Django's database API,
+      ``items()`` doesn't have to return model instances.
+      
+      You do get a few bits of functionality "for free" by using Django
+      models, but ``items()`` can return any type of object you want.
+
+There's just one more step. In an RSS feed, each ``<item>`` has a ``<title>``,
+``<link>`` and ``<description>``. We need to tell the framework what data to
+put into those elements.
+
+    * To specify the contents of ``<title>`` and ``<description>``, create
+      Django templates (see Chapter 4) called ``feeds/latest_title.html`` and
+      ``feeds/latest_description.html``, where ``latest`` is the ``slug``
+      specified in the URLconf for the given feed.
+      
+      Note that the ``.html`` extension is required.
+      
+      The RSS system renders that template for each item, passing it two
+      template context variables:
+
+          ``{{ obj }}``
+            The current object (one of whichever objects you
+            returned in ``items()``). 
+            
+          ``{{ site }}``
+            A ``django.models.core.sites.Site`` object representing the
+            current site. This is useful for ``{{ site.domain }}`` or ``{{
+            site.name }}``.
+
+      If you don't create a template for either the title or description, the
+      framework will use the template ``"{{ obj }}"`` by default -- that is,
+      the normal string representation of the object. 
+      
+      You can also change the names of these two templates by specifying
+      ``title_template`` and ``description_template`` as attributes of your
+      ``Feed`` class.
+      
+    * To specify the contents of ``<link>``, you have two options. For each
+      item in ``items()``, Django first tries executing a
+      ``get_absolute_url()`` method on that object. If that method doesn't
+      exist, it tries calling a method ``item_link()`` in the ``Feed`` class,
+      passing it a single parameter, ``item``, which is the object itself.
+      
+      Both ``get_absolute_url()`` and ``item_link()`` should return the item's
+      URL as a normal Python string.
+
+    * For the LatestEntries example above, we could have very simple feed
+      templates:
+
+          * latest_title.html::
+
+             {{ obj.title }}
+
+          * latest_description.html::
+
+             {{ obj.description }}
+
+A complex example
+`````````````````
+
+The framework also supports more complex feeds, via parameters.
+
+For example, chicagocrime.org offers an RSS feed of recent crimes for every
+police beat in Chicago. It'd be silly to create a separate ``Feed`` class for
+each police beat; that would violate the DRY (Don't Repeat Yourself) principle
+and would couple data to programming logic.
+
+Instead, the syndication framework lets you make generic
+feeds that output items based on information in the feed's URL.
+
+On chicagocrime.org, the police-beat feeds are accessible via URLs like this:
+
+    * ``/rss/beats/0613/`` -- Returns recent crimes for beat 0613.
+    * ``/rss/beats/1424/`` -- Returns recent crimes for beat 1424.
+
+The slug here is ``"beats"``. The syndication framework sees the extra URL
+bits after the slug -- ``0613`` and ``1424`` -- and gives you a hook to tell
+it what those URL bits mean, and how they should influence which items get
+published in the feed.
+
+An example makes this clear. Here's the code for these beat-specific feeds::
+
+    from django.core.exceptions import ObjectDoesNotExist
+
+    class BeatFeed(Feed):
+        def get_object(self, bits):
+            # In case of "/rss/beats/0613/foo/bar/baz/", or other such 
+            # clutter, check that bits has only one member.
+            if len(bits) != 1:
+                raise ObjectDoesNotExist
+            return Beat.objects.get(beat__exact=bits[0])
+
+        def title(self, obj):
+            return "Chicagocrime.org: Crimes for beat %s" % obj.beat
+
+        def link(self, obj):
+            return obj.get_absolute_url()
+
+        def description(self, obj):
+            return "Crimes recently reported in police beat %s" % obj.beat
+
+        def items(self, obj):
+            crimes =  Crime.objects.filter(beat__id__exact=obj.id)
+            return crimes.order_by('-crime_date')[:30]
+
+Here's the basic algorithm the RSS framework follows, given this class and a
+request to the URL ``/rss/beats/0613/``:
+
+    #. The framework gets the URL ``/rss/beats/0613/`` and notices there's an
+       extra bit of URL after the slug. It splits that remaining string by the
+       slash character (``"/"``) and calls the ``Feed`` class'
+       ``get_object()`` method, passing it the bits.
+       
+       In this case, bits is ``['0613']``. For a request to
+       ``/rss/beats/0613/foo/bar/``, bits would be ``['0613', 'foo', 'bar']``.
+      
+    #. ``get_object()`` is responsible for retrieving the given beat, from the
+       given ``bits``. 
+       
+       In this case, it uses the Django database API to
+       retrieve the beat. Note that ``get_object()`` should raise
+       ``django.core.exceptions.ObjectDoesNotExist`` if given invalid
+       parameters. There's no ``try``/``except`` around the
+       ``Beat.objects.get()`` call, because it's not necessary; that function
+       raises ``Beat.DoesNotExist`` on failure, and ``Beat.DoesNotExist`` is a
+       subclass of ``ObjectDoesNotExist``. Raising ``ObjectDoesNotExist`` in
+       ``get_object()`` tells Django to produce a 404 error for that request.
+      
+    #. To generate the feed's ``<title>``, ``<link>`` and ``<description>``,
+       Django uses the ``title()``, ``link()`` and ``description()`` methods.
+       In the previous example, they were simple string class attributes, but
+       this example illustrates that they can be either strings *or* methods.
+       For each of ``title``, ``link`` and ``description``, Django follows
+       this algorithm:
+
+          #. First, it tries to call a method, passing the ``obj`` argument,
+             where ``obj`` is the object returned by ``get_object()``.
+          
+          #. Failing that, it tries to call a method with no arguments.
+          
+          #. Failing that, it uses the class attribute.
+
+    #. Finally, note that ``items()`` in this example also takes the ``obj``
+       argument. The algorithm for ``items`` is the same as described in the
+       previous step -- first, it tries ``items(obj)``, then ``items()``, then
+       finally an ``items`` class attribute (which should be a list).
+
+.. JKM: I'm not sure if this is the right way to go about it, but I think that
+.. this chapter will become unwieldy if we include all the docs... we've not
+.. pointed online anywhere else... it works for me, though.
+
+Full documentation on all the methods and attributes of ``Feed`` classes is
+always available from the official Django documentation; see
+http://www.djangoproject.com/documentation/syndication/.
+
+Specifying the type of feed
+```````````````````````````
+
+By default, feeds produced in by framework use RSS 2.0.
+
+To change that, add a ``feed_type`` attribute to your ``Feed`` class::
+
+    from django.utils.feedgenerator import Atom1Feed
+
+    class MyFeed(Feed):
+        feed_type = Atom1Feed
+
+Note that you set ``feed_type`` to a class object, not an instance.  Currently
+available feed types are:
+
+    ===================================================  =====================
+    Feed class                                           Format
+    ===================================================  =====================
+    ``django.utils.feedgenerator.Rss201rev2Feed``        RSS 2.01 (default).
+    
+    ``django.utils.feedgenerator.RssUserland091Feed``    RSS 0.91.
+    
+    ``django.utils.feedgenerator.Atom1Feed``             Atom 1.0.
+    ===================================================  =====================
+
+Enclosures
+``````````
+
+To specify enclosures, such as those used in creating podcast feeds, use the
+``item_enclosure_url``, ``item_enclosure_length`` and
+``item_enclosure_mime_type`` hooks. For example::
+
+    from myproject.models import Song
+
+    class MyFeedWithEnclosures(MyFeed):
+        title = "Example feed with enclosures"
+        link = "/feeds/example-with-enclosures/"
+
+        def items(self):
+            return Song.objects.all()[:30]
+            
+        def item_enclosure_url(self, item):
+            return item.song_url
+            
+        def item_enclosure_length(self, item):
+            return item.song_length
+            
+        item_enclosure_mime_type = "audio/mpeg"
+        
+This assumes, of course, you've created a ``Song`` object with ``song_url``
+and ``song_length`` (i.e. the size in bytes) fields.
+        
+Language
+````````
+
+Feeds created by the syndication framework automatically include the
+appropriate ``<language>`` tag (RSS 2.0) or ``xml:lang`` attribute (Atom).
+This comes directly from your ``LANGUAGE_CODE`` setting.
+
+URLs
+````
+
+The ``link`` method/attribute can return either an absolute URL (e.g.
+``"/blog/"``) or a URL with the fully-qualified domain and protocol (e.g.
+``"http://www.example.com/blog/"``). If ``link`` doesn't return the domain,
+the syndication framework will insert the domain of the current site,
+according to your ``SITE_ID`` setting.
+
+Atom feeds require a ``<link rel="self">`` that defines the feed's current
+location. The syndication framework populates this automatically, using the
+domain of the current site according to the ``SITE_ID`` setting.
+
+Publishing Atom and RSS feeds in tandem
+```````````````````````````````````````
+
+Some developers like to make available both Atom *and* RSS versions of their
+feeds. That's easy to do with Django: Just create a subclass of your ``feed``
+class and set the ``feed_type`` to something different. Then update your
+URLconf to add the extra versions.
+
+Here's a full example::
+
+    from django.contrib.syndication.feeds import Feed
+    from chicagocrime.models import NewsItem
+    from django.utils.feedgenerator import Atom1Feed
+
+    class RssSiteNewsFeed(Feed):
+        title = "Chicagocrime.org site news"
+        link = "/sitenews/"
+        description = "Updates on changes and additions to chicagocrime.org."
+
+        def items(self):
+            return NewsItem.objects.order_by('-pub_date')[:5]
+
+    class AtomSiteNewsFeed(RssSiteNewsFeed):
+        feed_type = Atom1Feed
+
+And the accompanying URLconf::
+
+    from django.conf.urls.defaults import *
+    from myproject.feeds import RssSiteNewsFeed, AtomSiteNewsFeed
+
+    feeds = {
+        'rss': RssSiteNewsFeed,
+        'atom': AtomSiteNewsFeed,
+    }
+
+    urlpatterns = patterns('',
+        # ...
+        (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed',
+            {'feed_dict': feeds}),
+        # ...
+    )
+
+The sitemap framework
+=====================
+
+.. This is a cleaned-up version of sitemaps.txt
+
+Django also comes with a high-level Sitemap generating framework that's similar to the syndication framework.
+
+A Sitemap is an XML file on your Web site that tells search-engine indexers
+how frequently your pages change and how "important" certain pages are in
+relation to other pages on your site. This information helps search engines
+index your site.
+
+For more on Sitemaps, see http://www.sitemaps.org/.
+
+The Django sitemap framework automates the creation of this XML file by
+letting you express this information in Python code. To create a sitemap,
+you just need to write a ``Sitemap`` class and point to it in your URLconf.
+
+Installation
+------------
+
+To install the sitemap app, follow these steps:
+
+    #. Add ``'django.contrib.sitemaps'`` to your ``INSTALLED_APPS`` setting.
+    
+    #. Make sure
+       ``'django.template.loaders.app_directories.load_template_source'`` is
+       in your ``TEMPLATE_LOADERS`` setting. It's in there by default, so
+       you'll only need to change this if you've changed that setting.
+    
+    #. Make sure you've installed the sites framework (see Chapter 15).
+
+.. note:: 
+
+    The sitemap application doesn't install any database tables. The only
+    reason it needs to go into ``INSTALLED_APPS`` is so that the
+    ``load_template_source`` template loader can find the default templates.
+
+Initialization
+--------------
+
+To activate sitemap generation on your Django site, add this line to your
+URLconf::
+
+    (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps})
+
+This tells Django to build a sitemap when a client accesses ``/sitemap.xml``.
+
+The name of the sitemap file is not important, but the location is. Search
+engines will only index links in your sitemap for the current URL level and
+below. For instance, if ``sitemap.xml`` lives in your root directory, it may
+reference any URL in your site. However, if your sitemap lives at
+``/content/sitemap.xml``, it may only reference URLs that begin with
+``/content/``.
+
+The sitemap view takes an extra, required argument: ``{'sitemaps':
+sitemaps}``. ``sitemaps`` should be a dictionary that maps a short section
+label (e.g., ``blog`` or ``news``) to its ``Sitemap`` class (e.g.,
+``BlogSitemap`` or ``NewsSitemap``). It may also map to an *instance* of a
+``Sitemap`` class (e.g., ``BlogSitemap(some_var)``).
+
+Sitemap classes
+---------------
+
+A ``Sitemap`` class is a simple Python class that represents a "section" of
+entries in your sitemap. For example, one ``Sitemap`` class could represent
+all the entries of your weblog, while another could represent all of the
+events in your events calendar.
+
+In the simplest case, all these sections get lumped together into one
+``sitemap.xml``, but it's also possible to use the framework to generate a
+sitemap index that references individual sitemap files, one per section. (See
+below.)
+
+``Sitemap`` classes must subclass ``django.contrib.sitemaps.Sitemap``. They
+can live anywhere in your code tree.
+
+For example, let's assume you have a blog system, with an ``Entry`` model, and
+you want your sitemap to include all the links to your individual blog
+entries. Here's how your sitemap class might look::
+
+    from django.contrib.sitemaps import Sitemap
+    from mysite.blog.models import Entry
+
+    class BlogSitemap(Sitemap):
+        changefreq = "never"
+        priority = 0.5
+
+        def items(self):
+            return Entry.objects.filter(is_draft=False)
+
+        def lastmod(self, obj):
+            return obj.pub_date
+
+After looking at the syndication framework this should look pretty familiar:
+
+    * ``changefreq`` and ``priority`` are class attributes corresponding to
+      ``<changefreq>`` and ``<priority>`` elements, respectively. They can be
+      made callable as functions, as ``lastmod`` was in the example.
+      
+    * ``items()`` is simply a method that returns a list of objects. The
+      objects returned will get passed to any callable methods corresponding
+      to a sitemap property (``location``, ``lastmod``, ``changefreq``, and
+      ``priority``).
+      
+    * ``lastmod`` should return a Python ``datetime`` object.
+    
+    * There is no ``location`` method in this example, but you can provide it
+      in order to specify the URL for your object. By default, ``location()``
+      calls ``get_absolute_url()`` on each object and returns the result.
+
+``Sitemap`` methods/attributes
+------------------------------
+
+Like ``Feed`` classes, ``Sitemap`` members can be either methods or
+attributes; see the steps under "A complex example", above, for more about how
+this works.
+
+A ``Sitemap`` class can define the following methods/attributes:
+
+    ``items`` (**required**)
+        Provides list of objects. The framework doesn't care what *type* of
+        objects they are; all that matters is that these objects get passed to
+        the ``location()``, ``lastmod()``, ``changefreq()`` and ``priority()``
+        methods.
+
+    ``location`` (optional)
+        Gives he absolute URL for a given object,
+
+        Here, "absolute URL" means a URL that doesn't include the protocol or
+        domain. Examples:
+        
+            * Good: ``'/foo/bar/'`` 
+            * Bad: ``'example.com/foo/bar/'`` 
+            * Bad: ``'http://example.com/foo/bar/'``
+        
+        If ``location`` isn't provided, the framework will call the
+        ``get_absolute_url()`` method on each object as returned by
+        ``items()``.
+
+    ``lastmod`` (optional)
+        The object's "last modification" date, as a Python ``datetime``         
+        object.
+
+    ``changefreq`` (optional)
+        How often the object changes. Possible values (as given by the
+        Sitemaps spec) are:
+
+            * ``'always'``
+            * ``'hourly'``
+            * ``'daily'``
+            * ``'weekly'``
+            * ``'monthly'``
+            * ``'yearly'``
+            * ``'never'``
+
+    ``priority`` (optional)
+        A suggested indexing priority, between ``0.0`` and ``1.0``. The
+        default priority of a page is ``0.5``; see the sitemaps.org
+        documentation for more about how ``priority`` works.
+
+Shortcuts
+---------
+
+The sitemap framework provides a couple convenience classes for common cases:
+
+``FlatPageSitemap``
+```````````````````
+
+The ``django.contrib.sitemaps.FlatPageSitemap`` class looks at all flatpages
+defined for the current site and creates an entry in the sitemap. These
+entries include only the ``location`` attribute -- not ``lastmod``,
+``changefreq`` or ``priority``.
+
+See Chapter 15 for more about flat pages.
+
+``GenericSitemap``
+``````````````````
+
+The ``GenericSitemap`` class works with any generic views (see Chapter 9) you
+already have.
+
+To use it, create an instance, passing in the same ``info_dict`` you pass to
+the generic views. The only requirement is that the dictionary have a
+``queryset`` entry. It may also have a ``date_field`` entry that specifies a
+date field for objects retrieved from the ``queryset``. This will be used for
+the ``lastmod`` attribute in the generated sitemap. You may also pass
+``priority`` and ``changefreq`` keyword arguments to the ``GenericSitemap``
+constructor to specify these attributes for all URLs.
+
+Here's an example of a URLconf using both ``FlatPageSitemap`` and
+``GenericSiteMap`` (with the hypothetical ``Entry`` object from above)::
+
+    from django.conf.urls.defaults import *
+    from django.contrib.sitemaps import FlatPageSitemap, GenericSitemap
+    from mysite.blog.models import Entry
+
+    info_dict = {
+        'queryset': Entry.objects.all(),
+        'date_field': 'pub_date',
+    }
+
+    sitemaps = {
+        'flatpages': FlatPageSitemap,
+        'blog': GenericSitemap(info_dict, priority=0.6),
+    }
+
+    urlpatterns = patterns('',
+        # some generic view using info_dict
+        # ...
+
+        # the sitemap
+        (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps})
+    )
+
+Creating a sitemap index
+------------------------
+
+The sitemap framework also has the ability to create a sitemap index that
+references individual sitemap files, one per each section defined in your
+``sitemaps`` dictionary. The only differences in usage are:
+
+    * You use two views in your URLconf:
+      ``django.contrib.sitemaps.views.index`` and
+      ``django.contrib.sitemaps.views.sitemap``.
+      
+    * The ``django.contrib.sitemaps.views.sitemap`` view should take a
+      ``section`` keyword argument.
+
+Here is what the relevant URLconf lines would look like for the example above::
+
+    (r'^sitemap.xml$', 'django.contrib.sitemaps.views.index', {'sitemaps': sitemaps})
+    (r'^sitemap-(?P<section>.+).xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps})
+
+This will automatically generate a ``sitemap.xml`` file that references both
+``sitemap-flatpages.xml`` and ``sitemap-blog.xml``. The ``Sitemap`` classes
+and the ``sitemaps`` dict don't change at all.
+
+Pinging Google
+--------------
+
+You may want to "ping" Google when your sitemap changes, to let it know to
+reindex your site. The framework provides a function to do just that:
+``django.contrib.sitemaps.ping_google()``.
+
+.. note:: 
+
+    At the time this book was written, only Google responded to sitemap pings.
+    However, it's quite likely that Yahoo and/or Microsoft will soon support
+    these pings as well.
+    
+    At that time, we'll likely change the name of ``ping_google()`` to
+    something like ``ping_search_engines()``, so make sure to check the latest
+    sitemap documentation at
+    http://www.djangoproject.com/documentation/sitemaps/.
+
+``ping_google()`` takes an optional argument, ``sitemap_url``, which should be
+the absolute URL of your site's sitemap (e.g., ``'/sitemap.xml'``). If this
+argument isn't provided, ``ping_google()`` will attempt to figure out your
+sitemap by performing a reverse looking in your URLconf.
+
+``ping_google()`` raises the exception
+``django.contrib.sitemaps.SitemapNotFound`` if it cannot determine your
+sitemap URL.
+
+One useful way to call ``ping_google()`` is from a model's ``save()`` method::
+
+    from django.contrib.sitemaps import ping_google
+
+    class Entry(models.Model):
+        # ...
+        def save(self):
+            super(Entry, self).save()
+            try:
+                ping_google()
+            except Exception:
+                # Bare 'except' because we could get a variety
+                # of HTTP-related exceptions.
+                pass
+
+A more efficient solution, however, would be to call ``ping_google()`` from a
+``cron`` script, or some other scheduled task. The function makes an HTTP
+request to Google's servers, so you may not want to introduce that network
+overhead each time you call ``save()``.
+
