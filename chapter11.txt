@@ -14,8 +14,7 @@ Django has convenient built-in tools that you can use to produce some common
 non-HTML content:
 
     * RSS/Atom syndication feeds.
-    * XML Sitemaps (currently consumed by Google, Yahoo and Microsoft's search
-      engines).
+    * Sitemaps -- consumed by Google, Yahoo and Microsoft's search engines.
     * JSON and XML serialized representations of models (usually used for AJAX
       functions).
             
@@ -59,15 +58,17 @@ implement Python's standard file API. This means that you can pass in an
 ``HttpResponse`` instance to any place Python (or a third-party library)
 expects a file.
 
-For an example of how that works, let's take a look at producing CSV with Django.
+For an example of how that works, let's take a look at producing CSV with
+Django.
 
 Producing CSV
 =============
 
-CSV is a simple data format usually used by spreadsheet software.  It's
+CSV is a simple data format usually used by spreadsheet software. It's
 basically a series of table rows, with each cell in the row separated by
-commas (CSV stands for "Comma Separated Values").  For example, here's a 
-list of the number of "unruly" airline passengers over the last 10 years, as compiled by the FAA::
+commas (CSV stands for "Comma Separated Values"). For example, here's a list
+of the number of "unruly" airline passengers over the last 10 years, as
+compiled by the FAA::
 
     Year,Unruly Airline Passengers
     1995,146
@@ -118,14 +119,14 @@ CSV-creation capability acts on file-like objects, and Django's
 The code and comments should be pretty clear, but a few things deserve a
 mention:
 
-    * The response is given the ``text/csv`` mimetype. This tells
+    * The response is given the ``text/csv`` mime-type. This tells
       browsers that the document is a CSV file, rather than an HTML file.
 
     * The response gets an additional ``Content-Disposition`` header, which
       contains the name of the CSV file. This header (well, the "attachment"
       part) will instruct the browser to prompt for a location to save the
       file (instead of just displaying it). This filename is arbitrary; call
-      it whatever you want; it'll be used by browsers in the "Save as..."
+      it whatever you want. It'll be used by browsers in the "Save as..."
       dialogue
 
     * Hooking into the CSV-generation API is easy: Just pass ``response`` as
@@ -148,7 +149,11 @@ Let's look at a few more examples:
 Generating PDFs
 ===============
 
-PDF (Portable Document Format) is a format developed by Adobe that's used to represent printable documents, complete with pixel-perfect formatting, embedded fonts, and 2D vector graphics.  You can think of a PDF document as the digital equivalent of a printed document; indeed, PDFs are usually used when you need to give a document to someone else to print.
+PDF (Portable Document Format) is a format developed by Adobe that's used to
+represent printable documents, complete with pixel-perfect formatting,
+embedded fonts, and 2D vector graphics. You can think of a PDF document as the
+digital equivalent of a printed document; indeed, PDFs are usually used when
+you need to give a document to someone else to print.
 
 You can easily generate PDFs with Python and Django thanks to the excellent
 excellent open-source ReportLab library
@@ -158,7 +163,7 @@ The advantage of generating PDF files dynamically is that you can create
 customized PDFs for different purposes -- say, for different users or
 different pieces of content.
 
-For example, we used Django and ReportLab at KUSports.com_ to generate
+For example, we used Django and ReportLab at KUSports.com to generate
 customized, printer-ready NCAA tournament brackets for people participating in
 a March Madness (college basketball) contest.
 
@@ -200,7 +205,7 @@ Here's a "Hello World" example::
     from reportlab.pdfgen import canvas
     from django.http import HttpResponse
 
-    def my_pdf(request):
+    def hello_pdf(request):
         # Create the HttpResponse object with the appropriate PDF headers.
         response = HttpResponse(mimetype='application/pdf')
         response['Content-Disposition'] = 'attachment; filename=hello.pdf'
@@ -219,7 +224,7 @@ Here's a "Hello World" example::
 
 Like above, a few notes are in order:
 
-    * Here we use the ``application/pdf`` mimetype. This tells
+    * Here we use the ``application/pdf`` mime-type. This tells
       browsers that the document is a PDF file, rather than an HTML file. If
       you leave this off, browsers will probably interpret the output as HTML,
       which will result in scary gobbledygook in the browser window.
@@ -249,7 +254,7 @@ Here's the above "Hello World" example rewritten to use ``cStringIO``::
     from reportlab.pdfgen import canvas
     from django.http import HttpResponse
 
-    def some_view(request):
+    def hello_pdf(request):
         # Create the HttpResponse object with the appropriate PDF headers.
         response = HttpResponse(mimetype='application/pdf')
         response['Content-Disposition'] = 'attachment; filename=hello.pdf'
@@ -270,27 +275,13 @@ Here's the above "Hello World" example rewritten to use ``cStringIO``::
         # Get the value of the StringIO buffer and write it to the response.
         response.write(buffer.getvalue())
         return response
-
-Further resources
------------------
-
-    * PDFlib (http://www.pdflib.org/) is another PDF-generation library that
-      has Python bindings. To use it with Django, just use the same concepts
-      explained in this article.
-      
-    * HTMLdoc (http://www.htmldoc.org/) is a command-line script that can
-      convert HTML to PDF. It doesn't have a Python interface, but you can
-      escape out to the shell using the ``subprocess`` module and retrieve the
-      output in Python.
-      
-     * You can find a Python library that fills in PDF forms. at
-       http://www.accesspdf.com/article.php/20050421092951834.
        
 Other possibilities
 ===================
 
-There's a whole world of other types of content you can generate in Python.  Here are a few more ideas, and some pointers to libraries you could use to implement them:
-
+There's a whole world of other types of content you can generate in Python.
+Here are a few more ideas, and some pointers to libraries you could use to
+implement them:
 
     * **Generating ZIP files**: Python's standard library ships with the
       ``zipfile`` module, which can both read and write compressed ZIP files.
@@ -316,10 +307,11 @@ There's a whole world of other types of content you can generate in Python.  Her
 
         * ``pygraphviz`` (https://networkx.lanl.gov/wiki/pygraphviz), an
           interface to the Graphviz graph layout toolkit
-          (http://graphviz.org/), used for generating structured digrams of
+          (http://graphviz.org/), used for generating structured diagrams of
           graphs and networks.
 
-In general, any Python library capable of writing to a file can be hooked into Django; the possibilities really are endless.
+In general, any Python library capable of writing to a file can be hooked into
+Django; the possibilities really are endless.
 
 Django's built-in content generation tools
 ==========================================
