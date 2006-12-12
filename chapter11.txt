@@ -2,8 +2,6 @@
 Chapter 11: Generating non-HTML content
 =======================================
 
-.. contents::
-
 Usually when we talk about developing web sites, we're talking about producing
 some flavor of HTML. Of course, there's a lot more to the web than HTML,
 though; we use the web to distribute all kinds of content, not just HTML.
@@ -481,14 +479,14 @@ put into those elements.
       Both ``get_absolute_url()`` and ``item_link()`` should return the item's
       URL as a normal Python string.
 
-    * For the LatestEntries example above, we could have very simple feed
+    * For the ``LatestEntries`` example above, we could have very simple feed
       templates:
 
-          * latest_title.html::
+          * ``latest_title.html``::
 
              {{ obj.title }}
 
-          * latest_description.html::
+          * ``latest_description.html``::
 
              {{ obj.description }}
 
@@ -508,6 +506,7 @@ feeds that output items based on information in the feed's URL.
 On chicagocrime.org, the police-beat feeds are accessible via URLs like this:
 
     * ``/rss/beats/0613/`` -- Returns recent crimes for beat 0613.
+    
     * ``/rss/beats/1424/`` -- Returns recent crimes for beat 1424.
 
 The slug here is ``"beats"``. The syndication framework sees the extra URL
@@ -873,7 +872,7 @@ The sitemap framework provides a couple convenience classes for common cases:
 ``FlatPageSitemap``
 ```````````````````
 
-The ``django.contrib.sitemaps.FlatPageSitemap`` class looks at all flatpages
+The ``django.contrib.sitemaps.FlatPageSitemap`` class looks at all flat pages
 defined for the current site and creates an entry in the sitemap. These
 entries include only the ``location`` attribute -- not ``lastmod``,
 ``changefreq`` or ``priority``.
@@ -940,7 +939,7 @@ Here is what the relevant URLconf lines would look like for the example above::
 
 This will automatically generate a ``sitemap.xml`` file that references both
 ``sitemap-flatpages.xml`` and ``sitemap-blog.xml``. The ``Sitemap`` classes
-and the ``sitemaps`` dict don't change at all.
+and the ``sitemaps`` dictionary don't change at all.
 
 Pinging Google
 --------------
@@ -989,3 +988,11 @@ A more efficient solution, however, would be to call ``ping_google()`` from a
 request to Google's servers, so you may not want to introduce that network
 overhead each time you call ``save()``.
 
+What's next?
+============
+
+Next, we'll continue to dig deeper into all the nifty built-in tools Django
+gives you. Chapter 12 looks at all the tools you need to provide
+user-customized sites: sessions, users, and authentication.
+
+Onwards!
