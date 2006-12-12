@@ -453,11 +453,11 @@ put into those elements.
       The RSS system renders that template for each item, passing it two
       template context variables:
 
-          ``{{ obj }}``
+          ``obj``
             The current object (one of whichever objects you
             returned in ``items()``). 
             
-          ``{{ site }}``
+          ``site``
             A ``django.models.core.sites.Site`` object representing the
             current site. This is useful for ``{{ site.domain }}`` or ``{{
             site.name }}``.
@@ -480,15 +480,15 @@ put into those elements.
       URL as a normal Python string.
 
     * For the ``LatestEntries`` example above, we could have very simple feed
-      templates:
+      templates. ``latest_title.html`` contains::
 
-          * ``latest_title.html``::
+            {{ obj.title }}
 
-             {{ obj.title }}
+      and ``latest_description.html`` contains::
 
-          * ``latest_description.html``::
-
-             {{ obj.description }}
+            {{ obj.description }}
+            
+      It's almost *too* easy...
 
 A complex example
 `````````````````
