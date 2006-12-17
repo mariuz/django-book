@@ -7,16 +7,16 @@ with Django: setting up views and URLconfs. As we explained, a view is
 responsible for doing *some arbitrary logic*, then returning a response. In the
 example, our *arbitrary logic* was to calculate the current date and time.
 
-In many modern Web applications, the *arbitrary logic* involves interacting
-with a database. Behind the scenes, a so-called **database-driven Web site**
-connects to a database server, retrieves some data out of it and displays that
-data, nicely formatted, on a Web page. Or, similarly, the site could provide
-functionality that lets site visitors populate the database on their own.
+In modern Web applications, the *arbitrary logic* often involves interacting
+with a database. Behind the scenes, a **database-driven Web site** connects to
+a database server, retrieves some data out of it and displays that data, nicely
+formatted, on a Web page. Or, similarly, the site could provide functionality
+that lets site visitors populate the database on their own.
 
 Many complex Web sites provide some combination of the two. Amazon.com, for
 instance, is a great example of a database-driven site. Each product page is
-essentially an HTML view into Amazon's product database, and when you post a
-customer review, it gets inserted into the database of reviews.
+essentially an extract of Amazon's product database formatted as HTML, and when
+you post a customer review, it gets inserted into the database of reviews.
 
 Django is very well-suited for making database-driven Web sites, as it comes
 with easy yet powerful ways of performing database queries using Python. This
@@ -130,13 +130,19 @@ framework. Here's roughly how the M, V and C break down in Django:
 
 Because the "C" is handled by the framework itself and most of the excitement
 in Django happens in models, templates and views, Django has been referred to
-as an **MTV framework**. In the so-called MTV development pattern,
+as an **MTV framework**. In the MTV development pattern,
 
-    * "M" stands for model, the data-access layer.
+    * "M" stands for model, the data-access layer. This layer contains
+      anything and everything about the data: how to access it, how to validate
+      it, which behaviors it has and the relationships between the data. 
 
-    * "T" stands for template, the presentation layer.
+    * "T" stands for template, the presentation layer. This layer contains
+      presentation-related decisions: how something should be displayed on a
+      Web page or other type of document.
 
-    * "V" stands for view, the business-logic layer.
+    * "V" stands for view, the business-logic layer. This layer contains the
+      logic that access the model and defers to the appropriate template(s).
+      You can think of it as the bridge between models and templates.
 
 If you're familiar with other MVC Web-development frameworks, such as Ruby on
 Rails, you may consider Django views to be the "controllers" and Django
@@ -178,7 +184,7 @@ Here's a rundown of each setting.
 
     * ``DATABASE_ENGINE`` tells Django which database engine to use. If you're
       using a database with Django, ``DATABASE_ENGINE`` must be set to one of
-      the following strings::
+      the following strings:
 
           =======================  ====================  ==============================================
           Setting                  Database              Required adapter
@@ -257,33 +263,33 @@ configuration::
     >>> cursor = connection.cursor()
 
 If nothing happens, then your database is configured properly. Otherwise, check
-the error message for clues about what's wrong. Here are some common errors::
+the error message for clues about what's wrong. Here are some common errors:
 
-    ======================================  ==========================================
-    Error message                           Solution
-    ======================================  ==========================================
-    ``You haven't set the DATABASE_ENGINE   Set the ``DATABASE_ENGINE`` setting to
-    setting yet.``                          something other than an empty string.
-    ``Environment variable
-    DJANGO_SETTINGS_MODULE is undefined.``  Run the command ``python manage.py shell``
-                                            rather than ``python``.
-    ``Error loading _____ module: No        You haven't installed the appropriate
-    module named _____.``                   database-specific adapter (e.g.
-                                            ``psycopg`` or ``MySQLdb``).
-    ``_____ isn't an available database     Set your ``DATABASE_ENGINE`` setting to
-    backend. Available backends are ...``   one of the valid engine settings described
-                                            above. Perhaps you made a typo?
-    ``database _____ does not exist``       Change the ``DATABASE_NAME`` setting to
-                                            point to a database that exists, or
-                                            execute the appropriate
-                                            ``CREATE DATABASE`` statement in order to
-                                            create it.
-    ``role _____ does not exist``           Change ``DATABASE_USER`` setting to point
-                                            to a user that exists, or create the user
-                                            in your database.
-    ``could not connect to server...``      Make sure ``DATABASE_HOST`` and
-                                            ``DATABASE_PORT`` are set correctly.
-    ======================================  ==========================================
+    =========================================================  ===============================================
+    Error message                                              Solution
+    =========================================================  ===============================================
+    You haven't set the DATABASE_ENGINE setting yet.           Set the ``DATABASE_ENGINE`` setting to
+                                                               something other than an empty string.
+    Environment variable DJANGO_SETTINGS_MODULE is undefined.  Run the command ``python manage.py shell``
+                                                               rather than ``python``.
+    Error loading _____ module: No module named _____.         You haven't installed the appropriate
+                                                               database-specific adapter (e.g. ``psycopg``
+                                                               or ``MySQLdb``).
+    _____ isn't an available database backend.                 Set your ``DATABASE_ENGINE`` setting to
+                                                               one of the valid engine settings described
+                                                               above. Perhaps you made a typo?
+    database _____ does not exist                              Change the ``DATABASE_NAME`` setting to
+                                                               point to a database that exists, or
+                                                               execute the appropriate
+                                                               ``CREATE DATABASE`` statement in order to
+                                                               create it.
+    role _____ does not exist                                  Change ``DATABASE_USER`` setting to point
+                                                               to a user that exists, or create the user
+                                                               in your database.
+    could not connect to server                                Make sure ``DATABASE_HOST`` and
+                                                               ``DATABASE_PORT`` are set correctly, and
+                                                               make sure the server is running.
+    =========================================================  ===============================================
 
 Your first app
 ==============
@@ -380,9 +386,12 @@ it does for several reasons:
       introspecting a database at runtime obviously requires overhead. If the
       framework had to introspect the database each time it processed a
       request, or even when the Web server was initialized, this would incur an
-      unacceptable level of overhead. Second, some databases, notably older
-      versions of MySQL, do not store an amount of table metadata that's
-      sufficient enough for accurate and complete introspection.
+      unacceptable level of overhead. (While some believe that level of
+      overhead is acceptable, Django's developers aim to trim as much framework
+      overhead as possible, and this approach has succeeded in making Django
+      faster than its high-level framework competitors in benchmarks.) Second,
+      some databases, notably older versions of MySQL, do not store sufficient
+      metadata for accurate and complete introspection.
 
     * Writing Python is fun, and keeping everything in Python limits the number
       of times your brain has to do a "context switch." It helps productivity
@@ -420,7 +429,8 @@ Your first model
 As an ongoing example in this chapter and the next chapter, we'll focus on a
 basic book/author/publisher data layout. We use this as our example because the
 conceptual relationships between books, authors and publishers are well-known,
-and this is a common data layout used in introductory SQL textbooks.
+and this is a common data layout used in introductory SQL textbooks. You're
+also reading a book, written by authors, produced by a publisher!
 
 We'll suppose the following concepts, fields and relationships:
 
@@ -536,7 +546,10 @@ looking like this::
     )
 
 (As we're dealing with a single-element tuple here, don't forget the trailing
-comma.)
+comma. By the way, this book's authors prefer to put a comma after *every*
+element of a tuple, regardless of whether the tuple has only a single element.
+This avoids the issue of forgetting commas, and there's no penalty for using
+that extra comma.)
 
 ``'mysite.books'`` refers to the ``books`` app we're working on. Each app in
 ``INSTALLED_APPS`` is represented by its full Python path -- that is, the path
@@ -557,8 +570,8 @@ Any time you think you have problems with your models, run
 ``python manage.py validate``. It tends to catch all the common model problems.
 
 If your models are valid, run the following command for Django to generate
-``CREATE TABLE`` statements for your models in the ``books`` app, with colorful
-syntax highlighting (Unix only)::
+``CREATE TABLE`` statements for your models in the ``books`` app (with colorful
+syntax highlighting available if you're using Unix)::
 
     python manage.py sqlall books
 
@@ -625,9 +638,9 @@ Note the following:
 The ``sqlall`` command doesn't actually create the tables or otherwise touch
 your database -- it just prints output to the screen so you can see what SQL
 Django would execute if you asked it. If you wanted to, you could copy and
-paste this SQL into your database client. However, Django provides an easier
-way of committing the SQL to the database. Run the ``syncdb`` command, like
-so::
+paste this SQL into your database client, or use Unix pipes to pass it
+directly. However, Django provides an easier way of committing the SQL to the
+database. Run the ``syncdb`` command, like so::
 
     python manage.py syncdb
 
@@ -646,9 +659,10 @@ sync changes in models or deletions of models; if you make a change to a model
 or delete a model, and you want to update the database, ``syncdb`` will not
 handle that. (More on this later.)
 
-To prove it, run ``python manage.py syncdb`` again. Nothing happens -- because
-you haven't added any models to the ``books`` app, or added any apps to
-``INSTALLED_APPS``.
+If you run ``python manage.py syncdb`` again, nothing happens, because you
+haven't added any models to the ``books`` app, or added any apps to
+``INSTALLED_APPS``. Ergo, it's always safe to run ``python manage.py syncdb``
+-- it won't clobber things.
 
 If you're interested, take a moment to dive into your database server's
 command-line client and see the database tables Django created. You can

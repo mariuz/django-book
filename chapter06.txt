@@ -2,11 +2,11 @@
 Chapter 6: The Django admin site
 ================================
 
-There's one part of web development we've always hated: writing administration
+There's one part of Web development we've always hated: writing administration
 interfaces. Developing the parts of the site that the general public sees is
 always different and interesting, but the bits that the administrators use to
 modify the site are always the same. You've got to deal with authenticating
-users, display and handle forms, deal with tricky validation issues... it's
+users, display and handle forms, deal with tricky validation issues... It's
 boring, and it's repetitive.
 
 Django's approach to this boring, repetitive task? Do it all for you -- in
@@ -43,20 +43,20 @@ activate the admin interface:
 
                 **class Admin:**
                     **pass**
-            
+
         The ``Admin`` declaration flags the class as having an admin
         interface. There are a number of options that you can put beneath
         ``Admin``, but for now we're sticking with all the defaults, so we put
         ``pass`` in there to signify to Python that the ``Admin`` class is
         empty.
-        
+
         If you're following this example with your own code, it's probably a good
         idea to add ``Admin`` declarations to the ``Publisher`` and ``Author``
         classes at this point.
 
     2.  Install the admin models.  Simply add ``"django.contrib.admin"`` to
         your ``INSTALLED_APPS`` setting and run ``python manage.py syncdb``
-        to install the extra tables the admin uses.       
+        to install the extra tables the admin uses.
 
         .. note::
 
@@ -69,7 +69,7 @@ activate the admin interface:
         one created by ``startproject``, the admin URL pattern should be
         already there, but commented out. Either way, your URL patterns should
         look like:
-        
+
         .. parsed-literal::
 
             from django.conf.urls.defaults import *
@@ -77,7 +77,7 @@ activate the admin interface:
             urlpatterns = patterns('',
                 **(r'^admin/', include('django.contrib.admin.urls')),**
             )
-        
+
 That's it. Now run ``python manage.py runserver`` to start the development
 server; you'll see something like::
 
@@ -102,6 +102,7 @@ The first thing you'll see is a login screen:
 
 .. image:: http://media.djangobook.com/content/chapter06/login.png
    :class: full
+   :alt: Screenshot of Django's login page.
 
 You'll use the username and password you set up when you first ran ``syncdb``
 here. Once you've logged in, you'll see that you can manage users, groups, and
@@ -113,11 +114,13 @@ Links to add and change objects lead to two pages we refer to as object
 
 .. image:: http://media.djangobook.com/content/chapter06/admin_index.png
    :class: full
+   :alt: Screenshot of the main Django admin index..
 
 Change lists are essentially index pages of objects in the system:
 
 .. image:: http://media.djangobook.com/content/chapter06/changelist.png
    :class: full
+   :alt: Screenshot of a typical change list view.
 
 There are a number of options that can control which fields appear on these
 lists and the appearance of extra features like date drill downs, search
@@ -130,14 +133,16 @@ foreign keys use a select box, etc.):
 
 .. image:: http://media.djangobook.com/content/chapter06/editform.png
    :class: full
-   
+   :alt: Screenshot of a typical edit form.
+
 You'll notice that the admin also handles input validation for you; try
 leaving a required field blank, or putting an invalid time into a time field
 and you'll see those errors when you try to save:
 
 .. image:: http://media.djangobook.com/content/chapter06/editform_errors.png
    :class: full
-   
+   :alt: Screenshot of an edit form displaying errors.
+
 This validation actually is done with a powerful validation framework which is
 discussed in Chapter 7.
 
@@ -147,15 +152,17 @@ examine this log by clicking the history button:
 
 .. image:: http://media.djangobook.com/content/chapter06/history.png
    :class: full
-   
+   :alt: Screenshot of Django's object history page.
+
 Deletions in the admin cascade. That is, when deleting an existing object,
 you'll see that the admin asks you to confirm the delete action to avoid
 costly mistakes. What might not be instantly obvious is that this page will
 show you all the related objects that will be deleted as well:
-
+
 .. image:: http://media.djangobook.com/content/chapter06/delete_confirm.png
    :class: full
-   
+   :alt: Screenshot of Django's delete confirmation page.
+
 Users, groups, and permissions
 ------------------------------
 
@@ -171,12 +178,12 @@ index along with all the objects you've defined yourself.
 User objects have the standard username, password, email, and real name fields
 you might expect, along with a set of fields that define what the user is
 allowed to do in the admin. First, there's a set of three flags:
-    
-    * The "is active" flag controls whether the user is active at all.  
-      If this flag is off, the user has no access to any URLs that 
+
+    * The "is active" flag controls whether the user is active at all.
+      If this flag is off, the user has no access to any URLs that
       require login.
 
-    * The "is staff" flag controls weather the user is allowed to log into
+    * The "is staff" flag controls whether the user is allowed to log into
       the admin (i.e. is considered a "staff member" in your organization).
       Since this same user system can be used to control access to public
       (i.e. non-admin) sites (see Chapter 12), this flag differentiates
@@ -233,7 +240,8 @@ These four lines of code dramatically change our list interface:
 
 .. image:: http://media.djangobook.com/content/chapter06/changelist2.png
    :class: full
-   
+   :alt: Screenshot of the modified change list page.
+
 Each of those lines instructed the admin to construct a different piece of
 this interface:
 
@@ -241,7 +249,7 @@ this interface:
       the admin. It's simply a list of fields to order the results by;
       prefixing a field with a minus sign reverses the given order. So in this
       example, we're ordering by publication date, most recent first.
-      
+
     * The ``list_display`` option controls which columns appear in the change
       list table.  By default, only a single column with the object's string
       representation appears; here we've changed that to show the title,
@@ -285,8 +293,8 @@ Django where our templates live::
     TEMPLATE_DIRS = (
         "/home/mytemplates", # Change this to your own directory.
     )
-    
-.. note:: 
+
+.. note::
 
     Make sure to include the trailing comma there -- Python uses it to
     distinguish between single-element tuples and parenthesized expressions.
@@ -300,7 +308,7 @@ admin template directory (``django/contrib/admin/templates``) into an
 ``/home/mytemplates/admin/base_site.html``. Don't forget that ``admin``
 subdirectory.
 
-Then, just edit the new ``admin/base_site.html`` file to replace the 
+Then, just edit the new ``admin/base_site.html`` file to replace the
 generic Django text with your own site's name as you see fit.
 
 Note that any of Django's default admin templates can be overridden. To
@@ -327,12 +335,12 @@ looking for. After all, the index is probably the most important page of the
 admin, so it should be easy to use.
 
 The template to customize is ``admin/index.html``. (Remember to copy
-``admin/base_site.html`` to your custom template directory as in the previous 
-example.) Edit the file, and you'll see it uses a template tag called 
-``{% get_admin_app_list as app_list %}``. That's the magic that retrieves 
-every installed Django app. Instead of using that, you can hard-code links to 
-object-specific admin pages in whatever way you think is best.  If hard-coding 
-links doesn't appeal to you, you can also see Chapter 10 for details on 
+``admin/base_site.html`` to your custom template directory as in the previous
+example.) Edit the file, and you'll see it uses a template tag called
+``{% get_admin_app_list as app_list %}``. That's the magic that retrieves
+every installed Django app. Instead of using that, you can hard-code links to
+object-specific admin pages in whatever way you think is best.  If hard-coding
+links doesn't appeal to you, you can also see Chapter 10 for details on
 implementing your own template tags.
 
 Django offers another shortcut in this department. Run the command ``python
@@ -364,10 +372,10 @@ like this:
 
     * The reporter responsible for the story meets with one of the developers
       and goes over the available data.
-      
+
     * The developer designs a model around this data, and then opens up the
       admin interface to the reporter.
-      
+
     * While the reporter enters data into Django, the programmer can focus on
       developing the publicly-accessible interface (the fun part!)
 
@@ -380,7 +388,7 @@ few other cases:
     * Inspecting data models: the first thing we do when we've defined a new
       model is to call it up in the admin and enter some dummy data. This is
       usually when we find any data modeling errors; having a graphical
-      interface to a model quickly revels those mistakes.
+      interface to a model quickly reveals those mistakes.
 
     * Managing acquired data: there's little actual data entry associated with
       a site like chicagocrime.org since most of the data comes from an
@@ -393,6 +401,6 @@ What's next?
 
 So far we've created a few models and configured a top-notch interface for
 editing that data.  In the next chapter, we'll move onto the real "meat and
-potatoes" of web development: form creation and processing.
+potatoes" of Web development: form creation and processing.
 
 So grab another cup of your favorite beverage and let's get started.

@@ -102,8 +102,8 @@ Advantages of the function object approach are:
     * It allows for easy "wrapping" of view functions. See "Wrapping view
       functions" later in this chapter.
 
-    * It's more "Pythonic" -- that is, it's more in line with the Python
-      tradition of passing functions as objects.
+    * It's more "Pythonic" -- that is, it's more in line with Python
+      traditions, such as passing functions as objects.
 
 Both approaches are valid, and you can even mix them within the same URLconf.
 The choice is yours.
@@ -541,7 +541,7 @@ bring this up only to help you avoid making the mistake.
 Using default view arguments
 ----------------------------
 
-Another convenient trick is to specify default parameters for your views'
+Another convenient trick is to specify default parameters for a view's
 arguments. This tells the view which value to use for a parameter by default if
 none is specified.
 
@@ -617,7 +617,7 @@ advantage of the fact that URLconfs are processed in order from top to bottom::
 
 With this in place, a request to ``/auth/user/add/`` will be handled by the
 ``user_add_stage`` view. Although that URL matches the second pattern, it
-matches the top one first.
+matches the top one first. (This is short-circuit logic.)
 
 Notes on capturing text in URLs
 -------------------------------
@@ -675,15 +675,16 @@ strings containing digits are passed to the view function.
 What the URLconf searches against
 ---------------------------------
 
-When an incoming request comes in, Django tries to match the URLconf patterns
-against the requested URL, as a normal Python string (not as a Unicode string).
-This does not include GET or POST parameters, or the domain name.
+When a request comes in, Django tries to match the URLconf patterns against the
+requested URL, as a normal Python string (not as a Unicode string). This does
+not include GET or POST parameters, or the domain name. It also does not
+include the leading slash, because every URL has a leading slash.
 
 For example, in a request to ``http://www.example.com/myapp/``, Django will try
-to match ``/myapp/``.
+to match ``myapp/``.
 
 In a request to ``http://www.example.com/myapp/?page=3``, Django will try to
-match ``/myapp/``.
+match ``myapp/``.
 
 The request method -- e.g., ``POST``, ``GET``, ``HEAD`` -- is *not* taken into
 account when traversing the URLconf. In other words, all request methods will

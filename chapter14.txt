@@ -2,12 +2,12 @@
 Chapter 14: Caching
 ===================
 
-A fundamental tradeoff in dynamic Web sites is, well, they're dynamic. Each
-time a user requests a page, the Web server makes all sorts of calculations --
-from database queries to template rendering to business logic -- to create the
-page that your site's visitor sees. This is a lot more expensive, from a
-processing-overhead perspective, than your standard read-a-file-off-the-filesystem
-server arrangement.
+Static websites, in which simple files are served directly to the Web, scale 
+like crazy. But a fundamental tradeoff in dynamic Web sites is, well, they're
+dynamic. Each time a user requests a page, the Web server makes all sorts of 
+calculations -- from database queries to template rendering to business logic -- 
+to create the page that your site's visitor sees. From a processing-overhead
+perspective, this is a lot more expensive.
 
 For most Web applications, this overhead isn't a big deal. Most Web
 applications aren't washingtonpost.com or slashdot.org; they're simply small-
@@ -45,19 +45,23 @@ Setting up the cache
 The cache system requires a small amount of setup. Namely, you have to tell it
 where your cached data should live -- whether in a database, on the filesystem
 or directly in memory. This is an important decision that affects your cache's
-performance; yes, some cache types are faster than others.
+performance; yes, some cache types are faster than others. In-memory caching
+will generally be much faster than filesystem or database caching, because the
+former lacks the overhead of hitting the filesystem or database.
 
 Your cache preference goes in the ``CACHE_BACKEND`` setting in your settings
-file. Here's an explanation of all available values for CACHE_BACKEND.
+file. If you use caching and do not specify ``CACHE_BACKEND``, Django will use
+``simple:///`` by default. Here's an explanation of all available values for
+``CACHE_BACKEND``.
 
 Memcached
 ---------
 
 By far the fastest, most efficient type of cache available to Django, Memcached
 is an entirely memory-based cache framework originally developed to handle high
-loads at LiveJournal.com and subsequently open-sourced by Danga Interactive.
-It's used by sites such as Slashdot and Wikipedia to reduce database access and
-dramatically increase site performance.
+loads at LiveJournal.com and subsequently open-sourced by Danga 
+Interactive(http://www.danga.com).  It's used by sites such as Slashdot and 
+Wikipedia to reduce database access and dramatically increase site performance.
 
 Memcached is available for free at http://danga.com/memcached/ . It runs as a
 daemon and is allotted a specified amount of RAM. Its primary feature is to
@@ -68,9 +72,7 @@ directly in memory, so there's no overhead of database or filesystem usage.
 After installing Memcached itself, you'll need to install the Memcached Python
 bindings, which are not bundled with Django directly. These bindings are in a
 single Python module, memcache.py, available at
-ftp://ftp.tummy.com/pub/python-memcached/ . If that URL is no longer valid,
-just go to the Memcached Web site (http://www.danga.com/memcached/) and get the
-Python bindings from the "Client APIs" section.
+http://www.djangoproject.com/thirdparty/python-memcached/ .
 
 To use Memcached with Django, set ``CACHE_BACKEND`` to
 ``memcached://ip:port/``, where ``ip`` is the IP address of the Memcached
@@ -124,14 +126,13 @@ in your database that is in the proper format Django's database-cache system
 expects.
 
 Once you've created that database table, set your ``CACHE_BACKEND`` setting to
-``"db://tablename/"``, where ``tablename`` is the name of the database table.
-In this example, the cache table's name is ``my_cache_table``:
+``"db://tablename"``, where ``tablename`` is the name of the database table.
+In this example, the cache table's name is ``my_cache_table``::
 
     CACHE_BACKEND = 'db://my_cache_table'
 
-Database caching uses whichever database is pointed-to by your
-``DATABASE_ENGINE``, ``DATABASE_NAME``, etc., settings. This backend does not
-support other databases.
+The database caching backend uses the same database as specified in your
+settings file. You can't use a different database backend for your cache table.
 
 Filesystem caching
 ------------------
@@ -146,7 +147,8 @@ For example, to store cached data in ``/var/tmp/django_cache``, use this setting
 
 Note that there are three forward slashes toward the beginning of that example.
 The first two are for ``file://``, and the third is the first character of the
-directory path, ``/var/tmp/django_cache``.
+directory path, ``/var/tmp/django_cache``. If you're on Windows, put the drive
+letter after the ``file://``, like so:: ``file://c:/foo/bar``.
 
 The directory path should be absolute -- that is, it should start at the root
 of your filesystem. It doesn't matter whether you put a slash at the end of the
@@ -167,16 +169,17 @@ Local-memory caching
 
 If you want the speed advantages of in-memory caching but don't have the
 capability of running Memcached, consider the local-memory cache backend. This
-cache is multi-process and thread-safe.
+cache is multi-process and thread-safe, but isn't as efficient as Memcached 
+due to its simplistic locking and memory allocation strategies.
 
-To use it, set ``CACHE_BACKEND`` to ``"locmem:///"``. For example::
+To use it, set ``CACHE_BACKEND`` to ``'locmem:///'``. For example::
 
     CACHE_BACKEND = 'locmem:///'
 
 Simple caching (for development)
 --------------------------------
 
-A simple, single-process memory cache is available as ``"simple:///"``. This
+A simple, single-process memory cache is available as ``'simple:///'``. This
 merely saves cached data in process, which means it should only be used in
 development or testing environments. For example::
 
@@ -190,15 +193,18 @@ just implements the cache interface without doing anything.
 
 This is useful if you have a production site that uses heavy-duty caching in
 various places but a development/test environment on which you don't want to
-cache. In that case, set ``CACHE_BACKEND`` to ``"dummy:///"`` in the settings
+cache. In that case, set ``CACHE_BACKEND`` to ``'dummy:///'`` in the settings
 file for your development environment. As a result, your development
-environment won't use caching and your production environment still will.
+environment won't use caching and your production environment still will. For
+example::
+
+    CACHE_BACKEND = 'dummy:///'
 
 CACHE_BACKEND arguments
 -----------------------
 
 Each cache backend may take arguments. They're given in query-string style on
-the ``CACHE_BACKEND`` setting. Valid arguments are::
+the ``CACHE_BACKEND`` setting. Valid arguments are:
 
     * ``timeout`` -- The default timeout, in seconds, to use for the cache.
       Defaults to 300 seconds (5 minutes).
@@ -207,22 +213,22 @@ the ``CACHE_BACKEND`` setting. Valid arguments are::
       the maximum number of entries allowed in the cache before old values are
       cleaned. Defaults to 300.
 
-    * ``cull_percentage`` -- The percentage of entries that are culled when
-        ``max_entries`` is reached. The actual percentage is
-        ``1/cull_percentage``, so set ``cull_percentage=3`` to cull 1/3 of the
-        entries when ``max_entries`` is reached.
+    * ``cull_percentage`` -- The ratio of entries that are culled when
+      ``max_entries`` is reached. The actual ratio is ``1/cull_percentage``, so
+      set  ``cull_percentage=2`` to cull 1/2 of the entries when ``max_entries``
+      is reached.  
 
-        A value of ``0`` for ``cull_percentage`` means that the entire cache
-        will be dumped when ``max_entries`` is reached. This makes culling
-        *much* faster at the expense of more cache misses.
+      A value of ``0`` for ``cull_percentage`` means that the entire cache will
+      be dumped when ``max_entries`` is reached. This makes culling *much*
+      faster at the expense of more cache misses. Defaults to 3.
 
 In this example, ``timeout`` is set to ``60``::
 
-    CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=60"
+    CACHE_BACKEND = "locmem:///?timeout=60"
 
 In this example, ``timeout`` is ``30`` and ``max_entries`` is ``400``::
 
-    CACHE_BACKEND = "memcached://127.0.0.1:11211/?timeout=30&max_entries=400"
+    CACHE_BACKEND = "locmem:///?timeout=30&max_entries=400"
 
 Invalid arguments are silently ignored, as are invalid values of known
 arguments.
@@ -291,8 +297,9 @@ The per-view cache
 ==================
 
 A more granular way to use the caching framework is by caching the output of
-individual views. This has the same effects as the per-site cache, but it only
-applies to the views you specify.
+individual views. This has the same effects as the per-site cache (including the 
+ommission of caching on requests with GET and POST parameters). It applies to 
+whichever views you specify, rather than the whole site.
 
 Do this by using a decorator -- a wrapper around your view function that alters
 its behavior to use caching. The per-view cache decorator is called
@@ -316,10 +323,12 @@ syntax. This example is equivalent::
 
 ``cache_page`` takes a single argument: the cache timeout, in seconds. In the
 above example, the result of the ``my_view()`` view will be cached for 15
-minutes.
+minutes. (Note that we've written it as ``60 * 15`` for the purpose of
+readability. ``60 * 15`` will be evaluated to ``900``, i.e., 15 minutes
+multiplied by 60 seconds per minute.)
 
-Note that per-view cache, like the per-site cache, is keyed off of the URL.
-If multiple URLs point at the same view, each URL will be cached separately.
+The per-view cache, like the per-site cache, is keyed off of the URL. If
+multiple URLs point at the same view, each URL will be cached separately.
 Continuing the ``my_view`` example, if your URLconf looks like this::
 
     urlpatterns = ('',
@@ -327,8 +336,8 @@ Continuing the ``my_view`` example, if your URLconf looks like this::
     )
 
 ...then requests to ``/foo/1/`` and ``/foo/23/`` will be cached separately, as
-you may expect. But once the URL ``/foo/23/`` has been requested, subsequent
-requests to that URL will use the cache.
+you may expect. But once a particular URL (e.g., ``/foo/23/``) has been
+requested, subsequent requests to that URL will use the cache.
 
 Specifying per-view cache in the URLconf
 ----------------------------------------
@@ -336,7 +345,7 @@ Specifying per-view cache in the URLconf
 The above examples have hard-coded the fact that the view is cached, because
 ``cache_page`` alters the ``my_view`` function in place. This approach couples
 your view to the cache system, which is not ideal in several ways. For
-instance, you might want to reuse the view functions on an other, cache-less
+instance, you might want to reuse the view functions on another, cache-less
 site, or you might want to distribute the views to people who might want to use
 them without being cached. The solution to these problems is to specify the
 per-view cache in the URLconf rather than next to the view functions
@@ -366,22 +375,19 @@ The low-level cache API
 Sometimes, caching an entire rendered page doesn't gain you very much and is,
 in fact, inconvenient overkill.
 
-Perhaps, for instance, your site's templates change frequently, but the
-underlying database queries do not change. In this case, it would not be ideal
-to use the full-page caching that the per-site or per-view cache strategies
-offer, because you wouldn't want to cache the page layout (to enable quick
-template changes) but you'd still want to cache the database activity, because
-that part is resource intensive.
+Perhaps, for instance, your site includes a view whose results depend on 
+several expensive queries, the results of which change at different intervals.
+In this case, it would not be ideal to use the full-page caching that the 
+per-site or per-view cache strategies offer, because you wouldn't want to 
+cache entire result (since some of the data changes often), but you'd still 
+want to cache the results that rarely change.
 
-In cases like this, you can use the low-level cache API to store objects in the
-cache with any level of granularity you like. You can cache any Python object
-that can be "pickled" safely -- strings, dictionaries, lists of model objects,
-etc. (Most common Python objects can be pickled; refer to the Python
-documentation for more information about pickling.)
-
-Django exposes a simple, low-level cache API, which lives in the module
-``django.core.cache``. To use it, import the object ``cache`` from that module,
-and treat it as your data store.
+For cases like this, Django exposes a simple, low-level cache API, which lives 
+in the module ``django.core.cache``. You can use the low-level cache API to 
+store objects in the cache with any level of granularity you like. You can cache 
+any Python object that can be "pickled" safely -- strings, dictionaries, lists 
+of model objects, etc. (Most common Python objects can be pickled; refer to the 
+Python documentation for more information about pickling.)
 
 Here's how to import it::
 
@@ -396,19 +402,20 @@ The basic interface is ``set(key, value, timeout_seconds)`` and ``get(key)``::
 The ``timeout_seconds`` argument is optional and defaults to the ``timeout``
 argument in the ``CACHE_BACKEND`` setting explained above.
 
-If the object doesn't exist in the cache, ``cache.get()`` returns ``None``::
-
-    >>> cache.get('some_other_key')
-    None
+If the object doesn't exist in the cache, or the cache backend is unreachable,
+``cache.get()`` returns ``None``::
 
     # Wait 30 seconds for 'my_key' to expire...
 
     >>> cache.get('my_key')
     None
 
+    >>> cache.get('some_unset_key')
+    None
+
 We advise against storing the literal value ``None`` in the cache, because you
-won't be able to distinguish between your ``None`` value and the ``None``
-signified by a cache miss.
+won't be able to distinguish between your stored ``None`` value and a cache 
+miss signified by a return value of ``None``.
 
 ``cache.get()`` can take a ``default`` argument. This specifies which value to
 return if the object doesn't exist in the cache::
@@ -458,9 +465,9 @@ Here are a few examples of upstream caches:
       this caching; the ISP sits between example.com and your Web browser,
       handling all of the caching transparently.
 
-    * Your Django Web site may sit behind a Squid Web proxy
-      (http://www.squid-cache.org/) that caches pages for performance. In this
-      case, each request first would be handled by Squid, and it'd only be
+    * Your Django Web site may sit behind a proxy cache, such as Squid
+      (http://www.squid-cache.org/), that caches pages for performance. In this
+      case, each request first would be handled by the proxy, and it'd only be
       passed to your application if needed.
 
     * Your Web browser caches pages, too. If a Web page sends out the
@@ -635,22 +642,21 @@ Django comes with a few other pieces of middleware that can help optimize your
 apps' performance:
 
     * ``django.middleware.http.ConditionalGetMiddleware`` adds support for
-      conditional GET. This makes use of ``ETag`` and ``Last-Modified``
-      headers.
+      modern browsers to conditionally GET responses based on the ``ETag`` 
+      and ``Last-Modified`` headers.
 
-    * ``django.middleware.gzip.GZipMiddleware`` compresses content for browsers
-      that understand gzip compression (all modern browsers).
+    * ``django.middleware.gzip.GZipMiddleware`` compresses responses for all 
+      moderns browsers, saving bandwidth and transfer time.
 
 Order of MIDDLEWARE_CLASSES
 ===========================
 
 If you use ``CacheMiddleware``, it's important to put it in the right place
 within the ``MIDDLEWARE_CLASSES`` setting, because the cache middleware needs
-to know which headers by which to vary the cache storage. Middleware always
-adds something the ``Vary`` response header when it can.
+to know the headers by which to vary the cache storage.
 
 Put the ``CacheMiddleware`` after any middlewares that might add something to
-the ``Vary`` header. The following middlewares do so:
+the ``Vary`` header, including:
 
-    * ``SessionMiddleware`` adds ``Cookie``
-    * ``GZipMiddleware`` adds ``Accept-Encoding``
+    * ``SessionMiddleware``, which adds ``Cookie``
+    * ``GZipMiddleware``, which adds ``Accept-Encoding``

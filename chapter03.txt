@@ -152,10 +152,7 @@ mapping between URLs and the code that handles those URLs.
 By default, everything in the URLconf is commented out -- your Django
 application is a blank slate. (As a side note, that's how Django knew to show
 you the "It worked!" page in the last chapter: If your URLconf is empty, Django
-assumes you just started a new project and, hence, displays that message. For
-that reason, there's no need to delete or replace anything in your URLconf to
-begin with; Django only displays that "It worked!" page if the URLconf is
-empty, so there's no danger of forgetting to remove that functionality.)
+assumes you just started a new project and, hence, displays that message.)
 
 Let's edit this file to expose our ``current_datetime`` view::
 
@@ -176,7 +173,7 @@ view function to use for that pattern.
 In a nutshell, we just told Django that any request to the URL ``/now/`` should
 be handled by the ``current_datetime`` view function.
 
-A couple of things are worth pointing out:
+A few things are worth pointing out:
 
     * Note that, in this example, we passed the ``current_datetime`` view
       function as an object without calling the function. This is a key feature
@@ -241,10 +238,10 @@ make requests to Web pages:
       first parameter to the function. (More on ``HttpRequest`` later.)
 
     * The view function is responsible for returning an ``HttpResponse``
-      object. Once it returns it, Django takes care of the rest.
+      object.
 
 With this knowledge, you know the basics of how to make Django-powered pages.
-It's quite simple, really: Just write view functions and map them to URLs via
+It's quite simple, really -- just write view functions and map them to URLs via
 URLconfs.
 
 URLconfs and loose coupling
@@ -292,7 +289,7 @@ handles requests to the URL ``/now/``. What happens when a different URL is
 requested?
 
 To find out, try running the Django development server and hitting a page such
-as ``http://127.0.0.1:8000/hello/`` or ``http://127.0.0.1:8000/doesnonexist/``,
+as ``http://127.0.0.1:8000/hello/`` or ``http://127.0.0.1:8000/does-not-exist/``,
 or even ``http://127.0.0.1:8000/`` (the site "root").
 
 You should see a "Page not found" message. (Pretty, isn't it? We Django people
@@ -354,7 +351,7 @@ the ``hours`` parameter in the URL's query string (the part after the ``?``).
 
 You *can* do that with Django -- and we'll tell you how later, if you really
 must know -- but one of Django's core philosophies is that URLs should be
-beautiful. The URL ``/now/plus3hours/`` is by far cleaner, simpler, more
+beautiful. The URL ``/now/plus3hours/`` is far cleaner, simpler, more
 readable, easier to recite to somebody aloud and ... just plain prettier than
 its query-string counterpart. Pretty URLs are a sign of a quality Web
 application.
@@ -394,24 +391,35 @@ a fantastic, if verbose, band name.)
 
 .. admonition:: Regular expressions
 
-    Regular expressions (or "regexes") are a compact way of specifying patterns
-    in text. While Django URLconfs allow arbitrary regexes for powerful
-    URL-matching capability, you'll probably only use a few regex patterns in
-    practice. Here's a small selection of common patterns::
+    Regular expressions (or "regexes") are a compact way of specifying
+    patterns in text. While Django URLconfs allow arbitrary regexes for
+    powerful URL-matching capability, you'll probably only use a few regex
+    patterns in practice. Here's a small selection of common patterns:
 
-        =======    ==============================================================================
-        Symbol     Matches
-        =======    ==============================================================================
-        . (dot)    Any character
-        \d         Any digit
-        [A-Z]      Any character from A-Z (uppercase)
-        [a-z]      Any character from a-z (lowercase)
-        [A-Za-z]   Any character from a-z (case-insensitive)
-        [^/]+      All characters until a forward slash (excluding the slash itself)
-        +          One or more of the previous character (e.g., \d+ matches one or more digit)
-        ?          Zero or more of the previous character (e.g., \d* matches zero or more digits)
-        {1,3}      Between one and three (inclusive) of the previous character
-        =======    ==============================================================================
+        ============  ===========================================================
+        Symbol        Matches
+        ============  ===========================================================
+        ``.`` (dot)   Any character
+
+        ``\d``        Any digit
+
+        ``[A-Z]``     Any character from A-Z (uppercase)
+
+        ``[a-z]``     Any character from a-z (lowercase)
+
+        ``[A-Za-z]``  Any character from a-z (case-insensitive)
+
+        ``[^/]+``     All characters until a forward slash (excluding the slash 
+                      itself)
+
+        ``+``         One or more of the previous character (e.g., ``\d+``
+                      matches one or more digit)
+
+        ``?``         Zero or more of the previous character (e.g., ``\d*``
+                      matches zero or more digits)
+
+        ``{1,3}``     Between one and three (inclusive) of the previous character
+        ============  ===========================================================
 
     For more on regular expressions, see Appendix XXX, Regular Expressions.
 
@@ -420,7 +428,7 @@ data to the view function, so that we can use a single view function for any
 arbitrary hour offset. We do this by placing parentheses around the data in the
 URLpattern that we want to save. In the case of our example, we want to
 save whatever number was entered in the URL -- so let's put parentheses
-around the ``\d{1,2}``:
+around the ``\d{1,2}``::
 
     (r'^now/plus(\d{1,2})hours/$', hours_ahead),
 
@@ -440,29 +448,29 @@ this::
 
 With that taken care of, let's write the ``hours_ahead`` view.
 
-..admonition: Coding order
+..admonition:: Coding order
 
-    In this case, we wrote the URLpattern first and the view second, but in the
-    previous example, we wrote the view first, then the URLpattern. Which
+    In this case, we wrote the URLpattern first and the view second, but in
+    the previous example, we wrote the view first, then the URLpattern. Which
     technique is better?
-
+    
     Well, every developer is different.
-
+    
     If you're a big-picture type of person, it may make most sense to you to
     write all of the URLpatterns for your application at the same time, at the
     start of your project, then coding up the views. This has the advantage of
     giving you a clear to-do list, and it essentially defines the parameter
     requirements for the view functions you'll need to write.
-
+    
     If you're more of a bottom-up developer, you might prefer to write the
     views first, then anchor them to URLs afterward. That's OK, too.
-
-    In the end, it comes down to what fits your brain the best. Either approach
-    is valid.
+    
+    In the end, it comes down to what fits your brain the best. Either
+    approach is valid.
 
 ``hours_ahead`` is very similar to the ``current_datetime`` view we wrote
-earlier, with a key difference: it takes an extra argument, the number of hours
-of offset. Here it is::
+earlier, with a key difference: it takes an extra argument, the number of
+hours of offset. Here it is::
 
     from django.http import HttpResponse
     import datetime
@@ -673,7 +681,7 @@ couple of new tricks here.)
        to uphold proper English grammar, and improve the application so that it
        accepts the URL ``/now/plus1hour/``. For bonus points, be a
        perfectionist: allow ``/now/plus1hour/`` and ``/now/plus2hours/`` but
-       disallow ``/now/plus1hours/`` nor ``/now/plus2hour/``.
+       disallow ``/now/plus1hours/`` and ``/now/plus2hour/``.
 
     4. Similarly, we were lazy in the HTML display, saying
        ``"In %s hour(s), it will be %s."`` Fix this to remove the ``hour(s)``.
@@ -763,12 +771,12 @@ Answers to exercises
                 hours = 'hours'
             if plus_or_minus == 'plus':
                 dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-                html = 'In %s %s, it will be %s.' % (offset, hours, dt)
+                output = 'In %s %s, it will be %s.' % (offset, hours, dt)
             else:
                 dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
-                html = '%s %s ago, it was %s.' % (offset, hours, dt)
-            html = '<html><body>%s</body></html>' % html
-            return HttpResponse(html)
+                output = '%s %s ago, it was %s.' % (offset, hours, dt)
+            output = '<html><body>%s</body></html>' % output
+            return HttpResponse(output)
 
        Ideally, though, we wouldn't have to edit Python code to make small
        presentation-related changes like this. Wouldn't it be nice if we could
