@@ -393,31 +393,33 @@ to its ID in your ``SITE_ID`` setting.
 
 Here's how Django uses the sites framework:
 
-    * In the `redirects framework`_, each redirect object is associated with a
-      particular site. When Django searches for a redirect, it takes into
-      account the current ``SITE_ID``.
+    * In the redirects framework (see "Redirects" below), each redirect object
+      is associated with a particular site. When Django searches for a
+      redirect, it takes into account the current ``SITE_ID``.
 
-    * In the comments framework, each comment is associated with a particular
-      site. When a comment is posted, its ``site`` is set to the current
-      ``SITE_ID``, and when comments are listed via the appropriate template
-      tag, only the comments for the current site are displayed.
+    * In the comments framework (see Chapter 13), each comment is associated
+      with a particular site. When a comment is posted, its ``site`` is set to
+      the current ``SITE_ID``, and when comments are listed via the appropriate
+      template tag, only the comments for the current site are displayed.
 
-    * In the `flatpages framework`_, each flatpage is associated with a
-      particular site. When a flatpage is created, you specify its ``site``,
-      and the ``FlatpageFallbackMiddleware`` checks the current ``SITE_ID`` in
-      retrieving flatpages to display.
+    * In the flatpages framework (see "Flatpages" below), each flatpage is
+      associated with a particular site. When a flatpage is created, you
+      specify its ``site``, and the flatpage middleware checks the current
+      ``SITE_ID`` in retrieving flatpages to display.
 
-    * In the `syndication framework`_, the templates for ``title`` and
-      ``description`` automatically have access to a variable ``{{{ site }}}``,
-      which is the ``Site`` object representing the current site. Also, the
-      hook for providing item URLs will use the ``domain`` from the current
-      ``Site`` object if you don't specify a fully-qualified domain.
+    * In the syndication framework (see "Syndication feeds" below), the
+      templates for ``title`` and ``description`` automatically have access to
+      a variable ``{{{ site }}}``, which is the ``Site`` object representing
+      the current site. Also, the hook for providing item URLs will use the
+      ``domain`` from the current ``Site`` object if you don't specify a
+      fully-qualified domain.
 
-    * In the `authentication framework`_, the ``django.contrib.auth.views.login``
-      view passes the current ``Site`` name to the template as ``{{{ site_name }}}``.
+    * In the authentication framework (see Chapter 12), the
+      ``django.contrib.auth.views.login`` view passes the current ``Site`` name
+      to the template as ``{{{ site_name }}}``.
 
-    * The shortcut view (``django.views.defaults.shortcut``) uses the domain of
-      the current ``Site`` object when calculating an object's URL.
+    * The shortcut view (see Chapter XX) uses the domain of the current
+      ``Site`` object when calculating an object's URL.
 
 Flatpages
 =========
@@ -589,6 +591,88 @@ Here's a sample ``flatpages/default.html`` template::
     </body>
     </html>
 
+Redirects
+=========
+
+Django's redirects framework lets you manage redirects easily by storing them
+in a database and treating them as any other Django model object. For example,
+you can use the redirects framework to tell Django, "redirect any request to
+``/music/`` to ``/sections/arts/music/``."
+
+Using the redirects framework
+-----------------------------
+
+To install the redirects app, follow these steps:
+
+    1. Add ``'django.contrib.redirects'`` to your ``INSTALLED_APPS``.
+
+    2. Add ``'django.contrib.redirects.middleware.RedirectFallbackMiddleware'``
+       to your ``MIDDLEWARE_CLASSES`` setting.
+
+    3. Run the command ``manage.py syncdb`` to install the single required
+       table into your database.
+
+How it works
+------------
+
+``manage.py syncdb`` creates a ``django_redirect`` table in your database. This
+is a simple lookup table with ``site_id``, ``old_path`` and ``new_path`` fields.
+
+You can create redirects through either the Django admin interface or the
+Django database API. For more, see "How to add, change and delete redirects"
+below.
+
+Once you've created redirects, the ``RedirectFallbackMiddleware`` does all of
+the work. Each time any Django application raises a 404 error, this middleware
+checks the redirects database for the requested URL as a last resort.
+Specifically, it checks for a redirect with the given ``old_path`` with a site
+ID that corresponds to the ``SITE_ID`` setting. (See "Sites" above for more on
+``SITE_ID`` and the sites framework.) Then, it follows these steps:
+
+    * If it finds a match, and ``new_path`` is not empty, it redirects to
+      ``new_path``.
+
+    * If it finds a match, and ``new_path`` is empty, it sends a 410 ("Gone")
+      HTTP header and empty (content-less) response.
+
+    * If it doesn't find a match, the request continues to be processed as
+      usual.
+
+The middleware only gets activated for 404s -- not for 500s or responses of any
+other status code.
+
+Note that the order of ``MIDDLEWARE_CLASSES`` matters. Generally, you can put
+``RedirectFallbackMiddleware`` at the end of the list, because it's a last
+resort.
+
+How to add, change and delete redirects
+---------------------------------------
+
+Via the admin interface
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If you've activated the automatic Django admin interface, you should see a
+"Redirects" section on the admin index page. Edit redirects as you edit any
+other object in the system.
+
+Via the Python API
+~~~~~~~~~~~~~~~~~~
+
+Redirects are represented by a standard Django model that lives in
+``django/contrib/redirects/models.py``. Hence, you can access redirect objects
+via the Django database API. For example::
+
+    >>> from django.contrib.redirects.models import Redirect
+    >>> from django.contrib.sites.models import Site
+    >>> red = Redirect(
+    ...     site=Site.objects.get(id=1),
+    ...     old_path='/music/',
+    ...     new_path='/sections/arts/music/',
+    ... )
+    >>> red.save()
+    >>> Redirect.objects.get(old_path='/music/')
+    <Redirect: /music/ ---> /sections/arts/music/>
+
 CSRF protection
 ===============
 
@@ -733,88 +817,6 @@ happening, just view source in your Web browser to see whether the
 ``csrfmiddlewaretoken`` was inserted into your ``<form>``.
 
 For more CSRF information and examples, visit http://en.wikipedia.org/wiki/Csrf
-
-Redirects
-=========
-
-Django's redirects framework lets you manage redirects easily by storing them
-in a database and treating them as any other Django model object. For example,
-you can use the redirects framework to tell Django, "redirect any request to
-``/music/`` to ``/sections/arts/music/``."
-
-Using the redirects framework
------------------------------
-
-To install the redirects app, follow these steps:
-
-    1. Add ``'django.contrib.redirects'`` to your ``INSTALLED_APPS``.
-
-    2. Add ``'django.contrib.redirects.middleware.RedirectFallbackMiddleware'``
-       to your ``MIDDLEWARE_CLASSES`` setting.
-
-    3. Run the command ``manage.py syncdb`` to install the single required
-       table into your database.
-
-How it works
-------------
-
-``manage.py syncdb`` creates a ``django_redirect`` table in your database. This
-is a simple lookup table with ``site_id``, ``old_path`` and ``new_path`` fields.
-
-You can create redirects through either the Django admin interface or the
-Django database API. For more, see "How to add, change and delete redirects"
-below.
-
-Once you've created redirects, the ``RedirectFallbackMiddleware`` does all of
-the work. Each time any Django application raises a 404 error, this middleware
-checks the redirects database for the requested URL as a last resort.
-Specifically, it checks for a redirect with the given ``old_path`` with a site
-ID that corresponds to the ``SITE_ID`` setting. (See "Sites" above for more on
-``SITE_ID`` and the sites framework.) Then, it follows these steps:
-
-    * If it finds a match, and ``new_path`` is not empty, it redirects to
-      ``new_path``.
-
-    * If it finds a match, and ``new_path`` is empty, it sends a 410 ("Gone")
-      HTTP header and empty (content-less) response.
-
-    * If it doesn't find a match, the request continues to be processed as
-      usual.
-
-The middleware only gets activated for 404s -- not for 500s or responses of any
-other status code.
-
-Note that the order of ``MIDDLEWARE_CLASSES`` matters. Generally, you can put
-``RedirectFallbackMiddleware`` at the end of the list, because it's a last
-resort.
-
-How to add, change and delete redirects
----------------------------------------
-
-Via the admin interface
-~~~~~~~~~~~~~~~~~~~~~~~
-
-If you've activated the automatic Django admin interface, you should see a
-"Redirects" section on the admin index page. Edit redirects as you edit any
-other object in the system.
-
-Via the Python API
-~~~~~~~~~~~~~~~~~~
-
-Redirects are represented by a standard Django model that lives in
-``django/contrib/redirects/models.py``. Hence, you can access redirect objects
-via the Django database API. For example::
-
-    >>> from django.contrib.redirects.models import Redirect
-    >>> from django.contrib.sites.models import Site
-    >>> red = Redirect(
-    ...     site=Site.objects.get(id=1),
-    ...     old_path='/music/',
-    ...     new_path='/sections/arts/music/',
-    ... )
-    >>> red.save()
-    >>> Redirect.objects.get(old_path='/music/')
-    <Redirect: /music/ ---> /sections/arts/music/>
 
 Content types
 =============
