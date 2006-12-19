@@ -50,7 +50,7 @@ whether the new functionality should live in ``django.contrib`` or elsewhere.
       "Form tools" below.
 
     * ``humanize`` -- A set of Django template filters useful for adding a
-       "human touch" to data. See "Humanizing data" below.
+      "human touch" to data. See "Humanizing data" below.
 
     * ``markup`` -- A set of Django template filters that implement a number of
       common markup languages. See "Markup filters" below.
