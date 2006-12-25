@@ -9,6 +9,12 @@
 						{{ c.name|escape }}
 						{% if c.url %}</a>{% endif %}
 						<span class="meta">{{ c.date_posted|date:"M jS, Y P" }}</span>
+						{% if perms.djangobook %}
+							<span class="actions">
+								[<a href="/tools/removecomment/{{ c.id }}/">&times;</a>]
+								[<a href="/tools/markreviewed/{{ c.id }}/">&radic;</a>]
+							</span>
+						{% endif %}
 					</dt>
 					<dd>{{ c.comment|striptags|urlize|markdown }}</dd>
 				</dl>
