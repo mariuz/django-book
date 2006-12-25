@@ -9,6 +9,14 @@
 						{{ c.name|escape }}
 						{% if c.url %}</a>{% endif %}
 						<span class="meta">{{ c.date_posted|date:"M jS, Y P" }}</span>
+						{% if c.is_reviewed %}
+							<span class="thanks">
+								&radic;
+								<span>
+									This comment has been reviewed and will be taken into account
+									in a future version of the book. Thanks for contributing!
+								</span>
+							</span>
 						{% if perms.djangobook %}
 							<span class="actions">
 								[<a href="/tools/removecomment/{{ c.id }}/" onclick="Comments.removeComment(this); return false;">&times;</a>]
