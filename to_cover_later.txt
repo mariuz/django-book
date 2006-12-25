@@ -33,3 +33,10 @@ Why aren't 3rd party libs bundled?
 ==================================
 python-memcached isn't bundled, probly due to licensing complications. (It's
 python licensed, while Django is BSD.) A policy statement would be good.
+
+Other authentication sources
+============================
+
+The last part of authentication.txt ("other authentication sources") needs to
+be somewhere in the bok, but the auth chapter feels pretty long already... I'm
+not sure where the "right" place for this material is.
