@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 from djangobook.feeds import PublishedChaptersFeed, CommentFeed
-from djangobook.views import toc, chapter, comments, comment_counts, remove_comment
+from djangobook.views import toc, chapter, comments, comment_counts, remove_comment, mark_comment_reviewed
 
 urlpatterns = patterns('',
     (r'accounts/login/$',  'django.contrib.auth.views.login'),
