@@ -1,0 +1,20 @@
+{% spaceless %}
+	{% load markup %}
+	{% if comments %}
+		{% for c in comments %}
+			<li class="comment" id="c{{ c.id }}">
+				<dl>
+					<dt>
+						{% if c.url %}<a href="{{ c.url|escape }}" rel="nofollow">{% endif %}
+						{{ c.name|escape }}
+						{% if c.url %}</a>{% endif %}
+						<span class="meta">{{ c.date_posted|date:"M jS, Y P" }}</span>
+					</dt>
+					<dd>{{ c.comment|striptags|urlize|markdown }}</dd>
+				</dl>
+			</li>
+		{% endfor %}
+	{% else %}
+		<li>No comments on this node.</li>
+	{% endif %}
+{% endspaceless %}

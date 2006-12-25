@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2 id="chapter-title">Table of contents</h2>
+  <h2 id="chapter-subtitle">{{ book_version.version|title }}, {{ book_version.get_language_display|title }}</h2>
+  <ol class="toc">    
+    {% for chapter in contents %}
+      <li class="{% cycle a,b %}">
+        <span class="release-date">
+          {% if chapter.release %}
+            {{ chapter.release.release_date|date:"F j, Y" }}
+          {% else %}
+            TBA
+          {% endif %}
+        </span>
+        {% if chapter.release.is_released %}
+          <a href='{{ chapter.chapter.get_type_display }}{{ chapter.chapter.number|stringformat:"02i" }}/'>
+            {{ chapter.chapter }}
+          </a>
+        {% else %}
+          {{ chapter.chapter }}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

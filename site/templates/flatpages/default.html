@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block extrahead %}
+	<style type="text/css" media="screen">
+		p.image { text-align: center; }
+		p.image img { padding: 4px; border: 1px #406b4e solid; }
+	</style>
+{% endblock %}
+
+{% block title %}{{ flatpage.title }}{% endblock %}
+
+{% block content %}{{ flatpage.content }}{% endblock %}
