@@ -11,8 +11,8 @@
 						<span class="meta">{{ c.date_posted|date:"M jS, Y P" }}</span>
 						{% if perms.djangobook %}
 							<span class="actions">
-								[<a href="/tools/removecomment/{{ c.id }}/">&times;</a>]
-								[<a href="/tools/markreviewed/{{ c.id }}/">&radic;</a>]
+								[<a href="/tools/removecomment/{{ c.id }}/" onclick="Comments.removeComment(this); return false;">&times;</a>]
+								[<a href="/tools/markreviewed/{{ c.id }}/" onclick="Comments.markCommentHandled(this); return false;">&radic;</a>]
 							</span>
 						{% endif %}
 					</dt>
