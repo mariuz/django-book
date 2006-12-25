@@ -17,8 +17,28 @@
 
 {% block title %}{{ release.chapter }}{% endblock %}
 
-{% block hdnav %}{% include "book/nav.html" %}{% endblock %}
-{% block ftnav %}{% include "book/nav.html" %}{% endblock %}
+{% block hdnav %}
+	<div class="nav">
+		{% if release.get_previous_chapter.is_released %}
+			<a href='../{{ release.get_previous_chapter.chapter.get_type_display }}{{ release.get_previous_chapter.chapter.number|stringformat:"02i" }}/'>&laquo; previous</a> &loz;
+		{% endif %}
+		<a href="..">table of contents</a>
+		{% if release.get_next_chapter.is_released %}
+			&loz; <a href='../{{ release.get_next_chapter.chapter.get_type_display }}{{ release.get_next_chapter.chapter.number|stringformat:"02i" }}/'>next &raquo;</a>
+		{% endif %}
+	</div>
+{% endblock %}
+{% block ftnav %}
+	<div class="nav">
+		{% if release.get_previous_chapter.is_released %}
+			<a href='../{{ release.get_previous_chapter.chapter.get_type_display }}{{ release.get_previous_chapter.chapter.number|stringformat:"02i" }}/'>&laquo; previous</a> &loz;
+		{% endif %}
+		<a href="..">table of contents</a>
+		{% if release.get_next_chapter.is_released %}
+			&loz; <a href='../{{ release.get_next_chapter.chapter.get_type_display }}{{ release.get_next_chapter.chapter.number|stringformat:"02i" }}/'>next &raquo;</a>
+		{% endif %}
+	</div>
+{% endblock %}
 
 {% block content %}
 	{% load markup %}
