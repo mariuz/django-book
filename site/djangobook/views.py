@@ -99,3 +99,11 @@ def remove_comment(request, comment_id):
     c.is_removed = True
     c.save()
     return HttpResponse("OK")
+    
+@require_POST
+@permission_required("djangobook.change_comment")
+def mark_comment_reviewed(request, comment_id):
+    c = get_object_or_404(Comment, pk=comment_id)
+    c.is_reviewed = True
+    c.save()
+    return HttpResponse("OK")

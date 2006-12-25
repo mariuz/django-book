@@ -15,6 +15,10 @@ urlpatterns = patterns('',
         remove_comment,
     ),
     (
+        r'^tools/markreviewed/(?P<comment_id>\d+)/$',
+        mark_comment_reviewed,
+    ),
+    (
         r'^(?P<lang>[\w-]+)/(?P<version>[\w-]+)/$',
         toc
     ),
