@@ -104,6 +104,6 @@ def remove_comment(request, comment_id):
 @permission_required("djangobook.change_comment")
 def mark_comment_reviewed(request, comment_id):
     c = get_object_or_404(Comment, pk=comment_id)
-    c.is_reviewed = True
+    c.is_reviewed = not c.is_reviewed
     c.save()
     return HttpResponse("OK")
