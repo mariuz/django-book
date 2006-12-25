@@ -2,12 +2,10 @@
 Chapter 12: Sessions, users, and registration
 =============================================
 
-.. contents::
-
-It's time for a confession: we've been suffering under a major misconception
-in all the previous material. So far, we've thought of the traffic visiting
-our sites as some faceless, anonymous mass hurtling itself against our
-carefully designed pages.
+It's time for a confession: we've been deliberately ignoring an incredibly
+important aspect of web development prior to this point. So far, we've thought
+of the traffic visiting our sites as some faceless, anonymous mass hurtling
+itself against our carefully designed pages.
 
 This isn't true, of course; the browsers hitting our sites have real humans
 behind them (some of the time, at least). That's a big thing to ignore: the
@@ -27,8 +25,8 @@ small piece of information that browsers store on behalf of web servers; every
 time a browser requests a page from a certain server, it gives back the cookie
 that it initially received.
 
-How cookies work
-================
+Cookies
+=======
 
 Let's take a look how this might work. When you open your browser and type in
 ``google.com``, your browser sends an HTTP request to Google that starts
@@ -63,58 +61,137 @@ who accessed the site earlier. This value might, for example, be a key into a
 database that stores user information; Google could (and does) use it to
 display your name on the page.
 
-A mixed blessing
-================
+Getting and setting cookies
+---------------------------
 
-You might notice a number of potential problems with this scheme. Let's look at some of the more important ones:
+When dealing with persistence in Django, most of the time you'll want to use
+the higher-level session and/or user frameworks discussed a little later on.
+However, we'll pause and look at how to read and write cookies in Django
+anyway. It should help you understand how the rest of the pieces discussed in
+the chapter actually work, and it'll come in handy if you ever need to play
+with cookies directly.
 
-First, Cookies are essentially voluntary; browser don't guarantee storage of
-cookies. In fact, every browser on the planet will let you control your
-browser's policy for accepting cookies. If you want to see just how vital
-cookies are to the web, try turning on your browser's "prompt to accept every
-cookie" option. Even a big blue monster would fill up on all those cookies!
+Reading cookies that are already set is incredibly simple: every request
+object has a ``COOKIES`` object that acts like a dictionary; you can use it to
+read any cookies that the browser has sent to the view::
 
-This means, of course, that cookies are the definition of unreliability;
-developers should check that a user actually accepts cookies before relying on
-them.
+    def show_color(request):
+        if "favorite_color" in request.COOKIES:
+            return HttpResponse("Your favorite color is %s" % \
+                request.COOKIES["favorite_color"])
+        else:
+            return HttpResponse("You don't have a favorite color.")
 
-More importantly, you should *never* store important data in cookies. The web
-is filled with horror stories of developers who've stored important
-information in browser cookies only to have that data purged by the browser
-for one reason or another.
+Writing cookies is slightly more complicated; you need to use the
+``set_cookie()`` method on a ``HttpResponse`` object. Here's an example that
+sets the ``favorite_color`` cookie based on a ``GET`` parameter::
 
-Second, it's important to notice that cookies are not in any way secure.
-Because HTTP data is sent in cleartext, cookies are extremely vulnerable to
-snooping attacks. That is, an attacker snooping on the wire can intercept a
-cookie and read it. This means you should never store sensitive information in
-a cookie.
+    def set_color(request):
+        if "favorite_color" in request.GET:
+            
+            # Create an HttpResponse object...
+            response = HttpResponse("Your favorite color is now %s" % \
+                request.GET["favorite_color"])
+            
+            # ... and set a cookie on the response
+            response.set_cookie("favorite_color", 
+                                request.GET["favorite_color"])
+        
+        else:
+            return HttpResponse("You didn't give a favorite color.")
+            
+You can also pass a number of optional arguments to ``request.set_cookie()``
+that control aspects of the cookie:
 
-There's an even more insidious attack known as a "man in the middle" attack,
-wherein an attacker intercepts a cookie and uses it to pose as another user.
-Chapter 20 discusses attacks of this nature in depth, as well as ways to
-prevent it.
+    ==============  ==========  ==============================================
+    Parameter       Default     Description                                 
+    ==============  ==========  ==============================================
+    ``max_age``     ``None``    Age (in seconds) that the cookie should last. 
+                                If ``None``, the cookie will last only until
+                                the browser is closed.
+                            
+    ``expires``     ``None``    The actual date/time when the cookie should
+                                expire. Needs to be in the format ``"Wdy,
+                                DD-Mth-YY HH:MM:SS GMT"``. If given, this
+                                overrides the ``max_age`` parameter.
+                                
+    ``path``        ``"/"``     The path prefix that this cookie is valid for.
+                                Browsers will only pass the cookie back to 
+                                pages below this path prefix, so you can use
+                                this to prevent cookies from being sent to
+                                other sections of your site. 
+                                
+                                This is especially useful when you don't
+                                control the top level of your site's domain.
+                                
+    ``domain``      ``None``    The domain that this cookie is valid for.  You
+                                can use this to set a cross-domain cookie. For
+                                example, domain=".example.com" will set a
+                                cookie that is readable by the domains
+                                ``www.example.com``, ``www2.example.com`` and
+                                ``an.other.sub.domain.example.com``.
+                                
+                                If set to ``None``, a cookie will only be
+                                readable by the domain that set it.
+                                
+    ``secure``      ``False``   If set to ``True``, this instructs the browser
+                                to only return this cookie to pages accessed
+                                over HTTPS.
+    ==============  ==========  ==============================================
 
-Finally, cookies are not even secure from their intended recipients. Most
-browsers provide easy ways to edit the content of individual cookies, and
-resourceful users can always use tools like mechanize_ to construct HTTP
-requests by hand.
+The mixed blessing of cookies
+-----------------------------
+
+You might notice a number of potential problems with the way cookies work.
+Let's look at some of the more important ones:
+
+    * Cookies are essentially voluntary; browser don't guarantee storage of
+      cookies. In fact, every browser on the planet will let you control your
+      browser's policy for accepting cookies. If you want to see just how
+      vital cookies are to the web, try turning on your browser's "prompt to
+      accept every cookie" option. Even a big blue monster would fill up on
+      all those cookies!
+      
+      This means, of course, that cookies are the definition of
+      unreliability; developers should check that a user actually accepts
+      cookies before relying on them.
+      
+      More importantly, you should *never* store important data in cookies.
+      The web is filled with horror stories of developers who've stored
+      unrecoverable information in browser cookies only to have that data
+      purged by the browser for one reason or another.
+
+    * Cookies are not in any way secure. Because HTTP data is sent in
+      cleartext, cookies are extremely vulnerable to snooping attacks. That
+      is, an attacker snooping on the wire can intercept a cookie and read it.
+      This means you should never store sensitive information in a cookie.
+
+      There's an even more insidious attack known as a "man in the middle"
+      attack, wherein an attacker intercepts a cookie and uses it to pose as
+      another user. Chapter 20 discusses attacks of this nature in depth, as
+      well as ways to prevent it.
+
+    * Cookies aren't even secure from their intended recipients. Most browsers
+      provide easy ways to edit the content of individual cookies, and
+      resourceful users can always use tools like mechanize_ to construct HTTP
+      requests by hand.
+
+      So you can't store data in cookies that might be sensitive to tampering.
+      The canonical mistake in this scenario is storing something like
+      ``IsLoggedIn=1`` in a cookie when a user logs in. You'd be amazed at the
+      number of sites that make mistakes of this nature; it takes only a
+      second to fool these sites' "security" systems.
 
 .. _mechanize: http://wwwsearch.sourceforge.net/mechanize/
-
-So you can't store data in cookies that might be sensitive to tampering. The
-canonical mistake in this scenario is storing something like ``IsLoggedIn=1``
-in a cookie when a user logs in. You'd be amazed at the number of sites that
-make mistakes of this nature; it takes only a second to fool these sites'
-"security" systems.
 
 Django's session framework
 ==========================
 
 With all of these limitations and potential security holes, it's obvious that
 cookies and persistent sessions are another of those "pain points" in web
-development. Of course, Django's goal is to be an effective painkiller, so (as
-you might expect), Django comes with a session framework designed to smooth
-over these difficulties for you.
+development. Of course, Django's goal is to be an effective painkiller, so
+Django comes with a session framework designed to smooth over these
+difficulties for you.
 
 This session framework lets you store and retrieve arbitrary data on a
 per-site-visitor basis. It stores data on the server side and abstracts the
@@ -136,10 +213,10 @@ Django model.  To enable sessions, you'll need to:
        setting (and run ``manage.py syncdb`` if you have to add it).
        
 The default skeleton settings created by ``startproject`` has both of these
-bits already installed, so unless you've removed them you probably don't have
+bits already installed, so unless you've removed them, you probably don't have
 to change anything to get sessions to work.
 
-If you don't want to use sessions, you might as well remove the
+If you don't want to use sessions, you might want to remove the
 ``SessionMiddleware`` line from ``MIDDLEWARE_CLASSES`` and
 ``'django.contrib.sessions'`` from your ``INSTALLED_APPS``. It'll only save
 you a very small amount of overhead, but every little bit counts.
@@ -214,6 +291,13 @@ And this one logs a member out, according to ``login()`` above::
             pass
         return HttpResponse("You're logged out.")
 
+.. note::
+
+    In practice, this is a lousy way of logging users in.  The authentication
+    framework discussed below handles this for you in a much more robust and
+    useful manner; these examples are just here to provide easily understood
+    examples.
+
 Setting test cookies
 --------------------
 
@@ -255,6 +339,10 @@ Here's a typical usage example::
         # If we didn't post, send the test cookie along with the login form.
         request.session.set_test_cookie()
         return render_to_response('foo/login_form.html')
+
+.. note::
+
+    Again, the built-in login and logout functions handle this check for you.
 
 Using sessions outside of views
 -------------------------------
@@ -320,9 +408,9 @@ behavior in this regard with the ``SESSION_EXPIRE_AT_BROWSER_CLOSE`` setting.
 
 By default, ``SESSION_EXPIRE_AT_BROWSER_CLOSE`` is set to ``False``, which
 means session cookies will be stored in users' browsers for
-``SESSION_COOKIE_AGE`` seconds (which defaults to 1209600 seconds, or 2
-weeks). Use this if you don't want people to have to log in every time they
-open a browser.
+``SESSION_COOKIE_AGE`` seconds (which defaults to 2 weeks -- 1209600 seconds).
+Use this if you don't want people to have to log in every time they open a
+browser.
 
 If ``SESSION_EXPIRE_AT_BROWSER_CLOSE`` is set to ``True``, Django will use
 browser-length cookies.
@@ -330,9 +418,8 @@ browser-length cookies.
 Other session settings
 ----------------------
 
-Besides ``SESSION_SAVE_EVERY_REQUEST``, ``SESSION_EXPIRE_AT_BROWSER_CLOSE``,
-and ``SESSION_COOKIE_AGE``, there are a few other settings that influence how
-Django's session framework uses cookies:
+Besides the settings already mentioned, there are a few other settings that
+influence how Django's session framework uses cookies:
 
     ==========================  =============================  ==============
     Setting                     Explanation                    Default
@@ -380,9 +467,9 @@ Django's session framework uses cookies:
           It does not fall back to putting session IDs in URLs as a last
           resort, as some other tools (PHP, JSP) do. 
           
-          This is an intentional design decision. That behavior doesn't just
-          make URLs ugly, it makes your site vulnerable to session-ID theft
-          via the "Referer" header.
+          This is an intentional design decision. Putting sessions in URLs
+          don't just make URLs ugly, they makes your site vulnerable to a
+          certain form of session-ID theft via the "Referer" header.
         
     If you're still curious, the source is pretty straightforward; look in
     ``django.contrib.sessions`` for the streight dope.
@@ -390,17 +477,17 @@ Django's session framework uses cookies:
 Users and authentication
 ========================
 
-So now we're halfway to recognizing linking browsers directly to Real People.
-Sessions give us a way of persisting data between multiple browser requests;
-the second part of the equation is using those sessions to link browsers to
-users. Of course, we can't just trust that users are who they say they are, so
-we'll need to authenticate them along the way.
+So now we're halfway to linking browsers directly to Real People. Sessions
+give us a way of persisting data between multiple browser requests; the second
+part of the equation is using those sessions to for user login. Of course, we
+can't just trust that users are who they say they are, so we'll need to
+authenticate them along the way.
 
-Naturally, Django provides a subframework to handle this common task. Django's
-user authentication system handles user accounts, groups, permissions and
-cookie-based user sessions. This system is often referred to as an "auth/auth"
-system -- authentication and authorization. That name recognizes that dealing
-with users is often a two step process; we need to
+Naturally, Django provides tools to handle this common task (and many others).
+Django's user authentication system handles user accounts, groups, permissions
+and cookie-based user sessions. This system is often referred to as an
+"auth/auth" system -- authentication and authorization. That name recognizes
+that dealing with users is often a two step process; we need to
 
     #. verify (**authenticate**) that a user is who she claims to be (usually
        by checking a username and password against a database of users), and
@@ -414,16 +501,18 @@ parts:
 
     * Users
     
-    * Permissions: Binary (yes/no) flags designating whether a user may
+    * Permissions: binary (yes/no) flags designating whether a user may
       perform a certain task.
       
-    * Groups: A generic way of applying labels and permissions to more than
+    * Groups: a generic way of applying labels and permissions to more than
       one user.
       
-    * Messages: A simple way to queue and display system messages to users.
+    * Messages: a simple way to queue and display system messages to users.
     
-If you've used the admin tool (Chapter 6), you've already seen all these
-tools, and if you've edited users or groups in the admin you've really been
+    * Profiles: a mechanism to extend the user object with custom fields.
+    
+If you've used the admin tool (Chapter 6), you've already seen many of these
+tools, and if you've edited users or groups in the admin you've actually been
 editing data in the auth system's database tables.
 
 Installation
@@ -603,10 +692,8 @@ Logging in and out
 
 Django provides built-in view functions for handling logging in and out (and a
 few other nifty tricks), but before we get to those let's take a look at how
-to log users in and out "by hand".
-
-Django provides two functions in ``django.contrib.auth``: ``authenticate()``
-and ``login()``.
+to log users in and out "by hand". Django provides two functions to perform
+these actions in ``django.contrib.auth``: ``authenticate()`` and ``login()``.
 
 To authenticate a given username and password, use ``authenticate()``. It
 takes two keyword arguments, ``username`` and ``password``, and it returns a
@@ -742,15 +829,6 @@ As a shortcut, you can use the convenient ``login_required`` decorator::
 
     from django.contrib.auth.decorators import login_required
 
-    def my_view(request):
-        # ...
-    my_view = login_required(my_view)
-
-Here's an equivalent example, using the more compact decorator syntax
-introduced in Python 2.4::
-
-    from django.contrib.auth.decorators import login_required
-
     @login_required
     def my_view(request):
         # ...
@@ -766,11 +844,11 @@ introduced in Python 2.4::
       
 .. note::
 
-    If you're into programming patterns, note that this decorator essentially
-    implements the "Guard" pattern.
+    If you're into programming patterns, note that this decorator and the ones
+    discussed below are examples of the "Guard" pattern. Aren't patterns fun?
 
-Limiting access to logged-in users that pass a test
----------------------------------------------------
+Limiting access to users that pass a test
+-----------------------------------------
 
 Limiting access based on certain permissions or some other test, or providing
 a different location for the log-in view works essentially the same way.
@@ -781,15 +859,14 @@ permission ``polls.can_vote`` (see below for more about how permissions
 work)::
 
     def vote(request):
-        if not request.user.is_authenticated() request.user.has_perm('polls.can_vote')):
+        if request.user.is_authenticated() and request.user.has_perm('polls.can_vote')):
             # vote here
         else:
             return HttpResponse("You can't vote in this poll.")
 
-Again, Django provides a shortcut called ``user_passes_test`` for this.
-``user_passes_test`` is actually a **decorator factory**; it takes arguments
-and generates a specialized decorator for your particular situation. For
-example::
+Again, Django provides a shortcut. This one is called ``user_passes_test``
+which is actually a **decorator factory**: it takes arguments and generates a
+specialized decorator for your particular situation. For example::
 
     def user_can_vote(user):
         return user.is_authenticated() and user.has_perm("polls.can_vote")
@@ -802,7 +879,7 @@ example::
 ``user_passes_test`` takes one required argument: a callable that takes a
 ``User`` object and returns ``True`` if the user is allowed to view the page.
 Note that ``user_passes_test`` does not automatically check that the ``User``
-is not anonymous.
+is authenticated; you should do that yourself.
 
 In this example we're also showing the second optional argument,
 ``login_url``, which lets you specify the URL for your login page
@@ -911,13 +988,18 @@ setting and checking of these values behind the scenes.
     
     However, an attacker with the password database could still run a **brute
     force** attack, hashing millions of passwords and comparing those hashes
-    against the stored values. Worse, there are publically available **rainbow
-    tables** -- tables storing precomputed hashes of millions of values. With
-    a rainbow table, an attacker can break most hashes in mere seconds.
+    against the stored values. This might take some time, but less than you
+    think -- computers are incredibly fast.
     
-    Adding a **salt** -- essentially an initial random value -- to the stored
-    hash adds another layer of difficulty to an attacker with the password
-    database by essentially increasing the size of everyone's passwords.
+    Worse, there are publically available **rainbow tables** -- databases of
+    precomputed hashes of millions of passwords. With a rainbow table, an
+    attacker can break most passwords in seconds.
+    
+    Adding a **salt** -- basically an initial random value -- to the stored
+    hash adds another layer of difficulty. Since the salt will differ from
+    password to password, salts also prevent the use of a rainbow table, thus
+    forcing attackers to fall back on a brute force attack -- itself made more
+    difficult by the extra entropy added to the hash by the salt.
     
     While salted hashes aren't absolutely the most secure way of storing
     passwords, they're a good middle ground between security and convience.
@@ -932,7 +1014,9 @@ We can use these low-level tools to create views that allow users to sign up.
 Nearly every developer wants to implement registration differently, so Django
 leaves writing a registration view up to you; luckily, it's pretty easy.
 
-At its simplest, we could provide a small view that prompts for the required user information and creates those users.  Django provides a built-in form you can use for this purpose, which we'll use in this example::
+At its simplest, we could provide a small view that prompts for the required
+user information and creates those users. Django provides a built-in form you
+can use for this purpose, which we'll use in this example::
 
     from django import oldforms as forms
     from django.http import HttpResponseRedirect
@@ -955,7 +1039,8 @@ At its simplest, we could provide a small view that prompts for the required use
             'form' : forms.FormWrapper(form, data, errors)
         })
 
-This assumes a template named ``registration/register.html``; here's an example of what that template might look like::
+This assumes a template named ``registration/register.html``; here's an
+example of what that template might look like::
 
   {% extends "base.html" %}
   
@@ -1002,8 +1087,8 @@ template context when you use ``RequestContext`` (see Chapter 10).
    Chapter 10 for the full skinny.
 
 When using ``RequestContext``, the current user -- either a ``User`` instance
-or an``AnonymousUser`` instance -- is stored in the template variable ``{{
-user }}``::
+or an``AnonymousUser`` instance -- is stored in the template variable 
+``{{ user }}``::
 
     {% if user.is_authenticated %}
       <p>Welcome, {{ user.username }}. Thanks for logging in.</p>
@@ -1067,16 +1152,15 @@ created for each Django model that has a ``class Admin``. Behind the scenes,
 these permissions are added to the ``auth_permission`` database table when you
 run ``manage.py syncdb``.
 
-These permissions will be of the form ``<app>.<action>_<object_name>``. That
+These permissions will be of the form ``"<app>.<action>_<object_name>"``. That
 is, if you've got a ``polls`` app with a ``Choice`` model, you'll get
-permissions named ``polls.add_choice``,``polls.change_choice`` and
-``polls.delete_choice``.
+permissions named ``"polls.add_choice"``, ``"polls.change_choice"`` and
+``"polls.delete_choice"``.
     
 Note that if your model doesn't have ``class Admin`` set when you run
 ``syncdb``, the permissions won't be created. If you initialize your database
 and add ``class Admin`` to models after the fact, you'll need to run
-``manage.py syncdb`` again. It will create any missing permissions for all of
-your installed apps.
+``syncdb`` again to create any missing permissions for your installed apps.
 
 You can also create custom permissions for a given model object, using the
 ``permissions`` attribute on ``Meta``. This example model creates three custom
@@ -1092,9 +1176,8 @@ permissions::
                 ("can_drink",               "Can drink alcohol"),
             )
 
-The only thing this does is create those extra permissions when you run
-``syncdb``; it's up to you to check for these permissions in your views (see
-above).
+This only creates those extra permissions when you run ``syncdb``; it's up to
+you to check for these permissions in your views (see above).
 
 Just like users, permissions are implemented in a Django model that lives in
 ``django.contrib.auth.models``; this means that you can use Django's database
