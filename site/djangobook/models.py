@@ -51,9 +51,10 @@ class BookVersion(models.Model):
         return ("djangobook.views.toc", (self.language, self.version))
 
 class ReleasedChapter(models.Model):
-    version      = models.ForeignKey(BookVersion, related_name="chapters")
-    chapter      = models.ForeignKey(Chapter, related_name="releases")
-    release_date = models.DateTimeField(blank=True, null=True)
+    version       = models.ForeignKey(BookVersion, related_name="chapters")
+    chapter       = models.ForeignKey(Chapter, related_name="releases")
+    release_date  = models.DateTimeField(blank=True, null=True)
+    comments_open = models.BooleanField("comments are open", default=True)
 
     class Meta:
         unique_together = [("version", "chapter")]
@@ -132,13 +133,14 @@ class Comment(models.Model):
     comment     = models.TextField()
     date_posted = models.DateTimeField()
     is_removed  = models.BooleanField()
+    is_reviewed = models.BooleanField()
         
     class Meta:
         ordering = ("-date_posted",)    
         
     class Admin:
-        list_display = ("get_truncated_comment", "name", "email", "date_posted", "is_removed")
-        list_filter = ("is_removed",)
+        list_display = ("get_truncated_comment", "name", "email", "date_posted", "is_removed", "is_reviewed")
+        list_filter = ("is_removed", "is_reviewed")
         search_fields = ("name", "email", "comment")
     
     def get_truncated_comment(self):
