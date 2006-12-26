@@ -1,0 +1,118 @@
+==============================================================
+Chapter 17: Integrating with legacy databases and applications
+==============================================================
+
+Although Django is best suited for developing projects from scratch --
+so-called "green-field" development -- it's possible to integrate the framework
+into legacy databases and applications. This chapter explains a few integration
+strategies.
+
+Integrating with a legacy database
+==================================
+
+Django's database layer generates SQL schemas from Python code -- but in the
+case of a legacy database, you already have the SQL schemas. In that case,
+you'll need to write models for your existing database tables. (For performance
+reasons, Django's database layer does not support on-the-fly object-relational
+mapping by introspecting the database at run time; in order to use the database
+API, you're required to write model code.) Fortunately, Django comes with a
+utility that can generate model code by reading your database table layouts.
+This utility is called ``manage.py inspectdb``.
+
+Using ``inspectdb``
+-------------------
+
+The ``inspectdb`` utility introspects the database pointed to by your settings
+file, determines the Django model representation of your tables and prints the
+Python model code to standard output. Here's a walkthrough of a typical
+legacy-database process from scratch; the only things it assumes are that
+Django is installed and that you have a legacy database.
+
+    1. Create a Django project by running
+       ``django-admin.py startproject mysite`` (where ``mysite`` is your
+       project's name). We'll use ``mysite`` as the project name in this
+       example.
+
+    2. Edit the settings file in that project, ``mysite/settings.py``,
+       to tell Django what your database connection parameters are, and what
+       the name of the database is. Specifically, you'll want to specify the
+       ``DATABASE_NAME``, ``DATABASE_ENGINE``, ``DATABASE_USER``,
+       ``DATABASE_PASSWORD``, ``DATABASE_HOST`` and ``DATABASE_PORT`` settings.
+
+    3. Create a Django app within your project by running
+       ``python mysite/manage.py startapp myapp`` (where ``myapp`` is your
+       app's name). We'll use ``myapp`` as the project name here.
+
+    4. Run the command ``python mysite/manage.py inspectdb``. This will
+       examine the tables in the ``DATABASE_NAME`` database and print the model
+       class for each table. Take a look at the output to get an idea of
+       what ``inspectdb`` can do.
+
+    5. Save that output to the ``models.py`` file within your app by using
+       standard shell output redirection::
+
+           python mysite/manage.py inspectdb > mysite/myapp/models.py
+
+    6. Edit the ``mysite/myapp/models.py`` file to clean up the generated
+       models and make whatever customizations you need to make. We'll give
+       some hints for this in the next section.
+
+Cleaning up generated models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As you might expect, the database introspection isn't perfect, and you'll need
+to do some light cleanup of the resulting model code. Here are a few pointers
+for dealing with the generated models:
+
+    1. Each database table is converted to a model class -- i.e., there is a
+       one-to-one mapping between database tables and model classes. This means
+       that you'll need to refactor the models for any many-to-many join tables
+       into ``ManyToManyField`` objects.
+
+    2. Each generated model has an attribute for every field -- including
+       ``id`` primary-key fields. However, recall that Django automatically
+       adds an ``id`` primary-key field if a model doesn't have a primary key.
+       Thus, if you're particularly anal, you'll want to remove any lines that
+       look like this, because they're redundant::
+
+           id = models.IntegerField(primary_key=True)
+
+    3. Each field's type (e.g., ``CharField``, ``DateField``) is determined by
+       looking at the database column type (e.g., ``VARCHAR``, ``DATE``). If
+       ``inspectdb`` cannot map a column's type to a model field type, it will
+       use ``TextField`` and will insert the Python comment
+       ``'This field type is a guess.'`` next to the field in the generated
+       model. Keep an eye out for that, and change the field type accordingly
+       if needed.
+
+    4. If a database column name is a Python reserved word (such as ``pass``,
+       ``class`` or ``for``), ``inspectdb`` will append ``'_field'`` to the
+       attribute name. For example, if a table has a column ``for``, the
+       generated model will have a field ``for_field``, with the ``db_column``
+       attribute set to ``'for'``. ``inspectdb`` will insert the Python comment
+       ``'Field renamed because it was a Python reserved word.'`` next to the
+       field.
+
+    5. If your database contains tables that refer to other tables (as most
+       databases do), you might need to rearrange the order of the generated
+       models so that models that refer to other models are ordered properly.
+       For example, if model ``Foo`` has a ``ForeignKey`` to model ``Bar``,
+       model ``Bar`` should be defined before model ``Foo``.
+
+    6. ``inspectdb`` detects primary keys for PostgreSQL, MySQL and SQLite.
+       That is, it inserts ``primary_key=True`` where appropriate. For other
+       databases, you'll need to insert ``primary_key=True`` for at least one
+       field in each model, because Django models are required to have a
+       ``primary_key=True`` field.
+
+    7. Foreign-key detection only works with PostgreSQL and with certain types
+       of MySQL tables. In other cases, foreign-key fields will be generated as
+       ``IntegerField``s, assuming the foreign-key column was an ``INT``
+       column.
+
+More
+====
+
+What else would you like to see in this chapter? What problems/questions do you
+have with integrating Django with legacy databases/applications? Leave a
+comment on this paragraph and let us know.
