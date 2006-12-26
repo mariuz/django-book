@@ -69,9 +69,44 @@ In fact, this is a common enough need that this piece of middleware is a
 built-in part of Django; it lives in ``django.middleware.http``, and you can
 read a bit more about it below.
 
-Now, though, let's take a look at the methods that middleware classes can
-implement. Note that all the following methods are optional, but to actually
-do something a middleware class will need to define at least one of them.
+Installing middleware
+=====================
+
+The linear readers in the crowd are probably old hands at this already; many
+of the examples in the previous few chapters will only work if you've already
+figured out how to enable middleware. However, for completeness -- and for the
+benefit of Julio Cortázar fans who've torn all the pages out of this book,
+shuffled them, and are now reading them in random order -- let's break it
+down.
+
+To activate a middleware component, add it to the ``MIDDLEWARE_CLASSES`` list
+in your settings module. In ``MIDDLEWARE_CLASSES``, each middleware component
+is represented by a string: the full Python path to the middleware's class
+name. For example, here's the default ``MIDDLEWARE_CLASSES`` created by
+``django-admin.py startproject``::
+
+    MIDDLEWARE_CLASSES = (
+        'django.middleware.common.CommonMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.middleware.doc.XViewMiddleware',
+    )
+
+A Django installation doesn't require any middleware -- e.g.,
+``MIDDLEWARE_CLASSES`` can be empty, if you'd like -- but it's strongly
+suggested that you use ``CommonMiddleware``.
+
+The order is significant. On the request and view phases, Django applies
+middleware in the order given in ``MIDDLEWARE_CLASSES``, and on the response
+and exception phases, Django applies middleware in reverse order. That is,
+Django treats ``MIDDLEWARE_CLASSES`` as a sort of "wrapper" around the view
+function: on the request, it walks down the list to the view, and on the
+response it walks back up.
+
+Middleware methods
+==================
+
+Now that we know what middleware is and how to install it, let's take a look at all the available methods that middleware classes may define.
 
 Initializer: ``__init__(self)``
 -------------------------------
@@ -173,38 +208,150 @@ object raised by the view function.
 the response shown to the browser, or it may return ``None`` to continue with
 Django's built-in exception handling.
 
+Examples
+--------
 
-Installing middleware
-=====================
+Django ships with a number of middleware classes -- discussed below -- that
+make good examples; reading the code for them should give you a good feel for
+the power of middleware.
 
-Again, the linear readers in the crowd are probably old hands at this already;
-many of the examples in the previous few chapters will only work if you've
-already figured out how to enable middleware. However, for completeness -- and
-for the benefit of Julio Cortázar fans who've torn all the pages out of this
-book, shuffled them, and are now reading them in random order -- let's break
-it down.
+You can also find a number of community-contributed examples on Django's wiki:
+http://code.djangoproject.com/wiki/ContributedMiddleware.
 
-To activate a middleware component, add it to the ``MIDDLEWARE_CLASSES`` list
-in your settings module. In ``MIDDLEWARE_CLASSES``, each middleware component
-is represented by a string: the full Python path to the middleware's class
-name. For example, here's the default ``MIDDLEWARE_CLASSES`` created by
-``django-admin.py startproject``::
+Built-in middleware
+===================
 
-    MIDDLEWARE_CLASSES = (
-        'django.middleware.common.CommonMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.middleware.doc.XViewMiddleware',
-    )
+Django comes with some built-in middleware to deal with common problems.
 
-A Django installation doesn't require any middleware -- e.g.,
-``MIDDLEWARE_CLASSES`` can be empty, if you'd like -- but it's strongly
-suggested that you use ``CommonMiddleware``.
+Authentication support middleware
+---------------------------------
 
-The order is significant. On the request and view phases, Django applies
-middleware in the order given in ``MIDDLEWARE_CLASSES``, and on the response
-and exception phases, Django applies middleware in reverse order. That is,
-Django treats ``MIDDLEWARE_CLASSES`` as a sort of "wrapper" around the view
-function: on the request, it walks down the list to the view, and on the
-response it walks back up.
+Middleware class: ``django.contrib.auth.middleware.AuthenticationMiddleware``
+
+Enables authentication support. Technically, this middleware adds the
+``request.user`` attribute, representing the currently-logged-in user, to
+every incoming ``HttpRequest`` object.
+
+See Chapter 15 for the complete details.
+
+"Common" middleware
+-------------------
+
+Middleware class: ``django.middleware.common.CommonMiddleware``.
+
+Adds a few conveniences for perfectionists:
+
+    * Forbids access to user agents in the ``DISALLOWED_USER_AGENTS`` setting,
+      which should be a list of strings.
+
+    * Performs URL rewriting based on the ``APPEND_SLASH`` and ``PREPEND_WWW``
+      settings. If ``APPEND_SLASH`` is ``True``, URLs that lack a trailing
+      slash will be redirected to the same URL with a trailing slash, unless
+      the last component in the path contains a period. So ``foo.com/bar`` is
+      redirected to ``foo.com/bar/``, but ``foo.com/bar/file.txt`` is passed
+      through unchanged.
+
+      If ``PREPEND_WWW`` is ``True``, URLs that lack a leading "www." will be
+      redirected to the same URL with a leading "www."
+
+      Both of these options are meant to normalize URLs. The philosophy is
+      that each URL should exist in one, and only one, place. Technically a
+      URL ``foo.com/bar`` is distinct from ``foo.com/bar/`` -- a search-engine
+      indexer would treat them as separate URLs -- so it's best practice to
+      normalize URLs.
+
+    * Handles ETags based on the ``USE_ETAGS`` setting. If ``USE_ETAGS`` is
+      set to ``True``, Django will calculate an ETag for each request by
+      MD5-hashing the page content, and it'll take care of sending ``Not
+      Modified`` responses, if appropriate.
+
+Compression middleware
+----------------------
+
+Middleware class: ``django.middleware.gzip.GZipMiddleware``
+
+If enabled, this middleware will automatically compress content for browsers
+that understand gzip compression (all modern browsers).
+
+This can greatly reduce the amount of bandwidth a web server consumes at the
+expense of processing time. We usually prefer speed over bandwidth, but if
+you'd like to take the opposite side of this trade-off, just enable this
+middleware.
+
+Conditional ``GET`` middleware
+------------------------------
+
+Middleware class: ``django.middleware.http.ConditionalGetMiddleware``
+
+If enabled, provides support for conditional ``GET`` operations. If the
+response has a ``ETag`` or ``Last-Modified`` header, and the request has
+``If-None-Match`` or ``If-Modified-Since``, the response is replaced by an
+304 ("Not modified") response.
+
+Also removes the content from any response to a HEAD request and sets the
+``Date`` and ``Content-Length`` response-headers for all requests.
+
+Reverse proxy support (``X-Forwarded-For`` middleware)
+------------------------------------------------------
+
+Middleware class: ``django.middleware.http.SetRemoteAddrFromForwardedFor``
+
+This is the example we looked at above. It sets
+``request.META['REMOTE_ADDR']`` based on
+``request.META['HTTP_X_FORWARDED_FOR']``, if the latter is set. This is useful
+if you're sitting behind a reverse proxy that causes each request's
+``REMOTE_ADDR`` to be set to ``127.0.0.1``.
+
+.. admonition:: Danger, Will Robinson! 
+
+    This does **not** validate ``HTTP_X_FORWARDED_FOR``. 
+    
+    If you're not behind a reverse proxy that sets ``HTTP_X_FORWARDED_FOR``
+    automatically, do not use this middleware. Anybody can spoof the value of
+    ``HTTP_X_FORWARDED_FOR``, and because this sets ``REMOTE_ADDR`` based on
+    ``HTTP_X_FORWARDED_FOR``, that means anybody can fake their IP address.
+    
+    Only use this middlware when you can absolutely trust the value of
+    ``HTTP_X_FORWARDED_FOR``.
+
+Session support middleware
+--------------------------
+
+Middleware class: ``django.contrib.sessions.middleware.SessionMiddleware``.
+
+Enables session support; see Chapter 15 for details.
+
+Site-wide cache middleware
+--------------------------
+
+Middleware class: ``django.middleware.cache.CacheMiddleware``.
+
+If this is enabled, each Django-powered page will be cached. This is
+discussed in detail in Chapter 14.
+
+Transaction middleware
+----------------------
+
+Middleware class: ``django.middleware.transaction.TransactionMiddleware``
+
+Binds a database ``COMMIT`` or ``ROLLBACK`` to the request/response phase. If
+a view function runs successfully, a ``COMMIT`` is done. If it fails with an
+exception, a ``ROLLBACK`` is done.
+
+The order of this middleware in the stack is important: middleware modules
+running outside of it run with commit-on-save - the default Django behavior.
+Middleware modules running inside it (coming later in the stack) will be under
+the same transaction control as the view functions.
+
+See XXX for more about information about database transactions.
+
+"X-View" middleware
+-------------------
+
+Middleware class: ``django.middleware.doc.XViewMiddleware``
+
+Sends custom ``X-View`` HTTP headers to HEAD requests that come from IP
+addresses defined in the ``INTERNAL_IPS`` setting. This is used by Django's
+automatic documentation system.
+
 
