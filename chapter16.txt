@@ -1,0 +1,210 @@
+======================
+Chapter 16: Middleware
+======================
+
+On occasion, you'll need to run a piece of code on each and every request that
+Django handles. This code might need to modify the request before the view
+handles it, or maybe log information about the request for debugging purposes,
+etc.
+
+Django's **middleware** framework is essentially a set of hooks into Django's
+request/response processing. It's a light, low-level "plugin" system for
+globally altering Django's input and/or output.
+
+Each middleware component is responsible for doing some specific function. If
+you're reading this book linearly -- sorry, postmodernists -- you'll have
+already seen middleware a number of times:
+
+    * All of the nifty session and user tools that we looked at in Chapter 12
+      are made possible by a few small pieces of middleware (more
+      specifically, the middleware makes ``request.session`` and
+      ``request.user`` available to you in views).
+      
+    * The site-wide cache discussed in Chapter 12 is actually just a piece
+      of middleware that short-circuits the call to your view function if
+      the response for that view has already been cached.
+      
+    * The ``flatpages``, ``redirects`` and ``csrf`` contributed apps from
+      Chapter 15 all do their magic through the use of middleware components
+
+This chapters dives deeper into exactly what middleware is and how it works,
+and explains how you can write your own middleware.
+
+What's middleware?
+==================
+
+Middleware is actually incredible simple. A middleware component is simply a
+Python class that conforms to a certain API -- duck typing strikes again!
+Before diving into the formal aspects of what that API is, let's look at a
+very simple example.
+
+High-traffic sites often need to deploy Django behind a load balancing proxy
+(see Chapter 21). This can cause a few small complications, one of which is
+that every request's remote IP (``request.META["REMOTE_IP"]``) will be that of
+the load balancer, not the actual IP making the request. Load balancers deal
+with this by setting a special header, ``X-Forwarded-For``, to the actual
+requesting IP address.
+
+So here's a small bit of middleware that lets sites running behind a proxy
+still see the correct IP address in ``request.META["REMOTE_IP"]``::
+
+    class SetRemoteAddrFromForwardedFor(object):
+
+        def process_request(self, request):
+            try:
+                real_ip = request.META['HTTP_X_FORWARDED_FOR']
+            except KeyError:
+                pass
+            else:
+                # HTTP_X_FORWARDED_FOR can be a comma-separated list of IPs.
+                # Take just the first one.
+                real_ip = real_ip.split(",")[0]
+                request.META['REMOTE_ADDR'] = real_ip
+
+If this is installed (see below), every request's ``X-Forwarded-For`` value
+will be automatically inserted into ``request.META['REMOTE_ADDR']``. Simple,
+isn't it?
+
+In fact, this is a common enough need that this piece of middleware is a
+built-in part of Django; it lives in ``django.middleware.http``, and you can
+read a bit more about it below.
+
+Now, though, let's take a look at the methods that middleware classes can
+implement. Note that all the following methods are optional, but to actually
+do something a middleware class will need to define at least one of them.
+
+Initializer: ``__init__(self)``
+-------------------------------
+
+If middleware classes define an initializer (i.e. an ``__init__`` method), it
+should take no arguments (beyond the standard ``self``).
+
+For performance reasons, middleware classes are only instantiated **once** in
+long-running server processes; this means that you can't count on ``__init__``
+getting called every time a request runs, only once at server startup.
+
+Middleware classes may also use initialization time to remove themselves from
+being installed. If an initializer raises
+``django.exceptions.MiddlewareNotUsed``, Django will remove that piece of
+middleware from the middleware stack. You might use this to check for some
+piece of software that the middleware class depends on, or whether the server
+is running in debug mode, or any other sort of environmental situation that
+might make you want to disable the middleware.
+
+Request pre-processor: ``process_request(self, request)``
+---------------------------------------------------------
+
+This method gets called as soon as the request as been received, and before
+the URL has been resolved to determine which view to run. It's passed the
+``HttpRequest`` object, which you may modify at will.
+
+``process_request()`` should return either ``None`` or an ``HttpResponse``
+object. If it returns ``None``, Django will continue processing this request,
+executing any other middleware and then the appropriate view. 
+
+If a request middleware returns an ``HttpResponse`` object, Django won't
+bother calling *any* other middleware (of any type) or the appropriate view;
+it'll return that ``HttpResponse``.
+
+View pre-processor: ``process_view(self, request, view, args, kwargs)``
+-----------------------------------------------------------------------
+
+This method gets called after the request middleware has run, and after the
+URL has been resolved into a view, but before that view has actually been
+called.
+
+The arguments passed to this view are:
+
+    ==============  ==========================================================
+    Argument        Explanation
+    ==============  ==========================================================
+    ``request``     The ``HttpRequest`` object.
+    
+    ``view``        The Python function that Django will call to handle this 
+                    request.  This is the actual function object itself,
+                    not the name of the function as a string.
+                    
+    ``args``        The list of positional arguments that will be passed to
+                    the view, not including the ``request`` argument (which
+                    is always the first argument to a view).
+                    
+    ``kwargs``      The dictionary of keyword arguments that will be passed
+                    to the view.
+    ==============  ==========================================================
+
+Just like ``process_request()``, ``process_view()`` should
+return either ``None`` or an ``HttpResponse`` object. If it returns ``None``,
+Django will continue processing this request, executing any other
+view middleware and then the appropriate view. 
+
+If any view middleware returns an ``HttpResponse`` object, Django won't bother
+calling any other middleware or the appropriate view; it'll return that
+response.
+
+Response post-processor: ``process_response(self, request, response)``
+----------------------------------------------------------------------
+
+This method gets called after the view function has already been called and
+the response has been generation. This is where middleware can modify the
+output of a response; output compression (see below) is one obvious use for
+response middleware.
+
+The parameters should be pretty self-explanatory -- ``request`` is the request
+object, and ``response`` is the response object returned from the view.
+
+Unlike the request and view middleware methods which may return ``None``,
+``process_response()`` *must* return an ``HttpResponse`` object. That response
+could be the original one passed into the function (possibly modified), or a
+brand new one.
+
+Exception post-processor: ``process_exception(self, request, exception)``
+-------------------------------------------------------------------------
+
+This method only gets called if something goes wrong and a view raises an
+uncaught exception, not including ``Http404`` exceptions. You can use this
+hook to send error notifications, dump post-mortem information to a log, or
+even try to recover from the error automatically.
+
+The parameters to this function are the same ``request`` object we've been
+dealing with all along, and ``exception``, which is the actual ``Exception``
+object raised by the view function.
+
+``process_exception()`` may return an ``HttpResponse`` which will be used as
+the response shown to the browser, or it may return ``None`` to continue with
+Django's built-in exception handling.
+
+
+Installing middleware
+=====================
+
+Again, the linear readers in the crowd are probably old hands at this already;
+many of the examples in the previous few chapters will only work if you've
+already figured out how to enable middleware. However, for completeness -- and
+for the benefit of Julio Cortázar fans who've torn all the pages out of this
+book, shuffled them, and are now reading them in random order -- let's break
+it down.
+
+To activate a middleware component, add it to the ``MIDDLEWARE_CLASSES`` list
+in your settings module. In ``MIDDLEWARE_CLASSES``, each middleware component
+is represented by a string: the full Python path to the middleware's class
+name. For example, here's the default ``MIDDLEWARE_CLASSES`` created by
+``django-admin.py startproject``::
+
+    MIDDLEWARE_CLASSES = (
+        'django.middleware.common.CommonMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.middleware.doc.XViewMiddleware',
+    )
+
+A Django installation doesn't require any middleware -- e.g.,
+``MIDDLEWARE_CLASSES`` can be empty, if you'd like -- but it's strongly
+suggested that you use ``CommonMiddleware``.
+
+The order is significant. On the request and view phases, Django applies
+middleware in the order given in ``MIDDLEWARE_CLASSES``, and on the response
+and exception phases, Django applies middleware in reverse order. That is,
+Django treats ``MIDDLEWARE_CLASSES`` as a sort of "wrapper" around the view
+function: on the request, it walks down the list to the view, and on the
+response it walks back up.
+
