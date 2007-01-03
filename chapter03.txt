@@ -25,7 +25,11 @@ To create this page, we'll write a **view function**. A view function, or
 returns a Web response. This response can be the HTML contents of a Web page,
 or a redirect, or a 404 error, or an XML document, or an image...or anything,
 really. The view itself contains whatever arbitrary logic is necessary to
-return that response.
+return that response.  This code can live anywhere you want, as
+long as it's on your Python path. There's no other requirement -- no "magic,"
+so to speak. For the sake of putting it *somewhere*, let's create a file called
+``views.py`` in the ``mysite`` directory which you created in the
+previous chapter.
 
 Here's a view that returns the current date and time, as an HTML document::
 
@@ -34,13 +38,14 @@ Here's a view that returns the current date and time, as an HTML document::
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        html = "<html><body>It is now %s.</body></html>" % now
-        return HttpResponse(html)
+        text = "It is now %s." % now
+        return HttpResponse(text, mimetype="text/plain")
 
 Let's step through this code one line at a time:
 
     * First, we import the class ``HttpResponse``, which lives in the
-      ``django.http`` module.
+      ``django.http`` module.  See Appendix 8 for further details on the
+      HttpRequest and HttpResponse objects.
 
     * Next, we import the ``datetime`` module from Python's standard library --
       the set of useful modules that comes with Python. The ``datetime`` module
@@ -48,17 +53,16 @@ Let's step through this code one line at a time:
       including a function that returns the current time.
 
     * Next, we define a function called ``current_datetime``. This is the
-      **view function**, and, as such, it takes an ``HttpRequest`` object as
-      its first parameter. Each view function takes an ``HttpRequest`` object
-      as its first parameter. In this case, we call that parameter ``request``.
+      **view function**. Each view function takes an ``HttpRequest`` object
+      as its first parameter, which is typically named ``request``.
 
       Note that the name of the view function doesn't matter; Django doesn't
       care what it's called, and it doesn't have to be named in a certain way
       in order for Django to recognize it. We're calling it ``current_datetime``
       here, because that name clearly indicates what it does, but it could just
       as well be named ``super_duper_awesome_current_time``, or something
-      equally revolting. Django doesn't care. (How does Django find this
-      function, then? We'll get to that in a moment.)
+      equally revolting. Django doesn't care.  The next section
+      explains how Django finds this function.
 
     * The first line of code within the function calculates the current
       date/time, as a ``datetime.datetime`` object, and stores that as the
@@ -69,26 +73,24 @@ Let's step through this code one line at a time:
       a placeholder, and the percent sign after the string means "replace the
       ``%s`` with the value of the variable ``now``."
 
-      (A note to the HTML purists: Yes, we know we're missing a DOCTYPE, and
-      a ``<head>``, and all that stuff. We're trying to keep it simple.)
-
     * Finally, the view returns an ``HttpResponse`` object that contains the
-      generated HTML. Each view function is responsible for returning an
+      generated response.  The mimetype is changed to to text/plain from
+      the default of text/html in order to keep the example short.
+      Each view function is responsible for returning an
       ``HttpResponse`` object. (There are exceptions, but we'll get to those
-      later.)
+      later.)  
 
 Your first URLconf
 ==================
 
 So, to recap, this view function returns an HTML page that includes the current
-date and time. But where should this code live, how do we tell Django to use
-this code?
+date and time. But how do we tell Django to use this code?  That's where URLconfs come in.
 
-The answer to the first question is: This code can live anywhere you want, as
-long as it's on your Python path. There's no other requirement -- no "magic,"
-so to speak. For the sake of putting it *somewhere*, let's create a file called
-``views.py``, copy this view code into that file and save it into the ``mysite``
-directory you created in the previous chapter.
+A **URLconf** is like a table of contents for your Django-powered Web site.
+Basically, it's a mapping between URL patterns and the view functions that
+should be called for those URL patterns. It's how you tell Django "For this
+URL, call this code, and for that URL, call that code."  Remember that
+the view functions need to be on the Python path.
 
 .. admonition:: Your Python path
 
@@ -96,13 +98,13 @@ directory you created in the previous chapter.
     looks when you use the Python ``import`` statement.
 
     For example, let's say your Python path is set to
-    ``['', '/usr/lib/python2.4/site-packages', '/home/mycode']``. If you
+    ``['', '/usr/lib/python2.4/site-packages', '/home/username/djcode/']``. If you
     execute the Python code ``from foo import bar``, Python will first
     check for a module called ``foo.py`` in the current directory. (The first
     entry in the Python path, an empty string, means "the current directory.")
     If that file doesn't exist, Python will look for the file
-    ``/usr/lib/python2.4/site-packages/foo.py``. If
-    that file doesn't exist, it will try ``/home/mycode/foo.py``. Finally, if
+    ``/usr/lib/python2.4/site-packages/foo.py``. If that file doesn't
+    exist, it will try ``/home/username/djcode/foo.py``. Finally, if
     *that* file doesn't exist, it will raise ``ImportError``.
 
     If you're interested in seeing the value of your Python path, start the
@@ -113,13 +115,6 @@ directory you created in the previous chapter.
     and Django will take care of things for you automatically behind the
     scenes. (If you're curious, setting the Python path is one of the things
     that the ``manage.py`` file does.)
-
-How do we tell Django to use this view code? That's where URLconfs come in.
-
-A **URLconf** is like a table of contents for your Django-powered Web site.
-Basically, it's a mapping between URL patterns and the view functions that
-should be called for those URL patterns. It's how you tell Django "For this
-URL, call this code, and for that URL, call that code."
 
 When you executed ``django-admin.py startproject`` in the previous chapter, the
 script created a URLconf for you automatically: the file ``urls.py``. Let's
@@ -162,6 +157,19 @@ Let's edit this file to expose our ``current_datetime`` view::
     urlpatterns = patterns('',
         (r'^now/$', current_datetime),
     )
+
+.. XXX Remove the 0.95 example when we've put out a new tarball
+including trunk's callable urlconf.  until then:
+
+Under Django 0.95 (which will be out-dated at the time of
+publication), URLconf is slightly different::
+
+    from django.conf.urls.defaults import *
+
+    urlpatterns = patterns('',
+        (r'^now/$', 'mysite.views'current_datetime'),
+    )
+
 
 We made two changes here. First, we imported the ``current_datetime`` view from
 its module (``mysite/views.py``, which translates into ``mysite.views`` in
