@@ -89,7 +89,13 @@ def comment_counts(request, lang, version, type, chapter):
     release, content = _get_release_or_404(lang, version, type, chapter)
     comment_counts = {}
     for c in release.get_public_comments():
-        comment_counts[c.nodenum] = comment_counts.get(c.nodenum, 0) + 1
+
+        #don't include reviewed comments in counts for reviewers.
+        if request.user.has_perm("djangobook.change_comment") and c.is_reviewed:
+            inc = 0
+        else:
+            inc = 1
+        comment_counts[c.nodenum] = comment_counts.get(c.nodenum, 0) + inc
     return HttpResponse(simplejson.dumps(comment_counts.items()), mimetype="text/javascript")
 
 @require_POST
