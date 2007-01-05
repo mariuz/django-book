@@ -49,7 +49,14 @@ This applies to the entire Django database API, with the following exceptions:
 E-mail header injection
 =======================
 
-TODO
+[3:15pm] adrian_h: send_mail() constructs the e-mail message using the subject, message, etc. and pieces together the headers
+[3:16pm] adrian_h: So if you passed subject='hello\nCc:spamvictim@example.com', that's an example of a header injection
+[3:16pm] adrian_h: Using headers to spam, basically
+[3:16pm] jacobkm: aah, ok
+[3:16pm] jacobkm: but send_mail actually escapes \n, right?
+[3:16pm] adrian_h: We prevent that by disallowing newlines in the appropriate fields in send_mail() -- have a look at the source for more details
+[3:16pm] jacobkm: right, OK
+[3:16pm] adrian_h: I think it just disallows rather than escapes
 
 
 Exposed error messages
@@ -74,3 +81,30 @@ but it should display them to the trusted site developers.
 The solution
 ------------
 
+Cross-site Scripting (XSS)
+==========================
+
+More
+================
+
+[3:19pm] adrian_h: Hmm..
+[3:20pm] jacobkm: probably something about man-in-the-middle session attacks (which can only really be stopped by using https)
+[3:20pm] adrian_h: Session stuff -- essentially an explanation of how sessions are tied to a session cookie and it's relying solely on unguessability of the session ID
+[3:20pm] jacobkm: Yeah
+[3:21pm] adrian_h: There's really no way around that unless you also key it on IP address or user agent, but there are problems with those approaches -- maybe it could discuss that
+[3:21pm] jacobkm: yup
+[3:22pm] jacobkm: I think I'm more or less gonna say that if you want to be really protected from that stuff that you'll need to use ssl
+[3:22pm] adrian_h: One thing we do as an extra security precaution is reset the session key if an attempt is made to guess it -- see line 60 in contrib/sessions/middleware.py
+[3:22pm] jacobkm: right, yeah
+[3:22pm] jacobkm: that's smart :)
+[3:23pm] adrian_h: http://en.wikipedia.org/wiki/Category:Web_security_exploits
+[3:23pm] jacobkm: Ooh, that's a good place to start
+[3:23pm] adrian_h: There are a couple of links on this ticket, too -- http://code.djangoproject.com/ticket/362
+[3:24pm] jacobkm: oh, X-Forwarded-For needs a mention, too
+[3:24pm] adrian_h: Also, our session framework intentionally doesn't allow for session IDs to be passed in URLs, because that's an exploit waiting to happen
+[3:24pm] jacobkm: Right
+[3:24pm] adrian_h: This is going to be a fun chapter!
+[3:24pm] jacobkm: I think I mentioned that in the sessions chapter.
+[3:24pm] jacobkm: Heh
+[3:25pm] adrian_h: We already have a section about the CSRF middleware (in the contrib chapter), but you could just mention that again, with a pointer to that chapter
+[3:25pm] jacobkm: right
