@@ -1,0 +1,76 @@
+==================
+Security in Django
+==================
+
+Every Web developer should be aware of security in the craft of Web programming.
+This chapter outlines how Django solves common security problems, and which
+steps you can take to make your code more secure.
+
+SQL injection
+=============
+
+The problem
+-----------
+
+SQL injection is a common exploit in which an attacker alters Web-page
+parameters (such as GET/POST data or URLs) to insert arbitrary SQL snippets
+that a naive Web application executes in its database directly.
+
+For examples, see `SQL Injection Attacks by Example`_.
+
+All input from the public Internet should be sanitized before being inserted
+into an SQL statement.
+
+.. _SQL Injection Attacks by Example: http://www.unixwiz.net/techtips/sql-injection.html
+
+The solution
+------------
+
+The Django database API automatically escapes all special SQL parameters,
+according to the quoting conventions of the database server you're using (e.g.
+PostgreSQL, MySQL).
+
+For example, in this API call::
+
+    foo.get_list(bar__exact="' OR 1=1")
+
+...Django will escape the input accordingly, resulting in a statement like this::
+
+    SELECT * FROM foos WHERE bar = '\' OR 1=1'
+
+This applies to the entire Django database API, with the following exceptions:
+
+    TODO
+
+
+
+
+
+E-mail header injection
+=======================
+
+TODO
+
+
+Exposed error messages
+======================
+
+The problem
+-----------
+
+Django's philosophy is that site visitors should never see application-related
+error messages. If your code raises an unhandled exception, a site visitor
+should not see the full traceback -- or *any* hint of code snippets or Python
+(programmer-oriented) error messages. Instead, the visitor should see a
+friendly "This page is unavailable" message.
+
+Any code errors and tracebacks displayed to the public could give valuable
+insight to a malicious hacker.
+
+Naturally, of course, developers need to see tracebacks to debug problems in
+their code. So the framework should hide all error messages from the public,
+but it should display them to the trusted site developers.
+
+The solution
+------------
+
