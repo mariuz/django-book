@@ -2,6 +2,8 @@
 Security
 ========
 
+.. contents:: 
+
 The internet can be a scary place.
 
 In the past few years, internet horror stories have been in the news almost
@@ -131,7 +133,7 @@ the example we started this section with should be written::
 
     def user_contacts(request):
         user = request.GET['username']
-        sql = "SELECT * FROM user_contacts WHERE username = %s"
+        sql = "SELECT * FROM user_contacts WHERE username = %s;"
         cursor = connection.cursor()
         cursor.execute(sql, [user])
         # ... do something with the results
@@ -139,6 +141,21 @@ the example we started this section with should be written::
 The low-level ``execute`` method takes a SQL string with ``%s`` placeholders,
 and automatically escapes and inserts parameters from the list passed as the
 second argument. You should *always* construct custom SQL this way.
+
+Cross-site Scripting (XSS)
+==========================
+
+Start here: http://en.wikipedia.org/wiki/Cross-site_scripting
+
+Cross-site Request Forgery (CSRF)
+=================================
+
+Refer to ch15.
+
+Session forging/hijacking
+=========================
+
+i.e. don't trust the session cookie too much.
 
 E-mail header injection
 =======================
@@ -180,13 +197,21 @@ and the subject). If you try to use ``django.core.mail.send_mail`` with a
 subject that contains newlines, Django will raise a ``BadHeaderError``
 exception.
 
-If you decide to use other methods of sending email, you'll need to make sure that newlines in headers either cause an error or are stripped. You may want to examine the ``SafeMIMEText`` class in ``django.core.mail`` to see how Django does this.
+If you decide to use other methods of sending email, you'll need to make sure
+that newlines in headers either cause an error or are stripped. You may want
+to examine the ``SafeMIMEText`` class in ``django.core.mail`` to see how
+Django does this.
+
+Directory traversal
+===================
+
+http://en.wikipedia.org/wiki/Directory_traversal -- like the other
+injection-related attacks, but this one for filenames.
+
+Mention that the URLconf thing prevents any automatic traversal and execution of code; this prevents anything you don't explicitally want run to run.  I probably shouldn't mention the RoR vulnerability, but that's the idea.
 
 Exposed error messages
 ======================
-
-The problem
------------
 
 Django's philosophy is that site visitors should never see application-related
 error messages. If your code raises an unhandled exception, a site visitor
@@ -204,30 +229,8 @@ but it should display them to the trusted site developers.
 The solution
 ------------
 
-Cross-site Scripting (XSS)
-==========================
+    * DEBUG=False
+    * 404/500 templates
+    * PythonDebug Off (modpy)
+    * FCGI errors?
 
-More
-================
-
-[3:19pm] adrian_h: Hmm..
-[3:20pm] jacobkm: probably something about man-in-the-middle session attacks (which can only really be stopped by using https)
-[3:20pm] adrian_h: Session stuff -- essentially an explanation of how sessions are tied to a session cookie and it's relying solely on unguessability of the session ID
-[3:20pm] jacobkm: Yeah
-[3:21pm] adrian_h: There's really no way around that unless you also key it on IP address or user agent, but there are problems with those approaches -- maybe it could discuss that
-[3:21pm] jacobkm: yup
-[3:22pm] jacobkm: I think I'm more or less gonna say that if you want to be really protected from that stuff that you'll need to use ssl
-[3:22pm] adrian_h: One thing we do as an extra security precaution is reset the session key if an attempt is made to guess it -- see line 60 in contrib/sessions/middleware.py
-[3:22pm] jacobkm: right, yeah
-[3:22pm] jacobkm: that's smart :)
-[3:23pm] adrian_h: http://en.wikipedia.org/wiki/Category:Web_security_exploits
-[3:23pm] jacobkm: Ooh, that's a good place to start
-[3:23pm] adrian_h: There are a couple of links on this ticket, too -- http://code.djangoproject.com/ticket/362
-[3:24pm] jacobkm: oh, X-Forwarded-For needs a mention, too
-[3:24pm] adrian_h: Also, our session framework intentionally doesn't allow for session IDs to be passed in URLs, because that's an exploit waiting to happen
-[3:24pm] jacobkm: Right
-[3:24pm] adrian_h: This is going to be a fun chapter!
-[3:24pm] jacobkm: I think I mentioned that in the sessions chapter.
-[3:24pm] jacobkm: Heh
-[3:25pm] adrian_h: We already have a section about the CSRF middleware (in the contrib chapter), but you could just mention that again, with a pointer to that chapter
-[3:25pm] jacobkm: right
