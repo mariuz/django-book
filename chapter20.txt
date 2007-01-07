@@ -27,10 +27,32 @@ Instead, we'll give a short synopsis of security problems as they apply to
 Django. For those interested in a more in-depth discussion of web security, we
 recommend XXX.
 
+The theme of web security
+=========================
+
+If you learn only one thing from this chapter, let it be this:
+
+    Never -- under any circumstances -- trust data from the browser.
+    
+You *never* know who's on the other side of that HTTP connection. It might be
+one of your users, but it just as easily could be a cracker or script kiddie
+looking for an opening.
+
+Any data of any nature that comes from the browser needs to be treated with a
+healthy dose of paranoia. This includes data that's both "in band" -- i.e.
+submitted from web forms -- and "out of band" -- i.e. HTTP headers, cookies,
+and other request info. It's trivial to spoof the request metadata that
+browsers usually add automatically.
+
+Every one of the vulnerabilities discussed in this chapter stems directly from
+trusting data that comes over the wire and then failing to sanitize that data
+before using it. You should make it a general practice to continuously ask,
+"where does this data come from?".
+
 SQL injection
 =============
 
-SQL injection is a common exploit in which an attacker alters Web-page
+**SQL injection** is a common exploit in which an attacker alters Web-page
 parameters (such as GET/POST data or URLs) to insert arbitrary SQL snippets
 that a naive Web application executes in its database directly.
 
@@ -121,15 +143,44 @@ second argument. You should *always* construct custom SQL this way.
 E-mail header injection
 =======================
 
-[3:15pm] adrian_h: send_mail() constructs the e-mail message using the subject, message, etc. and pieces together the headers
-[3:16pm] adrian_h: So if you passed subject='hello\nCc:spamvictim@example.com', that's an example of a header injection
-[3:16pm] adrian_h: Using headers to spam, basically
-[3:16pm] jacobkm: aah, ok
-[3:16pm] jacobkm: but send_mail actually escapes \n, right?
-[3:16pm] adrian_h: We prevent that by disallowing newlines in the appropriate fields in send_mail() -- have a look at the source for more details
-[3:16pm] jacobkm: right, OK
-[3:16pm] adrian_h: I think it just disallows rather than escapes
+SQL injections less-well-known sibling, **e-mail header injection** hijacks
+email-sending web forms and uses them to send spam. Any form that constructs
+email headers from web form data is a target for this kind of attack.
 
+Let's look at the canonical contact form found on many sites. Usually this
+emails a hard-coded email address, and so at first glance doesn't appear
+vulnerable to spam abuse.
+
+However, most of these forms also allow the user to type in his own subject
+for the email (along with a from address, body, and sometimes a few other
+fields). This subject field is used to construct the "subject" header of the
+email message.
+
+If that header is unescaped when building the email message, an attacker could
+use something like ``"hello\ncc:spamvictim@example.com"`` (where ``"\n``" is a
+newline character). That would make the constructed email headers turn into::
+
+    To: hardcoded@example.com
+    Subject: hello
+    cc: spamvictim@example.com
+    
+Like SQL injection, if we trust the subject line given by the user, we'll
+allow him to construct a malicious set of headers, and they can use our
+contact form to send spam.
+
+The solution
+------------
+
+We can prevent this attack in the same way we prevent SQL injection: always
+escape or validate user-submitted content.
+
+Django's built-in mail functions (in ``django.core.mail``) simply do not allow
+newlines in any fields used to construct headers (the from and to addresses
+and the subject). If you try to use ``django.core.mail.send_mail`` with a
+subject that contains newlines, Django will raise a ``BadHeaderError``
+exception.
+
+If you decide to use other methods of sending email, you'll need to make sure that newlines in headers either cause an error or are stripped. You may want to examine the ``SafeMIMEText`` class in ``django.core.mail`` to see how Django does this.
 
 Exposed error messages
 ======================
