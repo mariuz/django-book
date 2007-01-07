@@ -1,50 +1,122 @@
-==================
-Security in Django
-==================
+========
+Security
+========
 
-Every Web developer should be aware of security in the craft of Web programming.
-This chapter outlines how Django solves common security problems, and which
-steps you can take to make your code more secure.
+The internet can be a scary place.
+
+In the past few years, internet horror stories have been in the news almost
+continuously. We've seen viruses spread with amazing speed, swarms of
+compromised computers wielded as weapons, a never-ending arms race against
+spammers, and many, many reports of identify theft from compromised web sites.
+
+As good web developers, it's our duty to do what we can to combat these forces
+of darkness. Every web developer needs to treat security as a fundamental
+aspect of web programming. Unfortunately, it turns out that security is *hard*
+-- attackers only need to find a single vulnerability, but defenders have to
+protect every single one.
+
+Django attempts to mitigate this difficulty; it's designed to automatically
+protect you from many of the common security mistakes that new (and even
+experienced) web developers make. Still, it's important to understand what
+these problems are, how Django protects you, and -- most importantly -- the
+steps you can take to make your code even more secure.
+
+First, though, an important disclaimer: we're in no way experts in this realm,
+and so we won't try to explain each vulnerability in a comprehensive manner.
+Instead, we'll give a short synopsis of security problems as they apply to
+Django. For those interested in a more in-depth discussion of web security, we
+recommend XXX.
 
 SQL injection
 =============
-
-The problem
------------
 
 SQL injection is a common exploit in which an attacker alters Web-page
 parameters (such as GET/POST data or URLs) to insert arbitrary SQL snippets
 that a naive Web application executes in its database directly.
 
-For examples, see `SQL Injection Attacks by Example`_.
+This vulnerability most commonly crops up when constructing SQL "by hand" from
+user input. For example, imagine writing a function to gather a list of a
+contact info from a contact search page. To prevent spammers from reading
+every single email in our system, we'll force the user to type in someone's
+username before we provide their email address::
 
-All input from the public Internet should be sanitized before being inserted
-into an SQL statement.
+    def user_contacts(request):
+        user = request.GET['username']
+        sql = "SELECT * FROM user_contacts WHERE username = '%s';" % username
+        # execute the SQL here...
+        
+.. note::
 
-.. _SQL Injection Attacks by Example: http://www.unixwiz.net/techtips/sql-injection.html
+    In this example, and all similar "don't do this" examples that follow,
+    we've deliberately left out most of the code needed to make the functions
+    actually work. We don't want this code to work if someone accidentally
+    takes it out of context.
+    
+Though at first this doesn't look dangerous, it's really is. First, our
+attempt at protecting our entire email list will fail with a cleverly
+constructed query.
+
+Think about what happens if an attacker types ``"' OR 'a'='a"`` into the query
+box. In that case, the query that the string interpolation will construct will
+be::
+
+    SELECT * FROM user_contacts WHERE username = '' OR 'a' = 'a';
+    
+Because we allowed unsecured SQL into the string, the attacker's added ``OR``
+clause ensures that every single row is returned.
+
+However, that's the *least* scary attack. Imagine what will happen if the
+attacker submits ``"'; DELETE FROM user_contacts WHERE 'a' = 'a``". We'll end
+up with this complete query::
+
+    SELECT * FROM user_contacts WHERE username = ''; DELETE FROM user_contacts WHERE 'a' = 'a';
+    
+Yikes! Where'd our contact list go?
 
 The solution
 ------------
 
-The Django database API automatically escapes all special SQL parameters,
-according to the quoting conventions of the database server you're using (e.g.
-PostgreSQL, MySQL).
+Although this problem is insidious and sometimes hard to spot, the solution is
+simple: *never* trust user-submitted data, and *always* escape it when passing
+it into SQL.
+
+The Django database API does this for you. It automatically escapes all
+special SQL parameters, according to the quoting conventions of the database
+server you're using (e.g. PostgreSQL, MySQL).
 
 For example, in this API call::
 
     foo.get_list(bar__exact="' OR 1=1")
 
-...Django will escape the input accordingly, resulting in a statement like this::
+Django will escape the input accordingly, resulting in a statement like this::
 
     SELECT * FROM foos WHERE bar = '\' OR 1=1'
+    
+Which is harmless.
 
-This applies to the entire Django database API, with the following exceptions:
+This applies to the entire Django database API, with a couple of exceptions:
 
-    TODO
+    * The ``where`` argument to the ``extra()`` method (see Appendix XXX).
+      That parameter accepts raw SQL by design.
 
+    * Queries done "by hand" using the lower-level database API.
 
+In each of these cases, it's easy to keep yourself protected. In each case,
+avoid string interpolation in favor of passing in "bind parameters". That is,
+the example we started this section with should be written::
 
+    from django.db import connection
 
+    def user_contacts(request):
+        user = request.GET['username']
+        sql = "SELECT * FROM user_contacts WHERE username = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, [user])
+        # ... do something with the results
+        
+The low-level ``execute`` method takes a SQL string with ``%s`` placeholders,
+and automatically escapes and inserts parameters from the list passed as the
+second argument. You should *always* construct custom SQL this way.
 
 E-mail header injection
 =======================
