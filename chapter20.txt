@@ -205,10 +205,84 @@ Django does this.
 Directory traversal
 ===================
 
-http://en.wikipedia.org/wiki/Directory_traversal -- like the other
-injection-related attacks, but this one for filenames.
+**Directory traversal** is another injection-style attack wherein a malicious
+user tricks filesystem code into reading and/or writing files that the web
+server shouldn't have access to.
 
-Mention that the URLconf thing prevents any automatic traversal and execution of code; this prevents anything you don't explicitally want run to run.  I probably shouldn't mention the RoR vulnerability, but that's the idea.
+An example might be a view that reads files from the disk without carefully
+sanitizing the file name::
+
+    def dump_file(request):
+        filename = request.GET["filename"]
+        filename = os.path.join(BASE_PATH, filename)
+        content = open(filename).read()
+        
+        # ...
+        
+Thought it looks like that view restricts file access to files beneath
+``BASE_PATH`` (by using ``os.path.join``), if the attacker passes in a
+``filename`` containing ``".."``, he can access files "above" ``BASE_PATH``.
+It's only a matter of time before he can discover the correct number of
+``".."``s to successfully access, say, ``../../../../../etc/passwd``.
+
+Anything that reads files without proper escaping is vulnerable to this
+problem. Views that *write* files are just as vulnerable, but the consequences
+are doubly dire.
+
+Another permutation of this problem lies in code that dynamically loads
+modules based on the URL or other request information. A well-publicized
+example came from the world of Ruby on Rails: Rails can map URLs like
+``http://example.com/person/1`` directly to objects (without using any sort of
+URLconf analog), and in mid-2006 it was discovered that carefully constructed
+URLs could automatically load arbitrary code. In particular, the module that
+caused a database reset could be loaded dynamically, and thus an attacker
+could clear out your entire database!
+
+.. JKM: I couldn't resist the jab at Rails. Is this OK or does it come across 
+.. JKM: as mean-spirited?
+
+The solution
+------------
+
+If your code ever needs to read or write files based on user input, you need
+to very carefully sanitize the requested path to ensure that an attacker isn't
+able to escape from the base directory you're restricting access to.
+
+.. note::
+
+    Needless to say, you should **never** write code that can read from any
+    area of the disk!
+    
+A good example of how to do this escaping lies in the Django's built-in static
+content serving view (in ``django.views.static``). Here's the relevant code::
+
+    import os
+    import posixpath
+    
+    # ...
+
+    path = posixpath.normpath(urllib.unquote(path))
+    newpath = ''
+    for part in path.split('/'):
+        if not part:
+            # strip empty path components
+            continue
+        
+        drive, part = os.path.splitdrive(part)
+        head, part = os.path.split(part)
+        if part in (os.curdir, os.pardir):
+            # strip '.' amd '..' in path
+            continue
+        
+        newpath = os.path.join(newpath, part).replace('\\', '/')
+
+Django itself doesn't read files (unless you use the ``static.serve``
+function, but that's protected with the code shown above), so this
+vulnerability doesn't affect the core code much.
+
+In addition, the use of the URLconf abstraction means that Django will *never*
+load code you've not explicitly told it to load. There's no way to create a
+URL that causes Django to load something not mentioned in a URLconf.
 
 Exposed error messages
 ======================
