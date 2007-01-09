@@ -231,12 +231,11 @@ are doubly dire.
 
 Another permutation of this problem lies in code that dynamically loads
 modules based on the URL or other request information. A well-publicized
-example came from the world of Ruby on Rails: Rails can map URLs like
-``http://example.com/person/1`` directly to objects (without using any sort of
-URLconf analog), and in mid-2006 it was discovered that carefully constructed
-URLs could automatically load arbitrary code. In particular, the module that
-caused a database reset could be loaded dynamically, and thus an attacker
-could clear out your entire database!
+example came from the world of Ruby on Rails.  Prior to mid-2006,
+Rails used URLs like ``http://example.com/person/poke/1`` directly to
+load modules and call methods.  The result was that a
+carefully-constructed URL could automatically load arbitrary code,
+including a database reset script!
 
 .. JKM: I couldn't resist the jab at Rails. Is this OK or does it come across 
 .. JKM: as mean-spirited?
