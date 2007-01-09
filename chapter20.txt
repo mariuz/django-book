@@ -15,7 +15,7 @@ aspect of web programming. Unfortunately, it turns out that security is *hard*
 -- attackers only need to find a single vulnerability, but defenders have to
 protect every single one.
 
-Django attempts to mitigate this difficulty; it's designed to automatically
+Django attempts to mitigate this difficulty. It's designed to automatically
 protect you from many of the common security mistakes that new (and even
 experienced) web developers make. Still, it's important to understand what
 these problems are, how Django protects you, and -- most importantly -- the
@@ -52,9 +52,9 @@ SQL injection
 =============
 
 **SQL injection** is a common exploit in which an attacker alters Web-page
-parameters (such as GET/POST data or URLs) to insert arbitrary SQL snippets
-that a naive Web application executes in its database directly. It's probably
-the most dangerous -- and unfortunately one of the most common --
+parameters (such as ``GET``/``POST`` data or URLs) to insert arbitrary SQL
+snippets that a naive Web application executes in its database directly. It's
+probably the most dangerous -- and unfortunately one of the most common --
 vulnerabilities in the wild.
 
 This vulnerability most commonly crops up when constructing SQL "by hand" from
@@ -75,13 +75,12 @@ username before we provide their email address::
     actually work. We don't want this code to work if someone accidentally
     takes it out of context.
     
-Though at first this doesn't look dangerous, it's really is. First, our
-attempt at protecting our entire email list will fail with a cleverly
-constructed query.
+Though at first this doesn't look dangerous, it really is. 
 
-Think about what happens if an attacker types ``"' OR 'a'='a"`` into the query
-box. In that case, the query that the string interpolation will construct will
-be::
+First, our attempt at protecting our entire email list will fail with a
+cleverly constructed query. Think about what happens if an attacker types ``"'
+OR 'a'='a"`` into the query box. In that case, the query that the string
+interpolation will construct will be::
 
     SELECT * FROM user_contacts WHERE username = '' OR 'a' = 'a';
     
@@ -115,7 +114,7 @@ Django will escape the input accordingly, resulting in a statement like this::
 
     SELECT * FROM foos WHERE bar = '\' OR 1=1'
     
-Which is harmless.
+Completely harmless.
 
 This applies to the entire Django database API, with a couple of exceptions:
 
@@ -141,6 +140,13 @@ The low-level ``execute`` method takes a SQL string with ``%s`` placeholders,
 and automatically escapes and inserts parameters from the list passed as the
 second argument. You should *always* construct custom SQL this way.
 
+Unfortunately, you can't use bind parameters everywhere in SQL; they're not
+allowed as identifiers (i.e. table or column names). Thus, if you need to,
+say, dynamically construct a list of tables from a ``POST`` variable, you'll
+need to escape that name in your code. Django provides a function,
+``django.db.backend.quote_name``, which will escape the identifier according
+to the current database's quoting scheme.
+
 Cross-site Scripting (XSS)
 ==========================
 
@@ -148,8 +154,10 @@ Probably the most common web vulnerability, **cross-site scripting**, or
 **XSS**, is found in web applications that fail to properly escape
 user-submitted content before rendering it into HTML. This allows an attacker
 to maliciously insert arbitrary HTML, usually in the form of ``<script>``
-tags. Attackers often use XSS attacks to steal cookie and session info, or to
-trick users into giving private information to the wrong person (a.k.a
+tags. 
+
+Attackers often use XSS attacks to steal cookie and session info, or to trick
+users into giving private information to the wrong person (a.k.a
 **phishing**).
 
 This type of attack can take a number of different forms, and has almost
@@ -181,14 +189,19 @@ content. This type of attack has been used to trick users into entering data
 into what looks like their bank's website, but in fact is an XSS-hijacked form
 that submits your back account information to an attacker.
 
-This gets worse if you're storing user data in the database and later
-displaying it on your site. In 2006, MySpace was found to be vulnerable to an
-XSS attack; a user inserted javascript into his profile that automatically
+This gets worse if you storing this data in the database and later display it
+it on your site. 
+
+For example, at one point MySpace was found to be vulnerable to an XSS attack
+of this nature. A user inserted javascript into his profile that automatically
 added him as your friend when you visited his profile page. Within a few days
 he had millions of friends.
 
 Now, this may sound relatively benign, but keep in mind that this attacker
-managed to get *his* code -- not MySpace's -- running on *your* computer.
+managed to get *his* code -- not MySpace's -- running on *your* computer. This
+violoates the assumed trust that all the code on MySpace is actually written
+by MySpace.
+
 MySpace was extremely lucky that this malicious code didn't automatically
 delete viewer's accounts, change their passwords, flood the site with spam, or
 any of the other nightmare scenarios this vulnerability unleashes.
@@ -201,8 +214,8 @@ from a user. If we simply rewrite our template as::
 
     <h1>Hello, {{ name|escape }}!</h1>
     
-We're no longer vulnerable. You should *always* use the ``escape`` tag (or an
-analogue) when displaying user-submitted content on your site.
+then we're no longer vulnerable. You should *always* use the ``escape`` tag
+(or an analogue) when displaying user-submitted content on your site.
 
 .. admonition:: Why doesn't Django just do this for you?
 
@@ -212,15 +225,20 @@ analogue) when displaying user-submitted content on your site.
     
     So far, Django's templates have avoided this behavior because it subtley
     and invisibly changes what should be relatively streightforward behavior
-    (displaying variables).  It's a tricky issue and a difficult trade-off 
-    to evaluate; adding hidden implicit behavior is against Django's core
-    ideals (and Python's, for that matter), but security is also vitally
-    important.
+    (displaying variables). It's a tricky issue and a difficult trade-off to
+    evaluate. Adding hidden implicit behavior is against Django's core ideals
+    (and Python's, for that matter), but security is equally important.
     
-    All this to say, then, that there's a non-zero chance that Django will
-    grow some sort of auto-escaping behavior in the future. Even if it does,
-    however, you should *still* be in the habit of thinking "where does this
-    data come from?" at all times.
+    All this to say, then, that there's a fair chance that Django will grow
+    some form of auto-escaping (or nearly-auto-escaping) behavior in the
+    future. It's always a good idea to check the official Django
+    documentation; it'll always be more up-to-date than this book (especially
+    the dead-tree version).
+    
+    Even if Django does add this feature, however, you should *still* be in
+    the habit of thinking "where does this data come from?" at all times. No
+    automatic solution will ever protect your site from XSS attacks 100% of
+    the time.
     
 Cross-site Request Forgery (CSRF)
 =================================
