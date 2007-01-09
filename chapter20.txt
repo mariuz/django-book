@@ -2,8 +2,6 @@
 Security
 ========
 
-.. contents:: 
-
 The internet can be a scary place.
 
 In the past few years, internet horror stories have been in the news almost
@@ -26,8 +24,7 @@ steps you can take to make your code even more secure.
 First, though, an important disclaimer: we're in no way experts in this realm,
 and so we won't try to explain each vulnerability in a comprehensive manner.
 Instead, we'll give a short synopsis of security problems as they apply to
-Django. For those interested in a more in-depth discussion of web security, we
-recommend XXX.'
+Django.
 
 The theme of web security
 =========================
@@ -228,17 +225,102 @@ analogue) when displaying user-submitted content on your site.
 Cross-site Request Forgery (CSRF)
 =================================
 
-**CSRF**, also known as "session riding," is a Web-site security exploit. It
-happens when a malicious Web site tricks a user into unknowingly loading a URL
-from a site at which they're already authenticated -- hence, taking advantage
-of their authenticated status.
+**CSRF** happens when a malicious Web site tricks a user into unknowingly
+loading a URL from a site at which they're already authenticated -- hence,
+taking advantage of their authenticated status.
 
-Django has built-in tools to protect from this kind of attack; both CSRF itself and those tools are covered in great detail in Chapter 15.
+Django has built-in tools to protect from this kind of attack; both the attack
+itself and those tools are covered in great detail in Chapter 15.
 
 Session forging/hijacking
 =========================
 
-i.e. don't trust the session cookie too much.
+This isn't a specific attack, but rather a general class of attacks on a
+user's session data. It can take a number of different forms:
+
+    * A **man-in-the-middle** attack, where an attacker snoops on session data
+      as it travels over the wire (or wireless) network. 
+            
+    * **Session forging**, where an attacker uses a fake session ID
+      (perhaps obtained through a man-in-the-middle attack) to pretend to be
+      another user.
+      
+      An example of this first two would be an attacker in a coffee shop using
+      the wireless network to capture a session cookie; he could then use that
+      cookie to impersonate the original user.
+      
+    * A **cookie forging** attack, where an attacker overrides the supposedly
+      read-only data stored in a cookie. Chapter 12 explains in details how
+      cookies work, and one of the salient points is that it's trivial for
+      browsers and malicious users to change cookies without your knowledge.
+      
+      There's a long history of web sites that have stored a cookie like
+      ``IsLoggedIn=1`` or even ``LoggedInAsUser=jacob``; it's almost too easy
+      to exploit these types of attackers.
+      
+      On a more subtle level, though, it's never a good idea to trust anything
+      stored in a cookie; you never know who's been poking at them.
+      
+    * **Session fixation**, where an attacker tricks a user into setting or
+      reseting their session ID.  
+      
+      For example, PHP allows session identifiers to be passed in the URL
+      (i.e.
+      ``http://example.com/?PHPSESSID=fa90197ca25f6ab40bb1374c510d7a32``). An
+      attacker who tricks a user into clicking on a link with a hardcoded
+      session ID will cause the user to pick up that session.
+      
+      This has been used in phishing attacks to trick users into entering
+      personal information into the an account which the attacker owns; he can
+      later log into that account and retrieve the data.
+      
+    * **Session poisoning**, where an attacker injects potentially dangerous
+      data into a user's session -- usually through a web form that the user
+      submits to set session data.
+      
+      A canonical example is a site that stores a simple user preference (like
+      a page's background color) in a cookie. An attacker could trick a user
+      into clicking on a link to submit a "color" that actually contains an
+      XSS attack; if that color isn't escaped (see above) the user could again
+      inject malicious code into the user's environment.
+      
+The solution
+------------
+
+There are a number of general principles that can protect from these attacks:
+
+    * Never allow session information to be contained in the URL. 
+    
+      Django's session framework (see Chapter 12) simply doesn't allow
+      sessions to be contained in the URL.
+      
+    * Don't store data in cookies directly; instead, store a session ID
+      that maps to session data stored on the backend.
+      
+      If you use Django's built-in session framework (i.e.
+      ``request.session``), this is handled automatically for you. The only
+      cookie that the session framework uses is a single session ID; all the
+      session data is stored in the database.
+      
+    * Remember to escape session data if you display it in the template. See
+      the XSS section above, and remember that it applies to any user-created
+      content. You should treat session information as user-created.
+      
+    * Prevent attackers from spoofing session IDs whenever possible.
+    
+      Although it's nearly impossible to detect someone who's hijacked a
+      session ID, Django does have built-in protection against a brute-force
+      session attack. Session IDs are stored as hashes (instead of sequential
+      numbers) which prevents a brute-force attack, and a user will always get
+      a new session ID if they try a non-existent one which prevent session
+      fixation.
+      
+Notice that none of those principles and tools prevent man-in-the-middle
+attacks. These types of attacks are nearly impossible to detect. If your site
+allows logged-in users to see any sort of sensitive data, you should *always*
+serve that site over HTTPS. Additionally, if you've got an SSL-enabled site,
+you should set the ``SESSION_COOKIE_SECURE`` setting to ``True``; this will
+make Django only send session cookies over HTTPS.
 
 E-mail header injection
 =======================
@@ -367,14 +449,20 @@ URL that causes Django to load something not mentioned in a URLconf.
 Exposed error messages
 ======================
 
-Django's philosophy is that site visitors should never see application-related
-error messages. If your code raises an unhandled exception, a site visitor
-should not see the full traceback -- or *any* hint of code snippets or Python
+During development, being able to see tracebacks and errors live in your
+browser is extremely useful. Django has "pretty" and informative debug
+messages specifically to make debugging easier.
+
+However, if these errors get displayed once the site goes live, they can
+sometimes unintentionally reveal aspects of your code or configuration that
+could aid an attacker.
+
+Furthermore, errors and tracebacks aren't at all useful to end users. Django's
+philosophy is that site visitors should never see application-related error
+messages. If your code raises an unhandled exception, a site visitor should
+not see the full traceback -- or *any* hint of code snippets or Python
 (programmer-oriented) error messages. Instead, the visitor should see a
 friendly "This page is unavailable" message.
-
-Any code errors and tracebacks displayed to the public could give valuable
-insight to a malicious hacker.
 
 Naturally, of course, developers need to see tracebacks to debug problems in
 their code. So the framework should hide all error messages from the public,
@@ -383,8 +471,37 @@ but it should display them to the trusted site developers.
 The solution
 ------------
 
-    * DEBUG=False
-    * 404/500 templates
-    * PythonDebug Off (modpy)
-    * FCGI errors?
+Django has a simple flag that controls the display of these error messages. If
+the ``DEBUG`` setting is set to ``True``, error messages will be displayed in
+the browser. If not, Django will render return a HTTP 500 ("internal server
+error") message and render an error template that you provide. This error
+template is called ``500.html``, and should live in the root of one of your
+template directories.
 
+Since developers still need to see errors generated on a live site, any errors
+handled this way will send an email with the full traceback to any addresses
+given in the ``ADMINS`` setting.
+
+Users deploying under Apache and mod_python should also make sure they have
+``PythonDebug Off`` in their Apache conf files; this will ensure that any
+errors that occur before Django's had a chance to load won't be displayed
+publicly.
+
+A final word
+============
+
+Hopefully all this talk of security problems isn't too intimidating. It's true
+that the web can be a wild and wooly world, but with a little bit of foresight
+you can have an incredibly secure website.
+
+Keep in mind that web security is a constantly changing field; if you're
+reading the dead-tree version of this book, be sure to check more up-to-date
+security resources for any new vulnerabilities that have been discovered. In
+fact, it's always a good idea to spend some time each month or week
+researching and keeping current on the state of web application security. It's
+a small investment to make, but the protection you'll get for your site and
+your users is priceless.
+
+**Did we miss anything?** Are there other security vulnerabilities you think
+we should cover in this chapter? Did we get something wrong (``$DEITY``
+forbid)? Leave a note on this paragraph and let us know!
