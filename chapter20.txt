@@ -27,7 +27,7 @@ First, though, an important disclaimer: we're in no way experts in this realm,
 and so we won't try to explain each vulnerability in a comprehensive manner.
 Instead, we'll give a short synopsis of security problems as they apply to
 Django. For those interested in a more in-depth discussion of web security, we
-recommend XXX.
+recommend XXX.'
 
 The theme of web security
 =========================
@@ -56,7 +56,9 @@ SQL injection
 
 **SQL injection** is a common exploit in which an attacker alters Web-page
 parameters (such as GET/POST data or URLs) to insert arbitrary SQL snippets
-that a naive Web application executes in its database directly.
+that a naive Web application executes in its database directly. It's probably
+the most dangerous -- and unfortunately one of the most common --
+vulnerabilities in the wild.
 
 This vulnerability most commonly crops up when constructing SQL "by hand" from
 user input. For example, imagine writing a function to gather a list of a
@@ -145,12 +147,93 @@ second argument. You should *always* construct custom SQL this way.
 Cross-site Scripting (XSS)
 ==========================
 
-Start here: http://en.wikipedia.org/wiki/Cross-site_scripting
+Probably the most common web vulnerability, **cross-site scripting**, or
+**XSS**, is found in web applications that fail to properly escape
+user-submitted content before rendering it into HTML. This allows an attacker
+to maliciously insert arbitrary HTML, usually in the form of ``<script>``
+tags. Attackers often use XSS attacks to steal cookie and session info, or to
+trick users into giving private information to the wrong person (a.k.a
+**phishing**).
 
+This type of attack can take a number of different forms, and has almost
+infinite permutations, so we'll just look at a typical example. Let's look at
+a extremely simple "hello world" view::
+
+    def say_hello(request):
+        name = request.GET.get('name', 'world')
+        return render_to_response("hello.html", {"name" : name})
+        
+This view simply reads a name from a ``GET`` parameter and passes that name to
+the ``hello.html`` template. We might write a template for this view like::
+
+    <h1>Hello, {{ name }}!</h1>
+    
+So if we accessed ``http://example.com/hello/name=Jacob``, the rendered page
+would contain::
+
+    <h1>Hello, Jacob!</h1>
+    
+But wait -- what happens if we access
+``http://example.com/hello/name=<i>Jacob</i>``? Then we'd get::
+
+    <h1>Hello, <i>Jacob</i>!</h1>
+    
+Of course, an attacker wouldn't use something as benign as ``<i>`` tags; he
+could include a whole set of HTML that hijacked your page with arbitrary
+content. This type of attack has been used to trick users into entering data
+into what looks like their bank's website, but in fact is an XSS-hijacked form
+that submits your back account information to an attacker.
+
+This gets worse if you're storing user data in the database and later
+displaying it on your site. In 2006, MySpace was found to be vulnerable to an
+XSS attack; a user inserted javascript into his profile that automatically
+added him as your friend when you visited his profile page. Within a few days
+he had millions of friends.
+
+Now, this may sound relatively benign, but keep in mind that this attacker
+managed to get *his* code -- not MySpace's -- running on *your* computer.
+MySpace was extremely lucky that this malicious code didn't automatically
+delete viewer's accounts, change their passwords, flood the site with spam, or
+any of the other nightmare scenarios this vulnerability unleashes.
+
+The solution
+------------
+
+The solution is simple: *always* escape *any* content that might have come
+from a user. If we simply rewrite our template as::
+
+    <h1>Hello, {{ name|escape }}!</h1>
+    
+We're no longer vulnerable. You should *always* use the ``escape`` tag (or an
+analogue) when displaying user-submitted content on your site.
+
+.. admonition:: Why doesn't Django just do this for you?
+
+    Modifying Django to automatically escape all variables displayed in
+    templates is a frequent topic of discussion on the Django developer
+    mailing list.
+    
+    So far, Django's templates have avoided this behavior because it subtley
+    and invisibly changes what should be relatively streightforward behavior
+    (displaying variables).  It's a tricky issue and a difficult trade-off 
+    to evaluate; adding hidden implicit behavior is against Django's core
+    ideals (and Python's, for that matter), but security is also vitally
+    important.
+    
+    All this to say, then, that there's a non-zero chance that Django will
+    grow some sort of auto-escaping behavior in the future. Even if it does,
+    however, you should *still* be in the habit of thinking "where does this
+    data come from?" at all times.
+    
 Cross-site Request Forgery (CSRF)
 =================================
 
-Refer to ch15.
+**CSRF**, also known as "session riding," is a Web-site security exploit. It
+happens when a malicious Web site tricks a user into unknowingly loading a URL
+from a site at which they're already authenticated -- hence, taking advantage
+of their authenticated status.
+
+Django has built-in tools to protect from this kind of attack; both CSRF itself and those tools are covered in great detail in Chapter 15.
 
 Session forging/hijacking
 =========================
@@ -160,7 +243,7 @@ i.e. don't trust the session cookie too much.
 E-mail header injection
 =======================
 
-SQL injections less-well-known sibling, **e-mail header injection** hijacks
+SQL injection's less-well-known sibling, **e-mail header injection** hijacks
 email-sending web forms and uses them to send spam. Any form that constructs
 email headers from web form data is a target for this kind of attack.
 
@@ -221,9 +304,10 @@ sanitizing the file name::
         
 Thought it looks like that view restricts file access to files beneath
 ``BASE_PATH`` (by using ``os.path.join``), if the attacker passes in a
-``filename`` containing ``".."``, he can access files "above" ``BASE_PATH``.
-It's only a matter of time before he can discover the correct number of
-``".."``s to successfully access, say, ``../../../../../etc/passwd``.
+``filename`` containing ``..`` (that's two periods, the UNIX shorthand for
+"the parent directory"), he can access files "above" ``BASE_PATH``. It's only
+a matter of time before he can discover the correct number of dots to
+successfully access, say, ``../../../../../etc/passwd``.
 
 Anything that reads files without proper escaping is vulnerable to this
 problem. Views that *write* files are just as vulnerable, but the consequences
@@ -236,9 +320,6 @@ Rails used URLs like ``http://example.com/person/poke/1`` directly to
 load modules and call methods.  The result was that a
 carefully-constructed URL could automatically load arbitrary code,
 including a database reset script!
-
-.. JKM: I couldn't resist the jab at Rails. Is this OK or does it come across 
-.. JKM: as mean-spirited?
 
 The solution
 ------------
