@@ -41,3 +41,5 @@ Kevin Menard	kmenard@servprise.com	rewording	/comment/1173/
 Gulopine	gulopine@gamemusic.org	rewording	/comment/988/
 polaar		steven.vereecken@gmail.com		rewording	/comment/1005/
 Simon Willison	simon@simonwillison.net			idea		/comment/979/
+Stuart Hood     stuhood@gmail.com       rewording
+Neil Roberts    neil@onebahamas.com     rewording

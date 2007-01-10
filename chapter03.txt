@@ -80,11 +80,19 @@ Let's step through this code one line at a time:
       ``HttpResponse`` object. (There are exceptions, but we'll get to those
       later.)  
 
-Your first URLconf
-==================
+.. admonition Django's timezone
+    
+    Django includes a ``TIME_ZONE`` setting which defaults to
+    'America/Chicago'.  This probably isn't where you live, but if you
+    keep it in mind, there's no need to change it in order to follow
+    along.
+
+Mapping URLs to views
+=====================
 
 So, to recap, this view function returns an HTML page that includes the current
-date and time. But how do we tell Django to use this code?  That's where URLconfs come in.
+date and time. But how do we tell Django to use this code?  That's
+where URLconfs come in.
 
 A **URLconf** is like a table of contents for your Django-powered Web site.
 Basically, it's a mapping between URL patterns and the view functions that
@@ -139,9 +147,12 @@ Let's step through this code one line at a time:
     * The second line calls the function ``patterns()`` and saves the result
       into a variable called ``urlpatterns``. The ``patterns()`` function gets
       passed only a single argument -- the empty string. The rest of the lines
-      are commented out.
+      are commented out.  (The string can be used to supply a
+      common prefix for view functions, but we'll skip this advanced
+      usage for now.)
 
-The main thing to see here is the variable ``urlpatterns``. This defines the
+The main thing to note here is the variable ``urlpatterns``, which
+Django expects to find in your ROOT_URLCONF module.  This variable defines the
 mapping between URLs and the code that handles those URLs.
 
 By default, everything in the URLconf is commented out -- your Django
@@ -157,19 +168,6 @@ Let's edit this file to expose our ``current_datetime`` view::
     urlpatterns = patterns('',
         (r'^now/$', current_datetime),
     )
-
-.. XXX Remove the 0.95 example when we've put out a new tarball
-including trunk's callable urlconf.  until then:
-
-Under Django 0.95 (which will be out-dated at the time of
-publication), URLconf is slightly different::
-
-    from django.conf.urls.defaults import *
-
-    urlpatterns = patterns('',
-        (r'^now/$', 'mysite.views'current_datetime'),
-    )
-
 
 We made two changes here. First, we imported the ``current_datetime`` view from
 its module (``mysite/views.py``, which translates into ``mysite.views`` in
@@ -189,9 +187,16 @@ A few things are worth pointing out:
       objects, which means you can pass them around just like any other
       variables. Cool stuff, eh?
 
-    * There's no need to add a slash at the beginning of the ``'^now/$'``
+    * The r in ``r'^now/$'`` means that ``'^now/$`` is a Python raw
+      string; this allows regular expressions to be written without
+      overly-verbose escaping.  
+
+    * You should exclude the expected slash at the beginning of the ``'^now/$'``
       expression in order to match ``/now/``. Django automatically puts a slash
-      before every expression.
+      before every expression.  At first blush, this may seem odd, but
+      URLconfs can be included in other URLconfs, and leaving off the
+      leading slash simplifies matters.  This is further covered in
+      Chapter 8.
 
     * The caret character (``'^'``) and dollar sign character (``'$'``) are
       important. The caret means "require that the pattern matches the start of
@@ -205,10 +210,14 @@ A few things are worth pointing out:
       initial caret character (``'now/$'``), Django would match *any* URL that
       ends with ``now/`` -- e.g., ``/foo/bar/now/``. Thus, we use both the
       caret and dollar sign to ensure that only the URL ``/now/`` matches.
-      Nothing more, nothing less.
+      Nothing more, nothing less.  You may be wondering what happens
+      if someone requests ``/now``.  This is handled as you'd hope
+      (via a redirect) as long as the ``APPEND_SLASH`` setting is
+      true. See Appendix 5: Settings Reference for some good bedtime
+      reading. 
 
 To test our changes to the URLconf, start the Django development server, as you
-did in Chapter 1, by running the command ``python manage.py runserver``. (If
+did in Chapter 2, by running the command ``python manage.py runserver``. (If
 you left it running, that's fine, too. The development server automatically
 detects changes to your Python code and reloads as necessary, so you don't have
 to restart the server between changes.) The server is running at the address
@@ -218,6 +227,41 @@ view.
 
 Hooray! You've made your first Django-powered Web page.
 
+.. admonition:: Regular expressions
+
+    Regular expressions (or "regexes") are a compact way of specifying
+    patterns in text. While Django URLconfs allow arbitrary regexes for
+    powerful URL-matching capability, you'll probably only use a few regex
+    patterns in practice. Here's a small selection of common patterns:
+
+        ============  ===========================================================
+        Symbol        Matches
+        ============  ===========================================================
+        ``.`` (dot)   Any character
+
+        ``\d``        Any digit
+
+        ``[A-Z]``     Any character from A-Z (uppercase)
+
+        ``[a-z]``     Any character from a-z (lowercase)
+
+        ``[A-Za-z]``  Any character from a-z (case-insensitive)
+
+        ``[^/]+``     All characters until a forward slash (excluding the slash 
+                      itself)
+
+        ``+``         One or more of the previous character (e.g., ``\d+``
+                      matches one or more digit)
+
+        ``?``         Zero or more of the previous character (e.g., ``\d*``
+                      matches zero or more digits)
+
+        ``{1,3}``     Between one and three (inclusive) of the previous character
+        ============  ===========================================================
+
+    For more on regular expressions, see Appendix XXX, Regular Expressions.
+
+
 How Django processes a request
 ==============================
 
@@ -225,11 +269,12 @@ We should point out several things about what just happened. Here's the
 nitty-gritty of what goes on when you run the Django development server and
 make requests to Web pages:
 
-    * The command ``python manage.py runserver`` looks for a file called
-      ``settings.py``. This file contains all sorts of optional configuration
-      for this particular Django instance, but one of the most important
-      settings is one called ``ROOT_URLCONF``. The ``ROOT_URLCONF`` setting
-      tells Django which Python module should be used as the URLconf for this
+    * The command ``python manage.py runserver`` imports a file called
+      ``settings.py`` from the same directory.  This file contains all
+      sorts of optional configuration for this particular Django
+      instance, but one of the most important settings is
+      ``ROOT_URLCONF``. The ``ROOT_URLCONF`` setting tells Django
+      which Python module should be used as the URLconf for this
       Web site.
 
       Remember when ``django-admin.py startproject`` created the files
@@ -255,7 +300,7 @@ URLconfs.
 URLconfs and loose coupling
 ===========================
 
-Now's a good time to point out a key philosophy behind URLconfs, and behind
+Now's a good time to highlight a key philosophy behind URLconfs, and behind
 Django in general: the principle of **loose coupling**. Simply put, loose
 coupling is a software-development approach that values the importance of
 making pieces interchangeable. If two pieces of code are "loosely coupled,"
@@ -269,11 +314,12 @@ function, and the implementation of the function itself, reside in two separate
 places. This lets a developer switch out one piece without affecting the other.
 
 In contrast, other Web development platforms couple the URL to the program.
-In basic PHP (http://www.php.net/), for example, the URL of your application is
-designated by where you place the code on your filesystem. In the CherryPy
-Python Web framework (http://www.cherrypy.org/), the URL of your application
-corresponds to the name of the method in which your code lives. This may seem
-like a convenient shortcut in the short term, but it can get unmanageable in
+In typical PHP (http://www.php.net/) applications, for example, the
+URL of your application is designated by where you place the code on
+your filesystem. In early versions of the CherryPy Python Web framework
+(http://www.cherrypy.org/), the URL of your application corresponded
+to the name of the method in which your code lives. This may seem like
+a convenient shortcut in the short term, but it can get unmanageable in
 the long run.
 
 For example, consider the view function we wrote above, which displays the
@@ -304,6 +350,10 @@ You should see a "Page not found" message. (Pretty, isn't it? We Django people
 sure do like our pastel colors.) Django displays this message because you
 requested a URL that's not defined in your URLconf.
 
+.. image:: http://media.djangobook.com/content/chapter03/404.png
+   :class: full
+   :alt: Screenshot of Django's 404 page.
+
 The utility of this page goes beyond the basic 404 error message: It also tells
 you precisely which URLconf Django used and every pattern in that URLconf. From
 that information, you should be able to tell why the requested URL threw a 404.
@@ -313,7 +363,9 @@ developer. If this were a production site deployed live on the Internet, we
 wouldn't want to expose that information to the public. For that reason, this
 "Page not found" page is only displayed if your Django project is in
 **debug mode**. We'll explain how to deactivate debug mode later. For now, just
-know that every Django project is in debug mode automatically when you start it.
+know that every Django project is in debug mode when you first create
+it, and that if the project is not in debug mode, a different response
+is given.
 
 Your second view: Dynamic URLs
 ==============================
@@ -396,40 +448,6 @@ outlandish data input possible, and decide whether the application should
 support that input or not. We've curtailed the outlandishness here by limiting
 the offset to 99 hours. And, by the way, The Outlandishness Curtailers would be
 a fantastic, if verbose, band name.)
-
-.. admonition:: Regular expressions
-
-    Regular expressions (or "regexes") are a compact way of specifying
-    patterns in text. While Django URLconfs allow arbitrary regexes for
-    powerful URL-matching capability, you'll probably only use a few regex
-    patterns in practice. Here's a small selection of common patterns:
-
-        ============  ===========================================================
-        Symbol        Matches
-        ============  ===========================================================
-        ``.`` (dot)   Any character
-
-        ``\d``        Any digit
-
-        ``[A-Z]``     Any character from A-Z (uppercase)
-
-        ``[a-z]``     Any character from a-z (lowercase)
-
-        ``[A-Za-z]``  Any character from a-z (case-insensitive)
-
-        ``[^/]+``     All characters until a forward slash (excluding the slash 
-                      itself)
-
-        ``+``         One or more of the previous character (e.g., ``\d+``
-                      matches one or more digit)
-
-        ``?``         Zero or more of the previous character (e.g., ``\d*``
-                      matches zero or more digits)
-
-        ``{1,3}``     Between one and three (inclusive) of the previous character
-        ============  ===========================================================
-
-    For more on regular expressions, see Appendix XXX, Regular Expressions.
 
 Now that we've designated a wildcard for the URL, we need a way of passing that
 data to the view function, so that we can use a single view function for any
