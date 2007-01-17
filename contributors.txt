@@ -26,7 +26,7 @@ Vugar	evugar@gmail.com	rewording
 Radek	djangobook@svarz.cz	typo
 Jason Kotenko	jasonkotenko@yahoo.com	typo
 mrben	mrben@jedimoose.org	typo
-Gulopine	gulopine@gamemusic.org	rewording
+Marty Alchin (Gulopine)		gulopine@gamemusic.org	idea,rewording
 Paul	pb@e-scribe.com	rewording
 Bradley Peters	brad@moberley.com	rewording
 brad harder	bharder@methodlogic.net	rewording
@@ -38,8 +38,9 @@ JM	james.mulholland@gmail.com	rewording
 Chris Dary	umbrae@gmail.com	rewording
 Fredrik Lundh	fredrik@effbot.org	correction
 Kevin Menard	kmenard@servprise.com	rewording	/comment/1173/
-Gulopine	gulopine@gamemusic.org	rewording	/comment/988/
+Marty Alchin (Gulopine)	gulopine@gamemusic.org	rewording	/comment/988/
 polaar		steven.vereecken@gmail.com		rewording	/comment/1005/
 Simon Willison	simon@simonwillison.net			idea		/comment/979/
 Stuart Hood     stuhood@gmail.com       rewording
 Neil Roberts    neil@onebahamas.com     rewording
+Gabriel Farrell gsf@panix.com  typo
