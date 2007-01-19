@@ -44,3 +44,4 @@ Simon Willison	simon@simonwillison.net			idea		/comment/979/
 Stuart Hood     stuhood@gmail.com       rewording
 Neil Roberts    neil@onebahamas.com     rewording
 Gabriel Farrell gsf@panix.com  typo
+W. Jason Gilmore jason@apress.com rewording

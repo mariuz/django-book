@@ -3,15 +3,15 @@ Chapter 4: The Django template system
 =====================================
 
 In the previous chapter, you may have noticed something peculiar in how we
-returned the HTML in our example views. Namely, the HTML was hard-coded
+returned the text in our example views. Namely, the text was hard-coded
 directly in our Python code!
 
 This arrangement leads to several problems:
 
-    * Obviously, any change to the design of the page would require a change to
+    * Any change to the design of the page would require a change to
       the Python code. The design of a site tends to change far more frequently
       than the underlying Python code, so it would be convenient if the
-      frequency of HTML changes were separated from changes to Python code.
+      frequency of design changes were separated from changes to Python code.
 
     * Second, writing backend Python code and designing/coding HTML are two
       different disciplines, and most professional Web development environments
@@ -33,9 +33,10 @@ Template system basics
 
 A Django template is a string of text that is intended to separate the
 presentation of a document from its data. A template defines placeholders and
-various bits of basic logic -- **tags** -- that regulate how the document
-should be displayed. Usually, templates are used for outputting HTML, but
-Django templates are equally capable of generating any text-based format.
+various bits of basic logic -- **template tags** -- that regulate how
+the document should be displayed. Usually, templates are used for
+producing HTML, but Django templates are equally capable of
+generating any text-based format.
 
 Let's dive in with a simple example template. This template describes an HTML
 page that thanks a person for making an order from a company. Think of it as a
@@ -843,7 +844,7 @@ always are in double quotes.
 Here are a few of the most important filters:
 
     * ``addslashes`` -- Adds a backslash before any backslash, single quote or
-      double quote. This is useful if you're outputting some text into
+      double quote. This is useful if the produced text is included in
       a JavaScript string.
 
     * ``date`` -- Formats a ``date`` or ``datetime`` object according to a
@@ -909,7 +910,7 @@ of those philosophies:
       tags intentionally do not allow for arbitrary Python code execution.
 
     * **Syntax should be decoupled from HTML/XML.** Although Django's template
-      system is used primarily to output HTML, it's intended to be just as
+      system is used primarily to produce HTML, it's intended to be just as
       usable for non-HTML formats, such as plain text. Some other template
       languages are XML-based, placing all template logic within XML tags or
       attributes, but Django deliberately avoids this limitation. Requiring
@@ -1311,7 +1312,7 @@ Template inheritance
 ====================
 
 Our template examples so far have been tiny HTML snippets, but in the real
-world, you'll be using Django's template system to output entire HTML pages.
+world, you'll be using Django's template system to create entire HTML pages.
 This leads to a common Web development problem: Across a Web site, how does
 one reduce the duplication and redundancy of common page areas, such as
 sitewide navigation?

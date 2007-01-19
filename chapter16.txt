@@ -181,7 +181,7 @@ Response post-processor: ``process_response(self, request, response)``
 
 This method gets called after the view function has already been called and
 the response has been generation. This is where middleware can modify the
-output of a response; output compression (see below) is one obvious use for
+content of a response; content compression (see below) is one obvious use for
 response middleware.
 
 The parameters should be pretty self-explanatory -- ``request`` is the request

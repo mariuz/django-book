@@ -31,8 +31,8 @@ along and grasp concepts based on context.)
 The "dumb" way to do database queries in views
 ==============================================
 
-Just as the previous chapter detailed a "dumb" way to output HTML within a
-view (by hard-coding HTML directly within the view), there's a "dumb" way to
+Just as Chapter 3 detailed a "dumb" way to produce output within a
+view (by hard-coding the text directly within the view), there's a "dumb" way to
 retrieve data from a database in a view. It's simple: Just use any existing
 Python library to execute an SQL query and do something with the results.
 
@@ -342,7 +342,7 @@ command to create a new app::
 
 (Why ``books``? That's the sample book app we'll be building together.)
 
-This command does not result in any output, but it will have created a
+This command does not produce any output, but it does create a
 ``books`` directory within the ``mysite`` directory. Let's look at the contents
 of that directory::
 

@@ -226,7 +226,7 @@ Like above, a few notes are in order:
 
     * Here we use the ``application/pdf`` mime-type. This tells
       browsers that the document is a PDF file, rather than an HTML file. If
-      you leave this off, browsers will probably interpret the output as HTML,
+      you leave this off, browsers will probably interpret the response as HTML,
       which will result in scary gobbledygook in the browser window.
 
     * Hooking into the ReportLab API is easy: Just pass ``response`` as the
@@ -346,7 +346,7 @@ Overview
 
 The high-level feed-generating framework is a view that's hooked to
 ``/feeds/`` by default. Django uses the remainder of the URL (everything after
-``/feeds/``) to determine which feed to output.
+``/feeds/``) to determine which feed to return.
 
 To create a feed, just write a ``Feed`` class and point to it in your URLconf (see Chapters 3 and 8 fore more about URLconfs).
 
@@ -501,7 +501,7 @@ each police beat; that would violate the DRY (Don't Repeat Yourself) principle
 and would couple data to programming logic.
 
 Instead, the syndication framework lets you make generic
-feeds that output items based on information in the feed's URL.
+feeds that return items based on information in the feed's URL.
 
 On chicagocrime.org, the police-beat feeds are accessible via URLs like this:
 

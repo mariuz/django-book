@@ -20,7 +20,7 @@ tags** or **variables**.
 
 A **block tag** is a symbol within a template that does something.
 
-This definition is deliberately vague. For example, a block tag can output
+This definition is deliberately vague. For example, a block tag can produce
 content, serve as a control structure (an "if" statement or "for" loop), grab
 content from a database or enable access to other template tags.
 
@@ -810,14 +810,14 @@ will use the function's name as the tag name.
 
 Setting a variable in the context
 `````````````````````````````````
-The above example simply output a value. Often it's useful to set template
-variables instead of outputting values. That way, template authors can simply
-use the values that your template tags create.
+The above example simply returned a value. Often it's useful to set template
+variables instead of returning values. That way, template authors can simply
+use the variables that your template tags set.
 
 To set a variable in the context, just use dictionary assignment on the
 context object in the ``render()`` method. Here's an updated version of
 ``CurrentTimeNode`` that sets a template variable ``current_time`` instead of
-outputting it::
+returning it::
 
     class CurrentTimeNode2(template.Node):
     
@@ -829,7 +829,7 @@ outputting it::
             return ''
 
 Note that ``render()`` returns the empty string; ``render()`` should always
-return string output, so if all the template tag does is set a variable,
+return a string, so if all the template tag does is set a variable,
 ``render()`` should return an empty string.
 
 Here's how you'd use this new version of the tag::
@@ -842,8 +842,7 @@ But, there's a problem with ``CurrentTimeNode2``: the variable name
 template doesn't use ``{{ current_time }}`` anywhere else, because the
 ``{% current_time %}`` will blindly overwrite that variable's value. 
 
-A cleaner solution is to make the template tag specify the name of the output
-variable, like so::
+A cleaner solution is to make the template tag specify the name of the variable to be set, like so::
 
     {% get_current_time "%Y-%M-%d %I:%M %p" as my_current_time %}
     <p>The current time is {{ my_current_time }}.</p>
@@ -1014,12 +1013,12 @@ details from the current object.
 These sorts of tags are called **inclusion tags**.
 
 Writing inclusion tags is probably best demonstrated by example. Let's write a
-tag that outputs a list of choices for a simple multiple-choice ``Poll``
+tag that produces a list of choices for a simple multiple-choice ``Poll``
 object. We'll use the tag like this::
 
     {% show_results poll %}
 
-...and the output will be something like this::
+...and the result will be something like this::
 
     <ul>
       <li>First choice</li>

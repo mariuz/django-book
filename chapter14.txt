@@ -30,7 +30,7 @@ explaining how this would work for a dynamically generated Web page::
 
 Django comes with a robust cache system that lets you save dynamic pages so
 they don't have to be calculated for each request. For convenience, Django
-offers different levels of cache granularity. You can cache the output of
+offers different levels of cache granularity. You can cache the response of
 specific views, you can cache only the pieces that are difficult to produce, or
 you can cache your entire site.
 
@@ -503,7 +503,7 @@ By default, Django's cache system creates its cache keys using the requested
 path -- e.g., ``"/stories/2005/jun/23/bank_robbed/"``. This means every request
 to that URL will use the same cached version, regardless of user-agent
 differences such as cookies or language preferences. However, if this page
-outputs different content based on some difference in request headers -- such
+produces different content based on some difference in request headers -- such
 as a cookie, or language, or user-agent -- you'll need to use the ``Vary``
 header to tell caching mechanisms that the page output depends on those things.
 
