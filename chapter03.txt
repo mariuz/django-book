@@ -74,7 +74,7 @@ Let's step through this code one line at a time:
       ``%s`` with the value of the variable ``now``."
 
     * Finally, the view returns an ``HttpResponse`` object that contains the
-      generated response.  The mimetype is changed to to text/plain from
+      generated response.  The MIME type is changed to to text/plain from
       the default of text/html in order to keep the example short.
       Each view function is responsible for returning an
       ``HttpResponse`` object. (There are exceptions, but we'll get to those

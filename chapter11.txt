@@ -37,7 +37,7 @@ More formally, a Django view function *must*:
     
 The key to returning non-HTML content from a view lies in the ``HttpResponse``
 class, and specifically the ``mimetype`` constructor argument. By tweaking the
-mime-type, we can indicate to the browser that we've returned an object of a
+Mime type, we can indicate to the browser that we've returned an object of a
 different type.
 
 For a very simple example, let's look at a view that returns a PNG image. To
