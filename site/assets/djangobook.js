@@ -232,6 +232,17 @@ var Comments = function() {
                 },
                 failure : XHRFailure
             });
+        },
+        
+        markCommentHandled : function(e) {
+            YAHOO.util.Connect.asyncRequest("POST", e.href, {
+                success : function() { 
+                    if (currentBlock) {
+                        loadComments(currentBlock)
+                    }
+                },
+                failure : XHRFailure
+            });
         }
     };
 }();

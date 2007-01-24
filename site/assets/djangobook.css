@@ -21,10 +21,11 @@ h2#chapter-subtitle { font-size: 140%; margin-top:-1.2em !important; margin-bott
 h3 { font-size:150%; margin-bottom:.6em; line-height:1.2em; color:#092e20; }
 h4 { font-size:125%; font-weight:bold; margin-bottom:.2em; color:#487858; }
 h5 { font-size:1em; font-weight:bold; margin-top:1.5em; margin-bottom:3px; }
+caption { font-size:1em; font-weight:bold; margin-top:0.5em; margin-bottom:0.5em; margin-left: 2px;}
 hr { color:#ccc; background-color:#ccc; height:1px; border:0; }
 p, ul, dl { margin-top:.6em; margin-bottom:1em; padding-bottom: 0.1em;}
 img.full { width: 53em; }
-table { color:#000; }
+table { color:#000; margin-bottom: 1em; }
 table.docutils td p { margin-top:0; margin-bottom:.5em; }
 table.docutils td, table.docutils th { border-bottom:1px solid #dfdfdf; padding:4px 2px;}
 table.docutils thead th { border-bottom:2px solid #dfdfdf; text-align:left; font-weight: bold; }
@@ -92,7 +93,8 @@ dt .literal, table .literal { background:none; }
 #comments div.tab label { font-weight: bold; display: block; color: #487858; }
 #comments div.tab textarea { width: 100%; height: 100px; }
 #comments div.tab p { margin-bottom: 0; }
-#comments div.tab span.delete { float: right; margin-top: -15px; }
+#comments div.tab span.actions { float: right; margin-top: -15px; }
+#comments div.tab span.thanks { color: black; font-weight: bold; color: #F7C754; position: relative;}
 #comments-close { margin-left:5px;margin-right:15px; }
 #comments-head .close { position: absolute; top: 3px; right: 4px; height: 13px; width: 17px; margin:0; padding: 0; overflow: hidden; text-indent:-999px; background: url(images/close.png) no-repeat top left;}
 #comments-head { background-color: #487858; color: white; padding: 2px 4px; font-weight: bold; margin: 0 0 6px 0; position: relative;}
