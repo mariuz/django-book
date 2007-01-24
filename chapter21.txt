@@ -860,8 +860,8 @@ With the web servers now clustered, our evolving architecture starts to look
 more complex:
 
 .. image:: http://media.djangobook.com/content/chapter21/scaling-5.png
-   :width: 362
-   :height: 362
+   :width: 569
+   :height: 353
    :class: center
    
 Notice that in the diagram the web servers are referred to as a "cluster" to
