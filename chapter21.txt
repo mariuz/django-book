@@ -859,9 +859,9 @@ that wrote ``memcached`` (see Chapter 14).
 With the web servers now clustered, our evolving architecture starts to look
 more complex:
 
-.. image:: http://media.djangobook.com/content/chapter21/scaling-5.png
-   :width: 569
-   :height: 353
+.. image:: http://media.djangobook.com/content/chapter21/scaling-4.png
+   :width: 362
+   :height: 362
    :class: center
    
 Notice that in the diagram the web servers are referred to as a "cluster" to
@@ -898,7 +898,7 @@ After a few of these iterations, a large-scale architecture might looks like:
 
 .. image:: http://media.djangobook.com/content/chapter21/scaling-5.png
    :width: 569
-   :height: 569
+   :height: 353
    :class: center
 
 Though we've only shown two or three servers at each level, there's
