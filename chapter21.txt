@@ -181,7 +181,7 @@ Django requires Apache 2.x and mod_python 3.x, and you should use Apache's
         
         * `Pro Apache`_ by Peter Wainwrite (Apress).
         
-        * `Apache: The Definitive Guide` by Ben Laurie and Peter Laurie
+        * `Apache: The Definitive Guide`_ by Ben Laurie and Peter Laurie
           (O'Reilly).
         
 .. _online apache documentation:  http://www.djangoproject.com/r/apache/docs/
@@ -234,7 +234,7 @@ tracebacks if something goes wrong within mod_python.
 Restart Apache, and any request to your site (or virtual host if you've put
 this directive inside a ``<VirtualHost>`` block) will be served by Django.
 
-.. warning::
+.. note::
 
     If you deploy Django at a subdirectory -- that is, somewhere deeper that
     "/" -- Django *won't* trim the URL prefix off of your URLpatterns.  So, 
@@ -730,13 +730,16 @@ different ways, so scaling is anything but a one-size-fits-all operation. The
 following walkthrough should suffice to show the general principle, and we'll
 try to point out where different choices could me made whenever possible.
 
-First off, we'll make a pretty big assumption and exclusively talk about scaling under Apache and mod_python.  Though we know of a number of successful medium- to large-scale FastCGI deployments, we're simply much more familiar with Apache.
+First off, we'll make a pretty big assumption and exclusively talk about
+scaling under Apache and mod_python. Though we know of a number of successful
+medium- to large-scale FastCGI deployments, we're simply much more familiar
+with Apache.
 
 A single server
 ---------------
 
-Most sites start out running on a single server, with an architecture looks
-something like this:
+Most sites start out running on a single server, with an architecture that
+looks something like this:
 
 .. image:: http://media.djangobook.com/content/chapter21/scaling-1.png
    :width: 129
@@ -856,7 +859,7 @@ that wrote ``memcached`` (see Chapter 14).
 With the web servers now clustered, our evolving architecture starts to look
 more complex:
 
-.. image:: http://media.djangobook.com/content/chapter21/scaling-4.png
+.. image:: http://media.djangobook.com/content/chapter21/scaling-5.png
    :width: 362
    :height: 362
    :class: center
