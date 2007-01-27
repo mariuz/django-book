@@ -38,8 +38,8 @@ Here's a view that returns the current date and time, as an HTML document::
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        text = "It is now %s." % now
-        return HttpResponse(text, mimetype="text/plain")
+        html = "<html><body>It is now %s.</body></html>" % now
+        return HttpResponse(html)
 
 Let's step through this code one line at a time:
 
@@ -71,12 +71,11 @@ Let's step through this code one line at a time:
     * The second line of code within the function constructs an HTML response
       using Python's format-string capability. The ``%s`` within the string is
       a placeholder, and the percent sign after the string means "replace the
-      ``%s`` with the value of the variable ``now``."
+      ``%s`` with the value of the variable ``now``."  (Yes, the HTML
+      is invalid, but we're trying to keep the example simple and short.) 
 
     * Finally, the view returns an ``HttpResponse`` object that contains the
-      generated response.  The MIME type is changed to to text/plain from
-      the default of text/html in order to keep the example short.
-      Each view function is responsible for returning an
+      generated response.  Each view function is responsible for returning an
       ``HttpResponse`` object. (There are exceptions, but we'll get to those
       later.)  
 
@@ -502,8 +501,8 @@ hours of offset.  Add this to ``views.py``::
     def hours_ahead(request, offset):
         offset = int(offset)
         dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-        text = "In %s hour(s), it will be %s." % (offset, dt)
-        return HttpResponse(text, mimetype="text/plain")
+        html = "<html><body>In %s hour(s), it will be %s.</body></html>" % (offset, dt)
+        return HttpResponse(html)
 
 Let's step through this code one line at a time:
 
@@ -579,14 +578,14 @@ should look like this::
 
     def current_datetime(request):
         now = datetime.datetime.now()
-        text = "It is now %s." % now
-        return HttpResponse(text, mimetype="text/plain")
+        html = "<html><body>It is now %s.</body></html>" % now
+        return HttpResponse(html)
 
     def hours_ahead(request, offset):
         offset = int(offset)
         dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-        text = "In %s hour(s), it will be %s." % (offset, dt)
-        return HttpResponse(text, mimetype="text/plain")
+        html = "<html><body>In %s hour(s), it will be %s.</body></html>" % (offset, dt)
+        return HttpResponse(html)
 
 Django's pretty error pages
 ===========================
@@ -600,8 +599,8 @@ commenting out the ``offset = int(offset)`` line in the ``hours_ahead`` view::
     def hours_ahead(request, offset):
         #offset = int(offset)
         dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-        text = "In %s hour(s), it will be %s." % (offset, dt)
-        return HttpResponse(text, mimetype="text/plain")
+        html = "<html><body>In %s hour(s), it will be %s.</body></html>" % (offset, dt)
+        return HttpResponse(html)
 
 Now load up the development server and navigate to ``/time/plus/3/``. You'll
 see an error page with a significant amount of information, including a
@@ -716,8 +715,8 @@ Answers to exercises
         def hours_behind(request, offset):
             offset = int(offset)
             dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
-            text = "%s hour(s) ago, it was %s." % (offset, dt)
-            return HttpResponse(text, mimetype="text/plain")
+            html = "<html><body>%s hour(s) ago, it was %s.</body></html>" % (offset, dt)
+            return HttpResponse(html)
 
        Not much is different between this view and ``hours_ahead`` -- only the
        calculation of ``dt`` and the text.
@@ -732,11 +731,11 @@ Answers to exercises
             offset = int(offset)
             if plus_or_minus == 'plus':
                 dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-                text = 'In %s hour(s), it will be %s.' % (offset, dt)
+                html = '<html><body>In %s hour(s), it will be %s.</body></html>' % (offset, dt)
             else:
                 dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
-                text = '%s hour(s) ago, it was %s.' % (offset, dt)
-            return HttpResponse(text, mimetype="text/plain")
+                html = '<html><body>%s hour(s) ago, it was %s.</body></html>' % (offset, dt)
+            return HttpResponse(html)
 
        The URLpattern would look like this::
 
@@ -770,11 +769,11 @@ Answers to exercises
                 hours = 'hours'
             if plus_or_minus == 'plus':
                 dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-                output = 'In %s %s, it will be %s.' % (offset, hours, dt)
+                html = '<html><body>In %s %s, it will be %s.</body></html>' % (offset, hours, dt)
             else:
                 dt = datetime.datetime.now() - datetime.timedelta(hours=offset)
-                output = '%s %s ago, it was %s.' % (offset, hours, dt)
-            return HttpResponse(output, mimetype="text/plain")
+                html = '<html><body>%s %s ago, it was %s.</body></html>' % (offset, hours, dt)
+            return HttpResponse(html)
 
        Ideally, though, we wouldn't have to edit Python code to make small
        presentation-related changes like this. Wouldn't it be nice if we could
