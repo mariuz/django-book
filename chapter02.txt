@@ -45,10 +45,8 @@ http://www.djangoproject.com/download/. Django uses the standard Python
     #. ``cd Django-*``
     #. ``sudo python setup.py install``
 
-.. XXX Do we want to spend more space on installation? Is there a distutils
-.. XXX guide we can point to that covers Windows and all the other
-.. XXX permutations?
-.. XXX JGD I'll cover Windows install, but I'll probably use ActiveState's.
+On Windows, we recommend 7-Zip to handle all manner of compressed
+files, including .tar.gz.  You can get it from http://www.djangoproject.com/r/7zip/.
 
 Change into some other directory and start ``python``.  If everything worked, you 
 should be able to import the module ``django``:
@@ -91,17 +89,15 @@ To grab the latest Django trunk:
     #. Check out the trunk using the command ``svn co
        http://code.djangoproject.com/svn/django/trunk djtrunk``
 
-    #. Symlink ``site-packages/django`` to the ``djtrunk/django``
-       directory, or  update your PYTHONPATH to point to ``djtrunk``.
+    #. Create ``site-packages/django.pth``, and add the ``djtrunk``
+       directory to it or update your PYTHONPATH to point to ``djtrunk``.
 
-    #. Place ``djtrunk/django/bin`` on your PATH.  This directory
+    #. Place ``djtrunk/django/bin`` on your system PATH.  This directory
        includes management utilities such as django-admin.py.
 
-.. XXX JGD No such thing as symlink in most Windows setups.
-.. XXX JGD You -can- use a utility called Junction (made by Sys Internals,
-.. XXX JGD and free), but what's the downside of just using a .pth?
+(If .pth files are new to you, you can learn more at http://www.djangoproject.com/r/python/site-module/.)
 
-After installing from Subversion, and following the above steps,
+After downloading from Subversion and following the above steps,
 there's no need to ``python setup.py install`` -- you've just done the
 work by hand!
 
@@ -146,36 +142,39 @@ sort of server set up or configuration. It's by far the easiest to set
 up if you just want to play around with Django, and it's even included
 in the standard library of Python 2.5.
 
+On Windows, obtaining database driver binaries is sometimes involved.
+Since you're just getting started with Django, we recommend using
+Python 2.5 and its built-in support for SQLite.  Compiling driver
+binaries is a downer.
+
 Using Django with PostgreSQL
 ----------------------------
 
 If you're using PostgreSQL, you'll need the ``psycopg`` package available from
-http://initd.org/projects/psycopg1. Make sure you use version 1, not version 2
-(which is still in beta).
-
-.. XXX JGD psycopg2 is no longer in beta.  Change to recommend psycopg2 above or 
-.. XXX JGD explain why not.
+http://www.djangoproject.com/r/python-pgsql/.  Take note of whether
+you're using version 1 or 2; you'll need this information later.
 
 If you're using PostgreSQL on Windows, you can find precompiled binaries of
-``psycopg`` at http://stickpeople.com/projects/python/win-psycopg/.
+``psycopg`` at http://www.djangoproject.com/r/python-pgsql/windows/.
 
 Using Django with SQLite 3
 --------------------------
 
 If you've got a Python version over 2.5, you've already got SQLite.
 If you're working with Python 2.4 or older, you'll need SQLite 3 --
-not version 2 -- and the ``pysqlite`` package from
-http://initd.org/tracker/pysqlite. Make sure you have ``pysqlite``
-version 2.0.3 or higher.  On Windows, you can skip installing the
-separate SQLite binaries, since they're staticly linked into the
-pysqlite binaries.
+not version 2 -- from http://www.djangoproject.com/r/sqlite/ and the
+``pysqlite`` package from http://www.djangoproject.com/r/python-sqlite/.     
+Make sure you have ``pysqlite`` version 2.0.3 or higher.  
+
+On Windows, you can skip installing the separate SQLite binaries,
+since they're staticly linked into the pysqlite binaries.
 
 Using Django with MySQL
 -----------------------
 
 Django requires MySQL 4.0 or above; the 3.x versions don't support nested
 subqueries and some other fairly standard SQL statements. You'll also need
-the ``MySQLdb`` package from http://sourceforge.net/projects/mysql-python.
+the ``MySQLdb`` package from http://www.djangoproject.com/r/python-mysql/.
 
 Using Django with MSSQL
 -----------------------
@@ -187,7 +186,7 @@ Using Django with Oracle
 
 Django requires Oracle database versions 9i and 10g. You will need to
 install version 4.2 or better of the cx_Oracle package from
-http://sourceforge.net/projects/cx-oracle/.
+http://www.djangoproject.com/r/python-oracle/.
 
 Using Django without a database
 -------------------------------
@@ -218,12 +217,12 @@ that directory.
 .. note::
 
     ``django-admin.py`` should be on your system path if you installed Django
-    via its setup.py utility. If it's not on your path, you can find it in
-    ``site-packages/django/bin``; consider symlinking to it from some place on
-    your path, such as /usr/local/bin, using a command such as:
+    via its setup.py utility. If you checked out from Subversion, you
+    can find it in ``djtrunk/django/bin``.  Since you'll be using it
+    often, consider adding it to your path.  On Unix, you can do so by
+    symlinking from /usr/local/bin, using a command such as:
     sudo ln -s /path/to/django/bin/django-admin.py /usr/local/bin/django-admin.py
-
-.. XXX JGD again, the symlink issue on Windows.  Junction, or add to path?
+    On Windows, you'll need to update your PATH environment variable.
 
 
 Run the command ``django-admin.py startproject mysite``. That'll create a
