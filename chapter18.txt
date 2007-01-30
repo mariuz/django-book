@@ -197,6 +197,8 @@ of that book page. Maybe something like this:
 .. image:: http://media.djangobook.com/content/chapter18/book_extra.png
    :class: full
    :alt: Screenshot of a customized book edit form.
+   :width: 827
+   :height: 624
    
 This is pretty easy to do: simple create a template called
 `admin/bookstore/book/change_form.html``, and insert this code::
@@ -358,6 +360,8 @@ admin "for free."  Here's what the end result looks like:
 .. image:: http://media.djangobook.com/content/chapter18/books_by_publisher.png
    :class: full
    :alt: Screenshot of the custom "books by publisher" view.
+   :width: 827
+   :height: 624
 
 Where do you want to admin today?
 =================================

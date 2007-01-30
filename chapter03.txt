@@ -389,6 +389,8 @@ requested a URL that's not defined in your URLconf.
 .. image:: http://media.djangobook.com/content/chapter03/404.png
    :class: full
    :alt: Screenshot of Django's 404 page.
+   :width: 857
+   :height: 609
 
 The utility of this page goes beyond the basic 404 error message: It also tells
 you precisely which URLconf Django used and every pattern in that URLconf. From
