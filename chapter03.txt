@@ -45,7 +45,7 @@ Let's step through this code one line at a time:
 
     * First, we import the class ``HttpResponse``, which lives in the
       ``django.http`` module.  See Appendix 8 for further details on the
-      HttpRequest and HttpResponse objects.
+      ``HttpRequest`` and ``HttpResponse`` objects.
 
     * Next, we import the ``datetime`` module from Python's standard library --
       the set of useful modules that comes with Python. The ``datetime`` module
@@ -296,6 +296,42 @@ With this knowledge, you know the basics of how to make Django-powered pages.
 It's quite simple, really -- just write view functions and map them to URLs via
 URLconfs.  You might think it'd be slow to map URLs to functions using
 a series of regular expressions.  You'd be surprised.
+
+Once more, with feeling
+=======================
+
+In addition to the straight-forward URL-to-view mapping just described, Django 
+provides quite a bit of flexibility in processing requests.
+
+The typical flow -- URLconf resolution to a view function which returns an 
+HttpResponse -- can be short-circuited or augmented via middleware.  The deep 
+secrets of middleware will be fully covered in Chapter 16, but a quick sketch 
+should aid you in conceptually fitting the pieces together.
+
+.. image:: http://media.djangobook.com/content/chapter03/get_response.png
+   :width: 440
+   :height: 481
+   :class: center
+
+When an HTTP request comes in from the browser, a server-specific **handler** 
+constructs the ``HttpRequest`` passed to later components and handles the flow of 
+the response processing.
+
+The handler then calls any available Request or View middleware.  These types 
+of middleware are useful for augmenting incoming ``HttpRequest`` objects as well 
+as providing special handling for specific types of requests.  If either return 
+an ``HttpResponse``, processing bypasses the view.  
+
+Bugs slip by even the best programmers, but Exception middleware can help 
+squash them.  If a view function raises an exception, control passes to 
+Exception middleware.  If this middleware does not return an ``HttpResponse``, 
+the exception is re-raised.
+
+Even then, all is not lost.  Django includes default views which create a 
+friendly 404 and 500 response.
+
+Finally, Response middleware is good for post-processing an ``HttpResponse`` just 
+before it's sent to the browser or doing cleanup of request-specific resources.
 
 URLconfs and loose coupling
 ===========================
