@@ -307,14 +307,13 @@ reload everything for each request. But don't do that on a production server,
 or we'll revoke your Django privileges.
 
 If you're the type of programmer who debugs using scattered ``print``
-statements, note that ``print`` statements have no effect in mod_python; they
-don't appear in the Apache log, as one might expect. If you have the need to
-print debugging information in a mod_python setup, you'll probably want to use
-Python's standard logging_ package or add the debugging information to the
-template of your page.
+statements (we are), note that ``print`` statements have no effect in 
+mod_python; they don't appear in the Apache log, as one might expect. If you 
+have the need to print debugging information in a mod_python setup, you'll 
+probably want to use Python's standard logging_ package or add the debugging 
+information to the template of your page.
 
 .. _logging: http://docs.python.org/lib/module-logging.html
-
 
 
 Serving Django and media files from the same Apache instance
