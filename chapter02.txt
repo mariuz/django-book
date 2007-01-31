@@ -2,14 +2,14 @@
 Chapter 2: Getting started
 ==========================
 
-We think it's best to get a running start.  The details and extent of
-the framework will be fleshed out in the later chapters, but for now,
-trust us.  This'll be fun.
+Before you can dive into coding your first Django-powered Web site, you'll have
+to take care of installing the Django framework itself, along with some minimal
+prerequisites. Fortunately, this is usually easy.
 
-Installing Django is easy. Because Django runs anywhere Python does,
-Django can be configured in many ways. We've tried to cover the common
-scenarios for Django installations in this chapter.  Chapter 21 will
-cover deploying Django to production.
+Because Django runs anywhere Python does, Django can be configured in many
+ways. We've tried to cover the common scenarios for Django installations in
+this chapter. Chapter 21 will cover deploying Django to a production
+environment.
 
 Installing Python
 =================
@@ -33,23 +33,117 @@ started. The installation is fast and easy.
 Installing Django
 =================
 
-Installing an official release
-------------------------------
+Django is available in two flavors: the latest official release and the
+development version, called "trunk." The latest official release is a
+set-in-stone package with a particular version number (e.g., 0.95 or 1.0),
+whereas the development version is the latest-and-greatest version of Django,
+updated on a daily -- or, many times, hourly -- basis.
 
-Most people will want to install the latest official release from
-http://www.djangoproject.com/download/. Django uses the standard Python
-``distutils`` installation method, which in Linux land looks like:
+Which version should you use? Here are pluses and minuses to both approaches:
 
-    #. Download the tarball, which will be named something like ``Django-1.0.tar.gz``.
+    ====================================  ====================================
+    Official release                      Development version ("trunk")
+    ====================================  ====================================
+    Available features are set in stone   Features are frequently being added
+                                          and improved
+
+    Doesn't have access to new features   Has access to new features
+
+    Has a version number, which is good   Doesn't have a version number, but
+    for standardization within a          has a revision number, which
+    company                               changes each time Django code is
+                                          tweaked by its developers; can be
+                                          harder to coordinate with a team
+
+    Has a known/fixed set of bugs;        May have more *or* fewer bugs than
+    there is no chance of new bugs        the official release; bugs are
+    creeping in                           frequently being fixed, but new
+                                          feature additions may cause *new*
+                                          bugs
+
+    Stable                                Probably stable; Django core
+                                          developers try hard to keep it
+                                          stable at all times
+    ====================================  ====================================
+
+If you're conservative, stick with the official release. If you like living on
+the bleeding edge, use the development version.
+
+Installing the official release
+-------------------------------
+
+The latest official release is available at http://www.djangoproject.com/download/
+
+Installation follows the standard Python "distutils" format -- an idiom for
+installing third-party Python packages. On a Unix system, follow these steps:
+
+    #. Download the tarball, which will be named according to the version
+       number of the release, e.g. ``Django-1.0.tar.gz`` for version 1.0.
     #. ``tar xzvf Django-*.tar.gz``
     #. ``cd Django-*``
     #. ``sudo python setup.py install``
 
-On Windows, we recommend 7-Zip to handle all manner of compressed
-files, including .tar.gz.  You can get it from http://www.djangoproject.com/r/7zip/.
+On Windows, we recommend 7-Zip to handle all manner of compressed files,
+including .tar.gz. You can get it from http://www.djangoproject.com/r/7zip/
 
-Change into some other directory and start ``python``.  If everything worked, you 
-should be able to import the module ``django``:
+Installing the development version
+----------------------------------
+
+The development version is available in Django's Subversion repository.
+
+Subversion is a free, open-source revision-control system similar to CVS, and
+the Django team uses it to manage changes to the Django codebase. At any
+given time, you can use a Subversion client to grab the very latest Django
+source code, and, at any given time, you can easily update your local version
+of the Django code -- known as your "local checkout" -- to get the latest
+changes and improvements made by Django developers.
+
+As we explained above, the Django development version is referred to as
+"trunk." The Django team runs production sites on trunk and strives to keep it
+stable.
+
+To get the latest Django trunk:
+
+    #. Make sure you have a Subversion client installed. You can get the
+       software free from http://subversion.tigris.org/ and excellent
+       documentation from http://svnbook.red-bean.com/
+
+    #. Check out the trunk using the command ``svn co
+       http://code.djangoproject.com/svn/django/trunk djtrunk``. It doesn't
+       matter where on your filesystem you do this.
+
+    #. Create a file named ``django.pth`` within your Python ``site-packages``
+       directory (the directory that contains third-party Python libraries
+       installed on your system). This ``django.pth`` file should contain a
+       single line: the full path to the ``djtrunk`` directory (for example,
+       ``"/home/mycode/djtrunk"`` without the quotes). If you're familiar with
+       Python, you can update your ``PYTHONPATH`` instead of creating the
+       ``django.pth`` file.
+
+    #. Place ``djtrunk/django/bin`` on your system PATH. This directory
+       includes management utilities such as ``django-admin.py``.
+
+If .pth files are new to you, you can learn more at
+http://www.djangoproject.com/r/python/site-module/
+
+After downloading from the Django Subversion repository and following the above
+steps, there's no need to execute ``python setup.py install`` -- you've just
+done the work by hand!
+
+Because the Django trunk changes often with bug fixes and feature additions,
+you'll probably want to update it every once in a while -- or hourly, if you're
+really obsessed. To update the code, just run the command ``svn update`` from
+within the ``djtrunk`` directory. When you run that command, Subversion will
+contact code.djangoproject.com, see whether any code has changed and update
+your local version of the code with any changes that have been made
+since you last updated. It's quite slick.
+
+Testing your installation
+=========================
+
+To test your installation, change into a directory that doesn't include any
+files called ``django``. Then start Python by typing ``python``, and try to
+import the module ``django``. If the installation worked, the import will work::
 
     >>> import django
     >>> django.VERSION
@@ -63,51 +157,36 @@ should be able to import the module ``django``:
     Python code that's printed as if it's being entered in the interactive
     interpreter. The triple greater-than signs (">>>") signify a Python prompt.
 
-Installing Django from Subversion
----------------------------------
+If it didn't work -- i.e., if you got an ``ImportError`` for the
+``import django`` statement -- then Django isn't installed properly. Here are
+some common errors:
 
-If you want to work on the bleeding edge, or if you want to contribute code to
-Django itself, you should install Django from its Subversion repository.
+    =========================================================  ===============================================
+    Possible error                                             How to debug / solve
+    =========================================================  ===============================================
+    You have multiple versions of Python installed on your     When you start the Python interactive
+    system (e.g., both Python 2.4 and Python 2.5). Django      interpreter, note the version number. Make
+    was installed in one version's  ``site-packages``          sure that version number matches the version
+    directory, and you started the *other* Python version      number of the Python installation in which you
+    when you typed ``python``.                                 installed Django. Either reinstall Django in
+                                                               the correct Python installation or start the
+                                                               interactive interpreter for the Python version
+                                                               where Django is installed. In the latter case,
+                                                               for example, this may mean executing the
+                                                               command ``python2.5`` (with the explicit
+                                                               version number) rather than ``python``.
 
-Subversion is a free, open-source revision-control system similar to CVS, and
-the Django team uses it to manage changes to the Django codebase. At any
-given time, you can use a Subversion client to grab the very latest Django
-source code, and, at any given time, you can update your local version of the
-Django code -- known as your "local checkout" -- to get the latest changes and
-improvements made by Django developers.
-
-The latest-and-greatest Django development code is referred to as "the
-trunk."  The Django team runs production sites on trunk and strives to
-keep it stable.
-
-To grab the latest Django trunk:
-
-    #. Make sure you have a Subversion client installed. You can get the
-       software free from http://subversion.tigris.org/ and excellent
-       documentation from http://svnbook.red-bean.com/
-
-    #. Check out the trunk using the command ``svn co
-       http://code.djangoproject.com/svn/django/trunk djtrunk``
-
-    #. Create ``site-packages/django.pth``, and add the ``djtrunk``
-       directory to it or update your PYTHONPATH to point to ``djtrunk``.
-
-    #. Place ``djtrunk/django/bin`` on your system PATH.  This directory
-       includes management utilities such as django-admin.py.
-
-(If .pth files are new to you, you can learn more at http://www.djangoproject.com/r/python/site-module/.)
-
-After downloading from Subversion and following the above steps,
-there's no need to ``python setup.py install`` -- you've just done the
-work by hand!
-
-Because the Django trunk changes often with bug fixes and feature additions,
-you'll probably want to update it every once in a while -- or hourly, if you're
-really obsessed. To update the code, just run the command ``svn update`` from
-within the ``djtrunk`` directory. When you run that command, Subversion will
-contact code.djangoproject.com, see if any code has changed and update
-your local version of the code with any changes that have been made
-since you  last updated. It's quite slick.
+    Your Python path doesn't include the ``django`` package.   Type ``import sys; print sys.path`` in the
+                                                               Python interactive interpreter. This is the
+                                                               list of directories that Python checks for
+                                                               packages. If none of those directories
+                                                               contains a file called ``django``, you'll
+                                                               either need to alter your Python path to
+                                                               include the directory containing ``django``,
+                                                               or you'll need to move the ``django``
+                                                               directory into one of those Python path
+                                                               directories.
+    =========================================================  ===============================================
 
 Setting up a database
 =====================
@@ -118,8 +197,8 @@ this book focuses on one of Django's sweet spots, which is developing
 some sort, for storing your data.
 
 If you just want to get started playing with Django, skip ahead to `Starting a
-project`, but trust us -- you'll want to install a database eventually. All of
-the examples in the book assume you've got a database set up.
+project`, but trust us -- you'll want to install a database eventually. The
+advanced examples in the book assume you've got a database set up.
 
 As of version 1.0, Django supports five database engines:
 
@@ -132,20 +211,19 @@ As of version 1.0, Django supports five database engines:
 .. XXX JGD As of 0.95, DJ doesn't support SQL Server or Oracle.
 .. XXX JGD Make sure it does before publishing, or remove the last 2 points.
 
-We're quite fond of PostgreSQL ourselves, for reasons outside the scope of this
-book, so we mention it first. However, all those engines will work equally well
-with Django.
+In each case, you'll need two things: access to a database server somewhere
+and the appropriate Python client libraries to be able to communicate with
+that database server. We'll give details about each database engine's
+requirements shortly.
 
-SQLite also deserves special notice as a development tool: It's an
-extremely simple in-process database engine that doesn't require any
-sort of server set up or configuration. It's by far the easiest to set
-up if you just want to play around with Django, and it's even included
-in the standard library of Python 2.5.
+If you just want to play around with Django and don't have access (or desire)
+to install a database server, we highly recommend SQLite. SQLite is an
+extremely simple in-process database engine that doesn't require any sort of
+server setup or configuration. Plus, a SQLite comes bundled with Python 2.5.
 
-On Windows, obtaining database driver binaries is sometimes involved.
-Since you're just getting started with Django, we recommend using
-Python 2.5 and its built-in support for SQLite.  Compiling driver
-binaries is a downer.
+We also recommend SQLite with Python 2.5 if you're using Windows, if only
+because other database engines and clients can be difficult to set up on
+Windows.
 
 Using Django with PostgreSQL
 ----------------------------
@@ -160,14 +238,16 @@ If you're using PostgreSQL on Windows, you can find precompiled binaries of
 Using Django with SQLite 3
 --------------------------
 
-If you've got a Python version over 2.5, you've already got SQLite.
-If you're working with Python 2.4 or older, you'll need SQLite 3 --
-not version 2 -- from http://www.djangoproject.com/r/sqlite/ and the
-``pysqlite`` package from http://www.djangoproject.com/r/python-sqlite/.     
-Make sure you have ``pysqlite`` version 2.0.3 or higher.  
+If you're using Python version 2.5 or higher, you've already got SQLite, and
+there's no need to install anything.
 
-On Windows, you can skip installing the separate SQLite binaries,
-since they're staticly linked into the pysqlite binaries.
+If you're using Python 2.4 or older, you'll need SQLite 3 -- not version 2 --
+from http://www.djangoproject.com/r/sqlite/ and the ``pysqlite`` package from
+http://www.djangoproject.com/r/python-sqlite/. Make sure you have ``pysqlite``
+version 2.0.3 or higher.
+
+On Windows, you can skip installing the separate SQLite binaries, because
+they're staticly linked into the ``pysqlite`` binaries.
 
 Using Django with MySQL
 -----------------------
@@ -184,8 +264,8 @@ Using Django with MSSQL
 Using Django with Oracle
 ------------------------
 
-Django requires Oracle database versions 9i and 10g. You will need to
-install version 4.2 or better of the cx_Oracle package from
+Django requires Oracle database versions 9i and 10g. You'll need to
+install version 4.2 or better of the ``cx_Oracle`` package from
 http://www.djangoproject.com/r/python-oracle/.
 
 Using Django without a database
@@ -202,31 +282,49 @@ out on those features. (We'll highlight these features throughout this book.)
 Starting a project
 ==================
 
-.. The below (down to "The rest of this section") is adapted from "Initial
-.. setup" in tutorial01.txt.
+Once you've installed Django and whichever database library you'll be using,
+you'll be ready to start coding. The first step of coding a Web application
+with Django is the creation of a **project**.
 
 A project is a collection of settings for an instance of Django -- including
 database configuration, Django-specific options and application-specific
-settings.   
+settings. It's the heart of your Django site.
 
-If this is your first time using Django, you'll have to take care of
-some initial setup.  Create a new directory to start working in,
-perhaps something like ``/home/username/djcode/``, and change into
-that directory.
+To start a new project, first create a directory to work in -- such as
+``/home/username/djcode``. If your background is in PHP, you're probably used
+to putting code under your Web server's document root (in a place such as
+``/var/www``). With Django, you don't do that. It's not a good idea to put any
+of this Python code within your Web server's document root, because it risks
+the possibility that people may be able to view your code over the Web. That's
+not good for security.
 
-.. note::
+Once you've created that directory, change into it using ``cd``. Then, run the
+command ``django-admin.py startproject mysite``. This will create a ``mysite``
+directory in your current directory.
 
-    ``django-admin.py`` should be on your system path if you installed Django
-    via its setup.py utility. If you checked out from Subversion, you
-    can find it in ``djtrunk/django/bin``.  Since you'll be using it
-    often, consider adding it to your path.  On Unix, you can do so by
-    symlinking from /usr/local/bin, using a command such as:
-    sudo ln -s /path/to/django/bin/django-admin.py /usr/local/bin/django-admin.py
-    On Windows, you'll need to update your PATH environment variable.
+.. admonition:: Trouble?
 
+    If you get an error such as ``django-admin.py: command not found``, that
+    means the ``django-admin.py`` utility is not on your system path (the list
+    of directories that your system checks for program names). There are a
+    couple ways of rectifying this.
 
-Run the command ``django-admin.py startproject mysite``. That'll create a
-``mysite`` directory in your current directory.
+        1. You can try adding the ``django/bin`` directory to your system path.
+           This directory lives within the Django source code, wherever you
+           installed Django. For example, if you followed the instructions from
+           earlier in this chapter and you're using Python 2.5 on Linux, the
+           directory probably lives at ``/usr/lib/python2.5/site-packages/django/bin``.
+           To add it to your path on Unix, run this command::
+
+               export PATH=$PATH:/path/to/django/bin
+
+           On Windows, you'll need to update your PATH environment variable.
+
+        2. Alternatively, on Unix systems, you can create a symlink to
+           ``django-admin.py`` from a directory that's already on your path,
+           such as ``/usr/local/bin``. Use this command::
+
+               sudo ln -s /path/to/django/bin/django-admin.py /usr/local/bin/django-admin.py
 
 Let's look at what ``startproject`` created::
 
@@ -238,8 +336,8 @@ Let's look at what ``startproject`` created::
 
 These files are:
     ``__init__.py``
-        A file required for Python treat the directory as a package
-        (i.e. a group of modules).
+        A file required by Python in order to treat the directory as a package
+        of Python modules.
 
     ``manage.py``
         A command-line utility that lets you interact with this Django project
@@ -252,30 +350,26 @@ These files are:
         The URL declarations for this Django project; a "table of contents" of
         your Django-powered site.
 
-.. admonition:: Where should this code live?
-
-    If your background is in PHP, you're probably used to putting code under the
-    Web server's document root (in a place such as ``/var/www``). With Django,
-    you don't do that. It's not a good idea to put any of this Python code within
-    your Web server's document root, because it risks the possibility that
-    people may be able to view your code over the Web. That's not good for
-    security.
-
-    Put your code in some directory **outside** of the document root.
+Note that ``startproject`` *might* also create files with ``.pyo`` or ``.pyc``
+extensions. These are compiled versions of the Python source files, and you can
+safely ignore them.
 
 The development server
 ----------------------
 
-Django includes a built-in, lightweight Web server you can use while
-developing your site. We've included this so you can develop things
-rapidly, without having to deal with configuring your production Web
-server (e.g., Apache) until you're ready for production. This development
-server watches your code for changes and automatically reloads, helping you
-make many rapid changes to your project without needing to restart
-anything.
+Django includes a built-in, lightweight Web server you can use while developing
+your site. We've included this so you can develop things rapidly, without
+having to deal with configuring your production Web server (e.g., Apache) until
+you're ready for production. This development server watches your code for
+changes and automatically reloads, helping you make many rapid changes to your
+project without needing to restart anything. Throughout the examples in this
+book, we'll be using the development server, rather than more robust deployment
+solutions, due to ease of use.
 
-Change into the ``mysite`` directory, if you haven't already, and run the
-command ``python manage.py runserver``. You'll see something like this::
+Let's start the Django development server for the first time. To do this,
+``cd`` into the ``mysite`` directory that ``startproject`` created. Then run
+the command ``python manage.py runserver``. You should see something like
+this::
 
     Validating models...
     0 errors found.
@@ -294,23 +388,22 @@ deploy Django.
 .. admonition:: Changing the host or the port
 
     By default, the ``runserver`` command starts the development server on
-    port 8000, listening only for local connections. If you want to change the
-    server's port, pass it as a command-line argument::
+    port 8000, listening only for local connections (i.e., connections from
+    the same computer).
+
+    If you want to change the server's port, pass it as a command-line argument::
 
         python manage.py runserver 8080
 
-    You can also change the IP address that the server listens on.  This
-    is especially helpful if you'd like to share a development site with
-    other developers::
+    You can also change the IP address that the server listens on; this is
+    especially helpful if you'd like to show your work to other developers. The
+    following command will tell Django to listen on any network interface, thus
+    allowing other computers to connect to the development server::
 
         python manage.py runserver 0.0.0.0:8080
 
-    will make Django listen on any network interface, thus allowing other
-    computers to connect to the development server.
-
 Now that the server's running, visit http://127.0.0.1:8000/ with your Web
-browser. You'll see a "Welcome to Django" page, in pleasant, light-blue pastel.
-It worked!
+browser. You'll see a pleasant "Welcome to Django" page. It worked!
 
 What's next?
 ============
