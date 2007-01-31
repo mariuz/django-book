@@ -1134,7 +1134,7 @@ a ``TemplateDoesNotExist`` exception. To see what that looks like, fire up the
 Django development server again, as in Chapter 3, by running
 ``python manage.py runserver`` within your Django project's directory. Then,
 point your browser at the page that activates the ``current_datetime`` view
-(e.g., ``http://127.0.0.1:8000/now/``). Assuming your ``DEBUG`` setting is set
+(e.g., ``http://127.0.0.1:8000/time/``). Assuming your ``DEBUG`` setting is set
 to ``True`` and you haven't yet created a ``current_datetime.html`` template,
 you should see a Django error page highlighting the ``TemplateDoesNotExist``
 error.
