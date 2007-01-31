@@ -309,9 +309,10 @@ secrets of middleware will be fully covered in Chapter 16, but a quick sketch
 should aid you in conceptually fitting the pieces together.
 
 .. image:: http://media.djangobook.com/content/chapter03/get_response.png
-   :width: 440
-   :height: 481
    :class: center
+   :alt: Diagram of Django's request processing.
+   :width: 444
+   :height: 525
 
 When an HTTP request comes in from the browser, a server-specific **handler** 
 constructs the ``HttpRequest`` passed to later components and handles the flow of 
