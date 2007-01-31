@@ -2,12 +2,13 @@
 Chapter 14: Caching
 ===================
 
-Static websites, in which simple files are served directly to the Web, scale 
-like crazy. But a fundamental tradeoff in dynamic Web sites is, well, they're
-dynamic. Each time a user requests a page, the Web server makes all sorts of 
-calculations -- from database queries to template rendering to business logic -- 
-to create the page that your site's visitor sees. From a processing-overhead
-perspective, this is a lot more expensive.
+Static websites, in which simple files are served directly to the Web, are
+incredibly scalable -- Web servers serving static files can handle a heavy load
+of traffic before they start to sweat. But a fundamental tradeoff in dynamic
+Web sites is, well, they're dynamic. Each time a user requests a page, the Web
+server makes all sorts of calculations -- from database queries to template
+rendering to business logic -- to create the page that your site's visitor
+sees. From a processing-overhead perspective, this is a lot more expensive.
 
 For most Web applications, this overhead isn't a big deal. Most Web
 applications aren't washingtonpost.com or slashdot.org; they're simply small-
@@ -59,8 +60,8 @@ Memcached
 
 By far the fastest, most efficient type of cache available to Django, Memcached
 is an entirely memory-based cache framework originally developed to handle high
-loads at LiveJournal.com and subsequently open-sourced by Danga 
-Interactive(http://www.danga.com).  It's used by sites such as Slashdot and 
+loads at LiveJournal.com and subsequently open-sourced by Danga
+Interactive (http://www.danga.com). It's used by sites such as Slashdot and
 Wikipedia to reduce database access and dramatically increase site performance.
 
 Memcached is available for free at http://danga.com/memcached/ . It runs as a
@@ -148,7 +149,7 @@ For example, to store cached data in ``/var/tmp/django_cache``, use this setting
 Note that there are three forward slashes toward the beginning of that example.
 The first two are for ``file://``, and the third is the first character of the
 directory path, ``/var/tmp/django_cache``. If you're on Windows, put the drive
-letter after the ``file://``, like so:: ``file://c:/foo/bar``.
+letter after the ``file://``, like so:: ``file://C:/foo/bar``.
 
 The directory path should be absolute -- that is, it should start at the root
 of your filesystem. It doesn't matter whether you put a slash at the end of the
@@ -169,7 +170,7 @@ Local-memory caching
 
 If you want the speed advantages of in-memory caching but don't have the
 capability of running Memcached, consider the local-memory cache backend. This
-cache is multi-process and thread-safe, but isn't as efficient as Memcached 
+cache is multi-process and thread-safe, but isn't as efficient as Memcached
 due to its simplistic locking and memory allocation strategies.
 
 To use it, set ``CACHE_BACKEND`` to ``'locmem:///'``. For example::
@@ -216,7 +217,7 @@ the ``CACHE_BACKEND`` setting. Valid arguments are:
     * ``cull_percentage`` -- The ratio of entries that are culled when
       ``max_entries`` is reached. The actual ratio is ``1/cull_percentage``, so
       set  ``cull_percentage=2`` to cull 1/2 of the entries when ``max_entries``
-      is reached.  
+      is reached.
 
       A value of ``0`` for ``cull_percentage`` means that the entire cache will
       be dumped when ``max_entries`` is reached. This makes culling *much*
@@ -297,8 +298,8 @@ The per-view cache
 ==================
 
 A more granular way to use the caching framework is by caching the output of
-individual views. This has the same effects as the per-site cache (including the 
-ommission of caching on requests with GET and POST parameters). It applies to 
+individual views. This has the same effects as the per-site cache (including the
+ommission of caching on requests with GET and POST parameters). It applies to
 whichever views you specify, rather than the whole site.
 
 Do this by using a decorator -- a wrapper around your view function that alters
@@ -367,7 +368,9 @@ Here's the same thing, with ``my_view`` wrapped in ``cache_page``::
     )
 
 If you take this approach, don't forget to import ``cache_page`` within your
-URLconf.
+URLconf::
+
+    from django.views.decorators.cache import cache_page
 
 The low-level cache API
 =======================
@@ -375,18 +378,18 @@ The low-level cache API
 Sometimes, caching an entire rendered page doesn't gain you very much and is,
 in fact, inconvenient overkill.
 
-Perhaps, for instance, your site includes a view whose results depend on 
+Perhaps, for instance, your site includes a view whose results depend on
 several expensive queries, the results of which change at different intervals.
-In this case, it would not be ideal to use the full-page caching that the 
-per-site or per-view cache strategies offer, because you wouldn't want to 
-cache entire result (since some of the data changes often), but you'd still 
+In this case, it would not be ideal to use the full-page caching that the
+per-site or per-view cache strategies offer, because you wouldn't want to
+cache entire result (since some of the data changes often), but you'd still
 want to cache the results that rarely change.
 
-For cases like this, Django exposes a simple, low-level cache API, which lives 
-in the module ``django.core.cache``. You can use the low-level cache API to 
-store objects in the cache with any level of granularity you like. You can cache 
-any Python object that can be "pickled" safely -- strings, dictionaries, lists 
-of model objects, etc. (Most common Python objects can be pickled; refer to the 
+For cases like this, Django exposes a simple, low-level cache API, which lives
+in the module ``django.core.cache``. You can use the low-level cache API to
+store objects in the cache with any level of granularity you like. You can cache
+any Python object that can be "pickled" safely -- strings, dictionaries, lists
+of model objects, etc. (Most common Python objects can be pickled; refer to the
 Python documentation for more information about pickling.)
 
 Here's how to import it::
@@ -413,9 +416,9 @@ If the object doesn't exist in the cache, or the cache backend is unreachable,
     >>> cache.get('some_unset_key')
     None
 
-We advise against storing the literal value ``None`` in the cache, because you
-won't be able to distinguish between your stored ``None`` value and a cache 
-miss signified by a return value of ``None``.
+We advise against storing the literal value ``None`` in the cache, because it's
+easy to get confused trying to tell the difference between your stored ``None``
+value and a cache miss signified by a return value of ``None``.
 
 ``cache.get()`` can take a ``default`` argument. This specifies which value to
 return if the object doesn't exist in the cache::
@@ -452,12 +455,22 @@ not a value with the given cache key exists.
 Upstream caches
 ===============
 
-So far, this chapter has focused on caching your *own* data. But another type
-of caching is relevant to Web development, too: caching performed by "upstream"
-caches. These are systems that cache pages for users even before the request
-reaches your Web site.
+Server-side cache, which has been this chapter's focus so far, is great for
+processing requests more quickly. But it is also desirable to reduce the amount
+of traffic that reaches your site *at all*.
+
+"Upstream" caches sit between your site and the user's browser. They can be
+part of the browser, part of an organization's gateway to the Internet, or a
+service provided by the user's ISP. When an upstream cache is able to satisfy
+the user's request, that request never reaches your site at all. This has
+important implications for how you develop a Web application.
 
 Here are a few examples of upstream caches:
+
+    * A Django Web site may sit behind a proxy cache, such as Squid
+      (http://www.squid-cache.org/), that caches pages for performance. In this
+      case, each request first would be handled by the proxy, and it'd only be
+      passed to the Django application if needed.
 
     * Your ISP may cache certain pages, so if you requested a page from
       example.com, your ISP would send you the page without having to access
@@ -465,15 +478,13 @@ Here are a few examples of upstream caches:
       this caching; the ISP sits between example.com and your Web browser,
       handling all of the caching transparently.
 
-    * Your Django Web site may sit behind a proxy cache, such as Squid
-      (http://www.squid-cache.org/), that caches pages for performance. In this
-      case, each request first would be handled by the proxy, and it'd only be
-      passed to your application if needed.
-
     * Your Web browser caches pages, too. If a Web page sends out the
       appropriate headers, your browser will use the local cached copy for
       subsequent requests to that page, without even contacting the Web page
       again to see whether it has changed.
+
+A cache "hit" in any of these places can prevent certain types of requests from
+reaching your site.
 
 Upstream caching is a nice efficiency boost, but there's a danger to it. Many
 Web pages' contents differ based on authentication and a host of other
@@ -489,15 +500,15 @@ not cool.
 Fortunately, HTTP provides a solution to this problem. A number of HTTP headers
 exist to instruct upstream caches to differ their cache contents depending on
 designated variables, and to tell caching mechanisms not to cache particular
-pages.
+pages. Django provides a number of functions that simplify this cache control.
 
 Using Vary headers
 ==================
 
-One of these headers is ``Vary``. It defines which request headers a cache
-mechanism should take into account when building its cache key. For example, if
-the contents of a Web page depend on a user's language preference, the page is
-said to "vary on language."
+One of the HTTP cache headers is ``Vary``. It defines which request headers a
+cache mechanism should take into account when building its cache key. For
+example, if the contents of a Web page depend on a user's language preference,
+the page is said to "vary on language."
 
 By default, Django's cache system creates its cache keys using the requested
 path -- e.g., ``"/stories/2005/jun/23/bank_robbed/"``. This means every request
@@ -577,12 +588,11 @@ Controlling cache: Using other headers
 Another problem with caching is the privacy of data and the question of where
 data should be stored in a cascade of caches.
 
-A user usually faces two kinds of caches: his own browser cache (a private
-cache) and his provider's cache (a public cache). A public cache is used by
-multiple users and controlled by someone else. This poses problems with
-sensitive data: You don't want, say, your banking-account number stored in a
-public cache. So Web applications need a way to tell caches which data is
-private and which is public.
+As you have seen, there are two types of upstream caches: private and public.
+A public cache is used by multiple users and controlled by someone else. This
+poses problems with sensitive data: You don't want, say, your banking-account
+number stored in a public cache. So Web applications need a way to tell caches
+which data is private and which is public.
 
 The solution is to indicate a page's cache should be "private." To do this in
 Django, use the ``cache_control`` view decorator. Example::
@@ -642,10 +652,10 @@ Django comes with a few other pieces of middleware that can help optimize your
 apps' performance:
 
     * ``django.middleware.http.ConditionalGetMiddleware`` adds support for
-      modern browsers to conditionally GET responses based on the ``ETag`` 
+      modern browsers to conditionally GET responses based on the ``ETag``
       and ``Last-Modified`` headers.
 
-    * ``django.middleware.gzip.GZipMiddleware`` compresses responses for all 
+    * ``django.middleware.gzip.GZipMiddleware`` compresses responses for all
       moderns browsers, saving bandwidth and transfer time.
 
 Order of MIDDLEWARE_CLASSES
