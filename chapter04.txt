@@ -1493,7 +1493,7 @@ Here's how it works:
       as a fallback.
 
 Inheritance doesn't affect the way the context works, and you can use
-as many  of inheritance as needed. One common way of using inheritance
+as many levels of inheritance as needed. One common way of using inheritance
 is the following three-level approach:
 
     * Create a ``base.html`` template that holds the main look-and-feel of
