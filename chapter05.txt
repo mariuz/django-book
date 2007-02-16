@@ -37,7 +37,7 @@ retrieve data from a database in a view. It's simple: Just use any existing
 Python library to execute an SQL query and do something with the results.
 
 In this example view, we use the ``MySQLdb`` library (available at
-http://sourceforge.net/projects/mysql-python) to connect to a MySQL database,
+http://www.djangoproject.com/r/python-mysql/) to connect to a MySQL database,
 retrieve some records and feed them to a template for display as a Web page::
 
     from django.shortcuts import render_to_response
@@ -190,18 +190,24 @@ Here's a rundown of each setting.
           Setting                  Database              Required adapter
           =======================  ====================  ==============================================
           ``postgresql``           PostgreSQL            ``psycopg`` version 1.x,
-                                                         http://initd.org/projects/psycopg1
+                                                         http://www.djangoproject.com/r/python-pgsql/1/
+
           ``postgresql_psycopg2``  PostgreSQL            ``psycopg`` version 2.x,
-                                                         http://initd.org/projects/psycopg2
+                                                         http://www.djangoproject.com/r/python-pgsql/
+
           ``mysql``                MySQL                 ``MySQLdb``,
-                                                         http://sourceforge.net/projects/mysql-python
+                                                         http://www.djangoproject.com/r/python-mysql/
+
+
           ``sqlite3``              SQLite                No adapter needed if using Python 2.5+.
                                                          Otherwise, ``pysqlite``,
-                                                         http://initd.org/tracker/pysqlite
+                                                         http://www.djangoproject.com/r/python-sqlite/
+
           ``ado_mssql``            Microsoft SQL Server  ``adodbapi`` version 2.0.1+,
-                                                         http://adodbapi.sourceforge.net/
+                                                         http://www.djangoproject.com/r/python-ado/
+
           ``oracle``               Oracle                ``cx_Oracle``,
-                                                         http://www.python.net/crew/atuining/cx_Oracle/
+                                                         http://www.djangoproject.com/r/python-oracle/
           =======================  ====================  ==============================================
 
       Note that for whichever database backend you use, you'll need to download
