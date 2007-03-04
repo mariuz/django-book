@@ -1,6 +1,6 @@
-======================================
-Chapter 10: Inside the template engine
-======================================
+=========================================
+Chapter 10: Extending the template engine
+=========================================
 
 Most of your interaction with Django's template language will probably be in
 the role of a template author. This chapter delves much deeper into the guts
@@ -11,291 +11,61 @@ If you're looking to use the Django template system as part of another
 application -- i.e., without the rest of the framework -- make sure to read
 the configuration section later in this document.
 
-Basics
-======
+.. contents::
 
-A **template** is a text document, or a normal Python string, that is
-marked-up using the Django template language. A template can contain **block
-tags** or **variables**.
+Filling in the gaps
+===================
 
-A **block tag** is a symbol within a template that does something.
+First, a quick review of terms from Chapter 4:
 
-This definition is deliberately vague. For example, a block tag can produce
-content, serve as a control structure (an "if" statement or "for" loop), grab
-content from a database or enable access to other template tags.
+    * A **template** is a text document, or a normal Python string, that is
+      marked up using the Django template language. A template can contain
+      **block tags** or **variables**.
 
-Block tags are surrounded by ``{%`` and ``%}``::
+    * A **block tag** is a symbol within a template that does something.
 
-    {% if is_logged_in %}
-      Thanks for logging in!
-    {% else %}
-      Please log in.
-    {% endif %}
+      This definition is deliberately vague. For example, a block tag can
+      produce content, serve as a control structure (an "if" statement or "for"
+      loop), grab content from a database or enable access to other template
+      tags.
+  
+      Block tags are surrounded by ``{%`` and ``%}``::
+  
+          {% if is_logged_in %}
+            Thanks for logging in!
+          {% else %}
+            Please log in.
+          {% endif %}
+  
+    * A **variable** is a symbol within a template that outputs a value.
 
-A **variable** is a symbol within a template that outputs a value.
+      Variable tags are surrounded by ``{{`` and ``}}``::
+  
+          My first name is {{ first_name }}. My last name is {{ last_name }}.
+  
+    * A **context** is a "name" -> "value" mapping (similar to a Python
+      dictionary) that is passed to a template.
 
-Variable tags are surrounded by ``{{`` and ``}}``::
+    * A template **renders** a context by replacing the variable "holes" with
+      values from the context and executing all block tags.
 
-    My first name is {{ first_name }}. My last name is {{ last_name }}.
+For more details about the basics of these tems, refer back to Chapter 4. 
 
-A **context** is a "name" -> "value" mapping (similar to a Python dictionary)
-that is passed to a template.
-
-A template **renders** a context by replacing the variable "holes" with values
-from the context and executing all block tags.
-
-Using the template object
-=========================
-
-At its lowest level, using the template system in Python is a two-step
-process:
-
-    * First, you compile the raw template code into a ``Template`` object.
-    
-    * Then, you call the ``render()`` method of the ``Template`` object with a
-      given context.
-
-Compiling a string
-------------------
-
-The easiest way to create a ``Template`` object is by instantiating it
-directly. The constructor takes one argument -- the raw template code::
-
-    >>> from django.template import Template
-    >>> t = Template("My name is {{ my_name }}.")
-    >>> print t
-    <django.template.Template object at 0x1150c70>
-
-.. admonition:: Behind the scenes
-
-    The system only parses your raw template code once -- when you create the
-    ``Template`` object. From then on, it's stored internally as a "node"
-    structure for performance.
-
-    Even the parsing itself is quite fast. Most of the parsing happens via a
-    single call to a single, short, regular expression.
-
-Rendering a context
--------------------
-
-Once you have a compiled ``Template`` object, you can render a context -- or
-multiple contexts -- with it. The ``Context`` constructor takes one (optional)
-argument: a dictionary mapping variable names to variable values.
-
-Call the ``Template`` object's ``render()`` method with the context to "fill"
-the template::
-
-    >>> from django.template import Context, Template
-    >>> t = Template("My name is {{ my_name }}.")
-
-    >>> c = Context({"my_name": "Adrian"})
-    >>> t.render(c)
-    "My name is Adrian."
-
-    >>> c = Context({"my_name": "Dolores"})
-    >>> t.render(c)
-    "My name is Dolores."
-
-Variable names must consist of any letter (A-Z), any digit (0-9), an
-underscore or a dot.
-
-Dots have a special meaning in template rendering. A dot in a variable name
-signifies **lookup**. Specifically, when the template system encounters a dot
-in a variable name, it tries a number of possible options.  For example, the
-variable ``{{ foo.bar }}`` could expand to any of the following:
-
-    * Dictionary lookup: ``foo["bar"]``
-    
-    * Attribute lookup: ``foo.bar``
-    
-    * Method call: ``foo.bar()``
-    
-    * List-index lookup: ``foo[bar]``
-
-The template system uses the first lookup type that works; it's short-circuit
-logic.
-
-Here are a few examples::
-
-    >>> from django.template import Context, Template
-    >>> t = Template("My name is {{ person.first_name }}.")
-    
-    >>> d = {"person": {"first_name": "Joe", "last_name": "Johnson"}}
-    >>> t.render(Context(d))
-    "My name is Joe."
-
-    >>> class Person: 
-    ...     def __init__(self, first_name, last_name):
-    ...         self.first_name, self.last_name = first_name, last_name
-    ...
-    >>> p = Person("Ron", "Nasty")
-    >>> t.render(Context({"person": p}))
-    "My name is Ron."
-
-    >>> class Person2:
-    ...     def first_name(self):
-    ...         return "Samantha"
-    ...
-    >>> p = Person2()
-    >>> t.render(Context({"person": p}))
-    "My name is Samantha."
-
-    >>> t = Template("The first stooge in the list is {{ stooges.0 }}.")
-    >>> c = Context({"stooges": ["Larry", "Curly", "Moe"]})
-    >>> t.render(c)
-    "The first stooge in the list is Larry."
-
-Method lookups are slightly more complex than the other lookup types. Here are
-some things to keep in mind:
-
-    * If, during the method lookup, a method raises an exception, the
-      exception will be propagated unless the exception has an attribute
-      ``silent_variable_failure`` whose value is ``True``. 
-      
-      If the exception *does* have such an attribute, the variable will render
-      as an empty string. 
-      
-      For example::
-
-            >>> t = Template("My name is {{ person.first_name }}.")
-            
-            >>> class Person3:
-            ...     def first_name(self):
-            ...         raise AssertionError("foo")
-            ...
-            >>> p = Person3()
-            >>> t.render(Context({"person": p}))
-            Traceback (most recent call last):
-            ...
-            AssertionError: foo
-
-            >>> class SilentAssertionError(AssertionError):
-            ...     silent_variable_failure = True
-            ...
-            >>> class Person4:
-            ...     def first_name(self):
-            ...         raise SilentAssertionError("foo")
-            ...
-            >>> p = PersonClass4()
-            >>> t.render(Context({"person": p}))
-            "My name is ."
-
-      Note that ``django.core.exceptions.ObjectDoesNotExist``, which is the
-      base class for all Django database API ``DoesNotExist`` exceptions, has
-      ``silent_variable_failure = True``. So if you're using Django templates
-      with Django model objects, any ``DoesNotExist`` exception will fail
-      silently.
-
-    * A method call will only work if the method has no required arguments.
-      Otherwise, the system will move to the next lookup type (list-index
-      lookup).
-
-    * Obviously, some methods have side effects, and it'd be either foolish or
-      a security hole to allow the template system to access them.
-
-      A good example is the ``delete()`` method on each Django model object.
-      The template system shouldn't be allowed to do something like this::
-
-            I will now delete this valuable data. {{ data.delete }}
-
-      To prevent this, set a function attribute ``alters_data`` on the method.
-      The template system won't execute a method if the method has
-      ``alters_data=True`` set::
-
-            def sensitive_function(self):
-                self.database_record.delete()
-            sensitive_function.alters_data = True
-            
-      The dynamically-generated ``delete()`` and ``save()`` methods on Django
-      model objects get ``alters_data=True`` automatically, for example.
-
-How invalid variables are handled
-`````````````````````````````````
-
-Generally, if a variable doesn't exist, the template system inserts the value
-of the ``TEMPLATE_STRING_IF_INVALID`` setting, which is set to the empty
-string by default.
-
-Filters that are applied to an invalid variable will only be applied if
-``TEMPLATE_STRING_IF_INVALID`` is set to its default value. If
-``TEMPLATE_STRING_IF_INVALID`` is set to any other value, variable filters
-will be ignored.
-
-This behavior is slightly different for the ``if``, ``for`` and ``regroup``
-template tags. If an invalid variable is provided to one of these template
-tags, the variable will be interpreted as ``None``. Filters are always applied
-to invalid variables within these template tags.
-
-Playing with Context objects
-----------------------------
-
-Most of the time, you'll instantiate ``Context`` objects by passing in a
-fully-populated dictionary to ``Context()``. But you can add and delete items
-from a ``Context`` object once it's been instantiated, too, using standard
-dictionary syntax::
-
-    >>> c = Context({"foo": "bar"})
-    >>> c['foo']
-    'bar'
-    >>> del c['foo']
-    >>> c['foo']
-    ''
-    >>> c['newvariable'] = 'hello'
-    >>> c['newvariable']
-    'hello'
-
-Furthermore, a ``Context`` object acts like a stack. That is, you can
-``push()`` and ``pop()`` additional contexts onto the stack. All setting
-operations happen to the top-most context on the stack, but get operations
-search the stack (top-down) until a value is found.
-
-If you ``pop()`` an empty ``Context`` stack, it'll raise
-``django.template.ContextPopException``.
-
-Here's an example of how these multiple levels might work::
-
-    # Create a new blank context and set a simple value:
-    >>> c = Context()
-    >>> c['foo'] = 'first level'
-    
-    # Push a new context onto the stack:
-    >>> c.push()
-    >>> c['foo'] = 'second level'
-    
-    # The value of "foo" is now what we set at the second level:
-    >>> c['foo']
-    'second level'
-    
-    # After popping a layer off, the old value is still there:
-    >>> c.pop()
-    >>> c['foo']
-    'first level'
-    
-    # If we don't push() again, we'll overwrite existing values:
-    >>> c['foo'] = 'overwritten'
-    >>> c['foo']
-    'overwritten'
-    
-    # There's only one context on the stack, so pop()ing will fail:
-    >>> c.pop()
-    Traceback (most recent call last):
-    ...
-    django.template.ContextPopException
-
-Using a ``Context`` as a stack comes in handy in some custom template tags, as
-you'll see below.
+The rest of this chapter discusses ways of extending the template engine. First,
+though let's take a quick look at a few internals that Chapter 4 left out for
+simplicity.
 
 ``RequestContext`` and context processors
 -----------------------------------------
 
-Django comes with a special ``Context`` class,
-``django.template.RequestContext``, that acts slightly differently than the
-normal ``django.template.Context``. The first difference is that takes an
-``HttpRequest`` object (see Chapter XXX) as its first argument::
+When rendering a template, you need a context. Usually this is an instance of
+``django.template.Context``, but Django also comes with a special subclass
+class, ``django.template.RequestContext``, that acts slightly differently. 
 
-    c = RequestContext(request, {
-        'foo': 'bar',
-    }
+The first difference is that it takes an ``HttpRequest`` object (see Appendix 8)
+as its first argument::
+
+    c = RequestContext(request, {'foo': 'bar'}
 
 The second difference is that it automatically populates the context with a
 few variables, according to your ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
@@ -326,7 +96,7 @@ the optional, third argument, ``processors``. In this example, the
             'foo': 'bar',
         }, processors=[ip_address_processor])
 
-Here's what each of the default processors does:
+Here's what each of the stock template processors does:
 
 ``django.core.context_processors.auth``
 ```````````````````````````````````````
@@ -335,7 +105,7 @@ If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
 ``RequestContext`` will contain these three variables:
 
     ``user``
-        A ``djangol.contrib.auth.models.User`` instance representing the
+        A ``django.contrib.auth.models.User`` instance representing the
         currently logged-in user (or an ``AnonymousUser`` instance, if the
         client isn't logged in).
 
@@ -352,13 +122,13 @@ If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
         An instance of ``django.core.context_processors.PermWrapper``,
         representing the permissions that the currently logged-in user has.
 
-See Chapter XXX for more on users, permissions, and messages.
+See Chapter 12 for more on users, permissions, and messages.
 
 ``django.core.context_processors.debug``
 ````````````````````````````````````````
 
-This processor pushed debugging information down to the template layer. If
-it is enabled, it will only actually operate if:
+This processor pushes debugging information down to the template layer. If it is
+enabled, it will only actually operate if:
 
     * the ``DEBUG`` setting is ``True``, and
     
@@ -373,13 +143,13 @@ If those conditions *are* met, the following variables will be set:
     ``sql_queries``
         A list of ``{'sql': ..., 'time': ...}`` dictionaries, representing
         every SQL query that has happened so far during the request and how
-        long it took. The list is in order by query.
+        long it took. The list is in the order that the queries were issued.
 
 ``django.core.context_processors.i18n``
 ```````````````````````````````````````
 
-If this processor is enabled this processor, every ``RequestContext`` will
-contain these two variables:
+If this processor is enabled, every ``RequestContext`` will contain these two
+variables:
 
     ``LANGUAGES``
         The value of the ``LANGUAGES`` setting.
@@ -388,7 +158,7 @@ contain these two variables:
         ``request.LANGUAGE_CODE``, if it exists. Otherwise, the value of the
         ``LANGUAGE_CODE`` setting
 
-Appendix XXX has more information about these two settings.
+Appendix 5 has more information about these two settings.
 
 ``django.core.context_processors.request``
 ``````````````````````````````````````````
@@ -397,34 +167,11 @@ If enabled, every ``RequestContext`` will contain a variable ``request``,
 which is the current ``HttpRequest`` object. Note that this processor is not
 enabled by default; you'll have to activate it.
 
-Loading templates
------------------
+Inside template loading
+-----------------------
 
-Generally, you'll store templates in files on your filesystem (or in other
-places if you've written custom template loaders) rather than using the
-low-level ``Template`` API yourself.
-
-Django searches for template directories in a number of places, depending on
-your template-loader settings (see "Loader types" below), but the most basic
-way of specifying template directories is by using the ``TEMPLATE_DIRS``
-setting.
-
-This should be set to a list or tuple of strings that contain full paths to
-your template directory(ies)::
-
-    TEMPLATE_DIRS = (
-        "/home/html/templates/lawrence.com",
-        "/home/html/templates/default",
-    )
-
-Your templates can go anywhere you want, as long as the directories and
-templates are readable by the Web server. They can have any extension you
-want, such as ``.html`` or ``.txt``, or they can have no extension at all.
-
-Note that these paths should use Unix-style forward slashes, even on Windows.
-
-The Python API
-``````````````
+Generally, you'll store templates in files on your filesystem, but you can use
+custom **template loaders** to load templates from other sources.
 
 Django has two ways to load templates from files:
 
@@ -437,67 +184,15 @@ Django has two ways to load templates from files:
         ``select_template`` is just like ``get_template``, except it takes a
         list of template names. Of the list, it returns the first template
         that exists.
+        
+As convered in Chapter 4, each of these functions by default uses your
+``TEMPLATE_DIRS`` setting to load templates. Internally, however, these
+functions actually delegate to a template loader for the heavy lifting.
 
-For example, if you call ``get_template('story_detail.html')`` and have the
-above ``TEMPLATE_DIRS`` setting, here are the files Django will look for, in
-order:
-
-    * ``/home/html/templates/lawrence.com/story_detail.html``
-    * ``/home/html/templates/default/story_detail.html``
-
-If you call ``select_template(['story_253_detail.html',
-'story_detail.html'])``, here's what Django will look for:
-
-    * ``/home/html/templates/lawrence.com/story_253_detail.html``
-    * ``/home/html/templates/default/story_253_detail.html``
-    * ``/home/html/templates/lawrence.com/story_detail.html``
-    * ``/home/html/templates/default/story_detail.html``
-
-When Django finds a template that exists, it stops looking.
-
-.. admonition:: Tip
-
-    You can use ``select_template()`` for super-flexible "templatability." For
-    example, if you've written a news story and want some stories to have
-    custom templates, use something like
-    ``select_template(['story_%s_detail.html' % story.id,
-    'story_detail.html'])``. That'll allow you to use a custom template for an
-    individual story, with a fallback template for stories that don't have
-    custom templates.
-
-Using subdirectories
-````````````````````
-
-It's possible -- and preferable -- to organize templates in subdirectories of
-the template directory. The convention is to make a subdirectory for each
-Django app, with subdirectories within those subdirectories as needed.
-
-Do this for your own sanity. Storing all templates in the root level of a
-single directory gets messy.
-
-To load a template that's within a subdirectory, just use a slash, like so::
-
-    get_template('news/story_detail.html')
-
-Using the same ``TEMPLATE_DIRS`` setting from above, this example
-``get_template()`` call will attempt to load the following templates:
-
-    * ``/home/html/templates/lawrence.com/news/story_detail.html``
-    * ``/home/html/templates/default/news/story_detail.html``
-    
-Again, use UNIX-style forward slashes, even on Windows.
-
-Template loaders
-````````````````
-
-By default, Django loads templates from the filesystem, but Django comes with
-a few other **template loaders** which know how to load templates from other
-sources.
-
-Some of these other loaders are disabled by default, but you can activate them
-by editing your ``TEMPLATE_LOADERS`` setting. ``TEMPLATE_LOADERS`` should be a
-tuple of strings, where each string represents a template loader. These
-template loaders ship with Django:
+Some of loaders are disabled by default, but you can activate them by editing
+your ``TEMPLATE_LOADERS`` setting. ``TEMPLATE_LOADERS`` should be a tuple of
+strings, where each string represents a template loader. These template loaders
+ship with Django:
 
     ``django.template.loaders.filesystem.load_template_source``
         Loads templates from the filesystem, according to ``TEMPLATE_DIRS``.
@@ -539,8 +234,15 @@ match.
 Extending the template system
 =============================
 
-Although the Django template language comes with several default tags and
-filters, you might want to write your own, and it's easy to do.
+Now that we understand a bit more about the internals of the template language,
+let's look at how we can extend the template system with our own custom code.
+
+Most template customization comes in the form of custom template tags and/or
+filters. Although the Django template language comes with many built-in tags and
+filters, it's quite easy to define your own.
+
+Creating a template library
+---------------------------
 
 First, create a ``templatetags`` package in the appropriate Django app's
 package. It should be on the same level as ``models.py``, ``views.py``, etc.
@@ -567,9 +269,9 @@ a security feature: It allows you to host Python code for many template
 libraries on a single computer without enabling access to all of them for
 every Django installation.
 
-If you write a template library that isn't tied to any particular
-models/views, it's perfectly OK to have a Django app package that only
-contains a ``templatetags`` package.
+If you write a template library that isn't tied to any particular models/views,
+it's valid and quite normal to have a Django app package that only contains a
+``templatetags`` package.
 
 There's no limit on how many modules you put in the ``templatetags`` package.
 Just keep in mind that a ``{% load %}`` statement will load tags/filters for
@@ -578,22 +280,24 @@ the given Python module name, not the name of the app.
 Once you've created that Python module, you'll just have to write a bit of
 Python code, depending on whether you're writing filters or tags.
 
-To be a valid tag library, the module contain a module-level variable named
-``register`` that is a ``template.Library`` instance, in which all the tags
-and filters are registered. So, near the top of your module, put the
-following::
+To be a valid tag library, the module must contain a module-level variable named
+``register`` that is a ``template.Library`` instance, in which all the tags and
+filters are registered. So, near the top of your module, put the following::
 
     from django import template
 
     register = template.Library()
 
-.. admonition:: Behind the scenes
+.. note::
 
     For a ton of examples, read the source code for Django's default filters
     and tags. They're in ``django/template/defaultfilters.py`` and
     ``django/template/defaulttags.py``, respectively.
     
     The apps in ``django.contrib`` also contain numerous examples.
+
+Once you've created this ``register`` variable, you'll use it to create template
+filters and tags.
 
 Writing custom template filters
 -------------------------------
@@ -602,11 +306,11 @@ Custom filters are just Python functions that take one or two arguments:
 
     * The value of the variable (input).
     
-    * The value of the argument, which this can have a default value, or be
-      left out altogether.
+    * The value of the argument, which can have a default value or be left out
+      altogether.
 
-For example, in the filter ``{{ var|foo:"bar" }}``, the filter ``foo`` would
-be passed the variable ``var`` and the argument ``"bar"``.
+For example, in the filter ``{{ var|foo:"bar" }}``, the filter ``foo`` would be
+passed the contents of the variable ``var`` and the argument ``"bar"``.
 
 Filter functions should always return something. They shouldn't raise
 exceptions and should fail silently. If there's an error, they should return
@@ -639,8 +343,7 @@ The ``Library.filter()`` method takes two arguments:
 
     1. The name of the filter (a string).
     
-    2. The compilation function (a Python function, not the name of the
-       function).
+    2. The filter function itself.
 
 If you're using Python 2.4 or above, you can use ``register.filter()`` as a
 decorator instead::
@@ -664,12 +367,12 @@ Tags are more complex than filters, because tags can do nearly anything.
 A quick overview
 ````````````````
 
-Above, this chapter describes how the template system works in a two-step
-process: compiling and rendering. To define a custom template tag, you need to
-tell Django how to manage both steps when it gets to your tag.
+Chapter 4 describes how the template system works in a two-step process:
+compiling and rendering. To define a custom template tag, you need to tell
+Django how to manage both steps when it gets to your tag.
 
 When Django compiles a template, it splits the raw template text into
-''nodes''. Each node is an instance of ``django.template.Node`` and has
+"nodes". Each node is an instance of ``django.template.Node`` and has
 a ``render()`` method. Thus, a compiled template is simply a list of ``Node``
 objects. 
 
@@ -724,17 +427,17 @@ There's actually a lot going here:
       example, it's ``'current_time "%Y-%m-%d %I:%M %p"'``.
 
     * The ``token.split_contents()`` method separates the arguments on spaces
-      while keeping quoted strings together. The more straightforward
-      ``token.contents.split()`` wouldn't be as robust, as it would naively
-      split on *all* spaces, including those within quoted strings. It's a
-      good idea to always use ``token.split_contents()``.
+      while keeping quoted strings together. Avoid using
+      ``token.contents.split()`` (which just uses Python's standard string
+      splitting semantics). It's not as robust, as it naively splits on *all*
+      spaces, including those within quoted strings.
 
     * This function is responsible for raising
       ``django.template.TemplateSyntaxError``, with helpful messages, for any
       syntax error.
 
     * Don't hard-code the tag's name in your error messages, because that
-      couples the tag's name to your function. ``token.contents.split()[0]``
+      couples the tag's name to your function. ``token.split_contents()[0]``
       will ''always'' be the name of your tag -- even when the tag has no
       arguments.
 
@@ -746,11 +449,6 @@ There's actually a lot going here:
       
     * Template tag compilation functions **must** return a ``Node`` subclass;
       any other return value is an error.
-
-    * The parsing is very low-level. We've experimented with writing small
-      frameworks on top of this parsing system (using techniques such as EBNF
-      grammars) but those experiments made the template engine too slow. Low
-      level is fast.
 
 Writing the template node
 `````````````````````````
@@ -880,17 +578,15 @@ To do that, you'll need to refactor both the compilation function and the
             
         return CurrentTimeNode3(format_string[1:-1], var_name)
 
-Now, ``do_current_time()`` grabs the format string and the variable name,
-passing both to ``CurrentTimeNode3``.
+Now, ``do_current_time()`` passes the format string and the variable name to
+``CurrentTimeNode3``.
 
 Parsing until another block tag
 ```````````````````````````````
 
-Template tags can work as blocks containing other tags. For example, the
-standard ``{% comment %}`` tag hides everything until ``{% endcomment %}``. 
-
-To create a template tag like this, use ``parser.parse()`` in your compilation
-function.
+Template tags can work as blocks containing other tags (think ``{% if %}``, ``{%
+for %}``, etc.). To create a template tag like this, use ``parser.parse()`` in
+your compilation function.
 
 Here's how the standard ``{% comment %}`` tag is implemented::
 
@@ -953,7 +649,8 @@ pass the resulting ``nodelist`` to the ``Node``::
             return output.upper()
 
 The only new concept here is the ``self.nodelist.render(context)`` in
-``UpperNode.render()``.
+``UpperNode.render()``. This simply calls ``render()`` on each ``Node`` in the
+node list.
 
 For more examples of complex rendering, see the source code for ``{% if %}``,
 ``{% for %}``, ``{% ifequal %}`` and ``{% ifchanged %}``. They live in
@@ -968,7 +665,7 @@ the input argument and some external information. For example, the
 ``current_time`` tag we wrote above is of this variety: we give it a format
 string, it returns the time as a string.
 
-To ease the creation of the types of tags, Django provides a helper function,
+To ease the creation of these types of tags, Django provides a helper function,
 ``simple_tag``. This function, which is a method of
 ``django.template.Library``, takes a function that accepts one argument, wraps
 it in a ``render`` function and the other necessary bits mentioned above and
@@ -1059,7 +756,8 @@ written::
     def show_results(poll):
         ...
 
-Sometimes, your inclusion tags need access to the context in the parent template.
+Sometimes, your inclusion tags need access to values from the parent template's
+context.
 
 To solve this, Django provides a ``takes_context`` option for inclusion tags.
 If you specify ``takes_context`` in creating a template tag, the tag will have
@@ -1090,16 +788,14 @@ without any arguments, like so::
 
     {% jump_link %}
 
-Note that when you're using ``takes_context=True``, there's no need to pass
-arguments to the template tag. It automatically gets access to the context.
-
-
 Writing custom template loaders
 -------------------------------
 
-Django's built-in template loaders will usually cover all your
-template-loading needs, but it's pretty easy to write your own if you need
-special loading logic.
+Django's built-in template loaders will usually cover all your template-loading
+needs, but it's pretty easy to write your own if you need special loading logic.
+For example, you could load templates from a database, or directly from a
+Subversion repository using Subversion's Python bindings, or (as shown below)
+from a ZIP archive.
 
 A template loader -- that is, each entry in the ``TEMPLATE_LOADERS`` settings
 -- is expected to be a callable with this interface::
@@ -1180,8 +876,8 @@ and click the "Documentation" link in the upper right of the page.
 The reference is divided into 4 sections: tags, filters, models, and views.
 
 The **tags** and **filters** sections describe all the built-in tags (in fact,
-the tag and filter references below come directly from those pages) as well as
-any custom tag or filter libraries available.
+the tag and filter references in Chapter 4 come directly from those pages) as
+well as any custom tag or filter libraries available.
 
 The **views** page is the most valuable. Each URL in your site has a separate
 entry here, and clicking on a URL will show you:
@@ -1194,9 +890,6 @@ entry here, and clicking on a URL will show you:
       template.
 
     * The name of the template or templates that are used for that view.
-
-Each view documentation page also has a bookmarklet that you can use to jump
-from any page to the documentation page for that view.
 
 Because Django-powered sites usually use database objects, the **models**
 section of the documentation page describes each type of object in the system
@@ -1234,5 +927,5 @@ you call any of the template functions, call
 You might want to consider setting at least ``TEMPLATE_DIRS`` (if you are
 going to use template loaders), ``DEFAULT_CHARSET`` (although the default of
 ``utf-8`` is probably fine) and ``TEMPLATE_DEBUG``. All available settings are
-described in the Chapter XXX, and any setting starting with *TEMPLATE_* is of
+described in the Appendix 5, and any setting starting with *TEMPLATE_* is of
 obvious interest.
