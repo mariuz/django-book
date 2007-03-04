@@ -19,14 +19,14 @@ between one request and the next, and we can't count on any aspects of a
 request (IP address, user-agent, etc.) to consistently indicate successive
 requests from the same person.
 
+Cookies
+=======
+
 Browser developers long ago recognized that HTTP's statelessness poses a huge
 problem for web developers, and thus **cookies** were born. A cookie is a
 small piece of information that browsers store on behalf of web servers; every
 time a browser requests a page from a certain server, it gives back the cookie
 that it initially received.
-
-Cookies
-=======
 
 Let's take a look how this might work. When you open your browser and type in
 ``google.com``, your browser sends an HTTP request to Google that starts
@@ -64,12 +64,12 @@ display your name on the page.
 Getting and setting cookies
 ---------------------------
 
-When dealing with persistence in Django, most of the time you'll want to use
-the higher-level session and/or user frameworks discussed a little later on.
-However, we'll pause and look at how to read and write cookies in Django
-anyway. It should help you understand how the rest of the pieces discussed in
-the chapter actually work, and it'll come in handy if you ever need to play
-with cookies directly.
+When dealing with persistence in Django, most of the time you'll want to use the
+higher-level session and/or user frameworks discussed a little later in this
+chapter. However, we'll pause and look at how to read and write cookies at a low
+level. It should help you understand how the rest of the pieces discussed in the
+chapter actually work, and it'll come in handy if you ever need to play with
+cookies directly.
 
 Reading cookies that are already set is incredibly simple: every request
 object has a ``COOKIES`` object that acts like a dictionary; you can use it to
@@ -96,11 +96,13 @@ sets the ``favorite_color`` cookie based on a ``GET`` parameter::
             # ... and set a cookie on the response
             response.set_cookie("favorite_color", 
                                 request.GET["favorite_color"])
+            
+            return response
         
         else:
             return HttpResponse("You didn't give a favorite color.")
             
-You can also pass a number of optional arguments to ``request.set_cookie()``
+You can also pass a number of optional arguments to ``response.set_cookie()``
 that control aspects of the cookie:
 
     ==============  ==========  ==============================================
@@ -149,22 +151,22 @@ Let's look at some of the more important ones:
       cookies. In fact, every browser on the planet will let you control your
       browser's policy for accepting cookies. If you want to see just how
       vital cookies are to the web, try turning on your browser's "prompt to
-      accept every cookie" option. Even a big blue monster would fill up on
-      all those cookies!
+      accept every cookie" option.
       
-      This means, of course, that cookies are the definition of
-      unreliability; developers should check that a user actually accepts
-      cookies before relying on them.
+      Despite their nearly universal use, cookies are still the definition of
+      unreliability. This means that developers should check that a user
+      actually accepts cookies before relying on them.
       
       More importantly, you should *never* store important data in cookies.
       The web is filled with horror stories of developers who've stored
       unrecoverable information in browser cookies only to have that data
       purged by the browser for one reason or another.
 
-    * Cookies are not in any way secure. Because HTTP data is sent in
-      cleartext, cookies are extremely vulnerable to snooping attacks. That
-      is, an attacker snooping on the wire can intercept a cookie and read it.
-      This means you should never store sensitive information in a cookie.
+    * Cookies (and especially those not sent over HTTPS) are not secure. Because
+      HTTP data is sent in cleartext, cookies are extremely vulnerable to
+      snooping attacks. That is, an attacker snooping on the wire can intercept
+      a cookie and read it. This means you should never store sensitive
+      information in a cookie.
 
       There's an even more insidious attack known as a "man in the middle"
       attack, wherein an attacker intercepts a cookie and uses it to pose as
@@ -257,12 +259,13 @@ There are a couple of simple rules for using Django's sessions effectively:
       itself), staying away from underscore prefixes will keep Django from
       interfering with your app.
 
-    * Don't override ``request.session`` with a new object, and don't access
-      or set its attributes. Use it like a Python dictionary.
+    * Don't replace ``request.session`` with a new object, and don't access or
+      set its attributes. Use it like a Python dictionary.
 
 Let's take a look at a few quick examples. This simplistic view sets a
-``has_commented`` variable to ``True`` after a user posts a comment. It
-doesn't let a user post a comment more than once::
+``has_commented`` variable to ``True`` after a user posts a comment. It's a
+simple (but not particularly secure -- see above) way of preventing a user from
+posting more than one comment::
 
     def post_comment(request, new_comment):
         if request.session.get('has_commented', False):
@@ -293,10 +296,10 @@ And this one logs a member out, according to ``login()`` above::
 
 .. note::
 
-    In practice, this is a lousy way of logging users in.  The authentication
+    In practice, this is a lousy way of logging users in. The authentication
     framework discussed below handles this for you in a much more robust and
-    useful manner; these examples are just here to provide easily understood
-    examples.
+    useful manner; these examples are deliberately simplistic so that you can
+    easily see what's going on.
 
 Setting test cookies
 --------------------
@@ -342,14 +345,15 @@ Here's a typical usage example::
 
 .. note::
 
-    Again, the built-in login and logout functions handle this check for you.
+    Again, the built-in authentication functions handle this check for you.
 
 Using sessions outside of views
 -------------------------------
 
 Internally, each session is just a normal Django model defined in
-``django.contrib.sessions.models``. Because it's a normal model, you can
-access sessions using the normal Django database API::
+``django.contrib.sessions.models``. Each session is identified by a more-or-less
+random 32 character hash stored in a cookie. Because it's a normal model, you
+can access sessions using the normal Django database API::
 
     >>> from django.contrib.sessions.models import Session
     >>> s = Session.objects.get_object(pk='2b1189a188b44ad18c35e113ac6ceead')
@@ -367,9 +371,8 @@ necessary because the dictionary is stored in an encoded format::
 When sessions are saved
 -----------------------
 
-By default, Django only saves to the session database when the session has
-been modified -- that is if any of its dictionary values have been assigned or
-deleted::
+By default, Django only saves to the database when the session has been modified
+-- that is if any of its dictionary values have been assigned or deleted::
 
     # Session is modified.
     request.session['foo'] = 'bar'
@@ -399,7 +402,7 @@ session cookie is sent.
 Browser-length sessions vs. persistent sessions
 -----------------------------------------------
 
-You might have noticed above that the cookie Google sent use contained
+You might have noticed above that the cookie Google sent us contained
 ``expires=Sun, 17-Jan-2038 19:14:07 GMT;``. Cookies can optionally contain an
 expiration date which advises the browser on when to remove the cookie. If a
 cookie doesn't contain an expiration value, the browser will expire it when
@@ -450,13 +453,13 @@ influence how Django's session framework uses cookies:
     For the curious, here are a few technical notes about the inner workings 
     of the session framework:
 
-        * The session dictionary accepts any **pickleable** Python object.
-          See the documentation for Python's built-in ``pickle`` module
-          for more information about how this works.
+        * The session dictionary accepts any Python object capable of being
+          "pickled". See the documentation for Python's built-in ``pickle``
+          module for information about how this works.
 
         * Session data is stored in a database table named ``django_session``.
          
-        * Session data is ready "lazily": if you never access
+        * Session data is fetched upon demand: if you never access
           ``request.session``, Django won't hit that database table.
                       
         * Django only sends a cookie if it needs to. If you don't set any
@@ -472,16 +475,16 @@ influence how Django's session framework uses cookies:
           certain form of session-ID theft via the "Referer" header.
         
     If you're still curious, the source is pretty straightforward; look in
-    ``django.contrib.sessions`` for the streight dope.
+    ``django.contrib.sessions`` for all the straight dope.
 
 Users and authentication
 ========================
 
-So now we're halfway to linking browsers directly to Real People. Sessions
-give us a way of persisting data between multiple browser requests; the second
-part of the equation is using those sessions to for user login. Of course, we
-can't just trust that users are who they say they are, so we'll need to
-authenticate them along the way.
+So now we're halfway to linking browsers directly to Real People™. Sessions give
+us a way of persisting data through multiple browser requests; the second part
+of the equation is using those sessions to for user login. Of course, we can't
+just trust that users are who they say they are, so we'll need to authenticate
+them along the way.
 
 Naturally, Django provides tools to handle this common task (and many others).
 Django's user authentication system handles user accounts, groups, permissions
@@ -499,7 +502,7 @@ that dealing with users is often a two step process; we need to
 Following these needs, Django's auth/auth system consists of a number of
 parts:
 
-    * Users
+    * Users: people registered with your site.
     
     * Permissions: binary (yes/no) flags designating whether a user may
       perform a certain task.
@@ -551,12 +554,12 @@ method::
 Using users
 -----------
 
-Once you've got ahold of a user -- often from ``request.user``, but possibly
-through one of the other methods discussed below -- you've got a number of
-fields methods available on that object. ``AnonymousUser`` objects emulate
-*some* of these fields and methods, but not all of them, so you should always
-check ``user.is_authenticated()`` before assuming you're dealing with a
-bona-fide user object.
+Once you've got a ``User`` -- often from ``request.user``, but possibly through
+one of the other methods discussed below -- you've got a number of fields and
+methods available on that object. ``AnonymousUser`` objects emulate *some* of
+this interface, but not all of it, so you should always check
+``user.is_authenticated()`` before assuming you're dealing with a bona-fide user
+object.
 
 .. table:: Fields on ``User`` objects
 
@@ -700,17 +703,16 @@ takes two keyword arguments, ``username`` and ``password``, and it returns a
 ``User`` object if the password is valid for the given username. If the
 password is invalid, ``authenticate()`` returns ``None``::
 
-    >>> from django.contrib import auth authenticate
+    >>> from django.contrib import auth
     >>> user = auth.authenticate(username='john', password='secret')
     >>> if user is not None:
     ...     print "Correct!"
     ... else:
     ...     print "Oops, that's wrong!"
-    Oops, that's wrong!
 
-To log a user in, in a view, use ``login()``. It takes an ``HttpRequest``
-object and a ``User`` object and saves the user's ID in the session, using
-Django's session framework.
+``authenticate()`` only verifies a user's credentials. To log a user in, use
+``login()``. It takes an ``HttpRequest`` object and a ``User`` object and saves
+the user's ID in the session, using Django's session framework.
 
 This example shows how you might use both ``authenticate()`` and ``login()``
 within a view function::
@@ -730,8 +732,8 @@ within a view function::
             # Show an error page
             return HttpResponseRedirect("/account/invalid/")
 
-To log out a user who has been logged, use ``django.contrib.auth.logout()``
-within your view. It takes an ``HttpRequest`` object and has no return value::
+To log out a user out, use ``django.contrib.auth.logout()`` within your view. It
+takes an ``HttpRequest`` object and has no return value::
 
     from django.contrib import auth
 
@@ -746,8 +748,8 @@ Logging in and out, the easy way
 ````````````````````````````````
 
 In practice, you'll usually not need to write your own login/logout functions;
-the auth system comes with a set of views for generically handling logging in
-and out.
+the authentication system comes with a set of views for generically handling
+logging in and out.
 
 The first step in using the authentication views is to wire 'em up in your
 URLconf. You'll need to add this snippet::
@@ -756,13 +758,12 @@ URLconf. You'll need to add this snippet::
     
     urlpatterns = patterns('',
         # existing patterns here...
-        (r'^accounts/login/$',  login)
-        (r'^accounts/logout/$', logout)
+        (r'^accounts/login/$',  login),
+        (r'^accounts/logout/$', logout),
     )
 
 ``/accounts/login/`` and ``/accounts/logout/`` are the default URLs that
-Django uses for these views, but you can put them anywhere you like with a
-little effort.
+Django uses for these views.
 
 By default, the ``login`` view renders a template at
 ``registration/login.html`` (you can change this template name by passing an
@@ -784,7 +785,7 @@ extra view argument ``template_name``). This form needs to contain a
         <input type="password" name="password" value="" id="password">
         
         <input type="submit" value="login" />
-        <input type="hidden" name="next" value="{{ next }}" />
+        <input type="hidden" name="next" value="{{ next|escape }}" />
       <form action='.' method='post'>
 
     {% endblock %}
@@ -842,11 +843,6 @@ As a shortcut, you can use the convenient ``login_required`` decorator::
     * If the user is logged in, execute the view normally. The view code 
       can then assume that the user is logged in.
       
-.. note::
-
-    If you're into programming patterns, note that this decorator and the ones
-    discussed below are examples of the "Guard" pattern. Aren't patterns fun?
-
 Limiting access to users that pass a test
 -----------------------------------------
 
@@ -864,9 +860,9 @@ work)::
         else:
             return HttpResponse("You can't vote in this poll.")
 
-Again, Django provides a shortcut. This one is called ``user_passes_test``
-which is actually a **decorator factory**: it takes arguments and generates a
-specialized decorator for your particular situation. For example::
+Again, Django provides a shortcut. This one is called ``user_passes_test``: it
+takes arguments and generates a specialized decorator for your particular
+situation. For example::
 
     def user_can_vote(user):
         return user.is_authenticated() and user.has_perm("polls.can_vote")
@@ -929,15 +925,16 @@ However, there are low-level APIs you can delve into when you need absolute cont
 Creating users
 ``````````````
 
-The basic way to create users is to use the ``create_user`` helper function::
+Create users with the ``create_user`` helper function::
 
     >>> from django.contrib.auth.models import User
     >>> user = User.objects.create_user(username='john', 
     ...                                 email='jlennon@beatles.com',
     ...                                 password='glass onion')
 
-At this point, ``user`` is a ``User`` instance ready to be saved to the
-database. You can continue to change its attributes before saving, too::
+At this point, ``user`` is a ``User`` instance ready to be saved to the database
+(``create_user()`` doesn't actually call ``save()`` itself). You can continue to
+change its attributes before saving, too::
 
     >>> user.is_staff = True
     >>> user.save()
@@ -977,8 +974,8 @@ setting and checking of these values behind the scenes.
 .. admonition:: Is that some kind of drug?
 
     No, a **salted hash** has nothing to do with marijuana; it's actually a
-    common way to securly store passwords. A **hash** is a one-way
-    crytographic function; that is, you can easily compute the hash of a given
+    common way to securely store passwords. A **hash** is a one-way
+    cryptographic function; that is, you can easily compute the hash of a given
     value, but it's nearly impossible to take a hash and reconstruct the
     original value.
     
@@ -991,7 +988,7 @@ setting and checking of these values behind the scenes.
     against the stored values. This might take some time, but less than you
     think -- computers are incredibly fast.
     
-    Worse, there are publically available **rainbow tables** -- databases of
+    Worse, there are publicly available **rainbow tables** -- databases of
     precomputed hashes of millions of passwords. With a rainbow table, an
     attacker can break most passwords in seconds.
     
@@ -1087,7 +1084,7 @@ template context when you use ``RequestContext`` (see Chapter 10).
    Chapter 10 for the full skinny.
 
 When using ``RequestContext``, the current user -- either a ``User`` instance
-or an``AnonymousUser`` instance -- is stored in the template variable 
+or an ``AnonymousUser`` instance -- is stored in the template variable 
 ``{{ user }}``::
 
     {% if user.is_authenticated %}
@@ -1097,11 +1094,11 @@ or an``AnonymousUser`` instance -- is stored in the template variable
     {% endif %}
 
 This user's permissions are stored in the template variable ``{{ perms }}``.
-This is is a template-friendly proxy of to a couple of permission methods. See
-the section on permissions, below, for more about what these methods map to.
+This is a template-friendly proxy to a couple of permission methods described
+below.
 
 There are two ways you can use this ``perms`` object. You can use something
-like ``{{ perms.polls }}`` to check if the user has *any* permissions some
+like ``{{ perms.polls }}`` to check if the user has *any* permissions for some
 given app, or you can use something like ``{{ perms.polls.can_vote }}`` to
 check if the user has a specific permission.
 
@@ -1147,7 +1144,7 @@ but it's not currently possible to say "Mary may change news stories, but only
 the ones she created herself" or "Mary may only change news stories that have
 a certain status, publication date or ID."
 
-These three basic permissions -- add, create and delete -- are automatically
+These three basic permissions -- add, change and delete -- are automatically
 created for each Django model that has a ``class Admin``. Behind the scenes,
 these permissions are added to the ``auth_permission`` database table when you
 run ``manage.py syncdb``.
@@ -1194,11 +1191,10 @@ A user in a group automatically has the permissions granted to that group. For
 example, if the group ``Site editors`` has the permission
 ``can_edit_home_page``, any user in that group will have that permission.
 
-Beyond permissions, groups are a convenient way to categorize users to give
-them some label, or extended functionality. For example, you could create a
-group ``'Special users'``, and you could write code that could, say, give them
-access to a members-only portion of your site, or send them members-only
-e-mail messages.
+Groups are also a convenient way to categorize users to give them some label, or
+extended functionality. For example, you could create a group ``'Special
+users'``, and you could write code that could, say, give them access to a
+members-only portion of your site, or send them members-only e-mail messages.
 
 Like users, the easiest way to manage groups in through the admin. However,
 groups are also just Django models that live in
@@ -1222,7 +1218,7 @@ API is simple:
     * To create a new message, use
       ``user.message_set.create(message='message_text')``.
       
-    * To retrieve/delete messages, use ``user_obj.get_and_delete_messages()``,
+    * To retrieve/delete messages, use ``user.get_and_delete_messages()``,
       which returns a list of ``Message`` objects in the user's queue (if any)
       and deletes the messages from the queue.
 
@@ -1274,7 +1270,7 @@ different sites served from the same database.
 The first step in creating a profile is to define a model that holds the
 profile information. The only requirement Django places on this model is that
 it have a unique ``ForeignKey`` to the ``User`` model; this field must be
-named ``user`` Other that that, you can use any other fields you like. Here's
+named ``user``. Other that that, you can use any other fields you like. Here's
 a strictly arbitrary profile model::
 
     from django.db import models
@@ -1297,16 +1293,21 @@ your settings file::
     AUTH_PROFILE_MODULE = "myapp.mysiteprofile"
     
 Once that's done, you can access a user's profile by calling
-``user.get_profile()``. This function will raise a ``SiteProfileNotAvailable``
-exception if ``AUTH_PROFILE_MODULE`` isn't defined, and it also might raise a
+``user.get_profile()``. This function could raise a ``SiteProfileNotAvailable``
+exception if ``AUTH_PROFILE_MODULE`` isn't defined, or it could raise a
 ``DoesNotExist`` exception if the user doesn't have a profile already (you'll
 usually catch that exception and create a new profile at that time).
 
 Wrapping up
 ===========
 
-Yes, the session and authorization system is a lot to absorb.  Most of the time you won't need all the features described in this chapter, but when you need to allow complex interactions between users, it's good to have all that power available.
+Yes, the session and authorization system is a lot to absorb. Most of the time
+you won't need all the features described in this chapter, but when you need to
+allow complex interactions between users, it's good to have all that power
+available.
 
-In the next chapter, we'll take a look at a piece of Django that builds on top of this session/user system: the comments app. It allows you to easily attach comments -- from anonymous or authenticated users -- to arbitrary objects.
+In the next chapter, we'll take a look at a piece of Django that builds on top
+of this session/user system: the comments app. It allows you to easily attach
+comments -- from anonymous or authenticated users -- to arbitrary objects.
 
 Onwards and upwards!
