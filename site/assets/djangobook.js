@@ -44,7 +44,7 @@ var Comments = function() {
     // Mark a given block as currently focused
     var setCurrentBlock = function(block) {
         currentBlock = block;
-        highlightFloater.setXY([chapterWrapper.getX(), block.top]);
+        highlightFloater.setXY([chapterWrapper.getX(), block.el.getY()]);
         highlightFloater.setHeight(block.height);
         highlightFloater.show();
         commentDialog.show(block);
@@ -187,7 +187,7 @@ var Comments = function() {
             var DH = YAHOO.ext.DomHelper;
             var cwx = chapterWrapper.getX();
             for (var i = 0, l = cns.length; i < l; i++) {
-                var ci = DH.append(chapterBody.dom, {
+                var ci = DH.append(cns[i], {
                     tag : "div", 
                     id : "b" + i, 
                     "class" : "comment-indicator",
@@ -255,18 +255,8 @@ var CommentBlock = function(el, index, indicator, parentTop) {
     this.index = index;
     this.indicator = getEl(indicator);
     this.nodenum = index;
-    this.xy = this.el.getXY();
-    this.left = this.xy[0];
-    this.top = this.xy[1];
-    
     this.height = this.el.getHeight();
-    this.bottom = this.top + this.height;
     this.indicator.setHeight(this.height);
-    
-    // Safari has strange bug that seems to make setXY() within a relatively
-    // positioned div act strangly. This bug is fixed in the nightlies, but
-    // this hack seems to work around it in the current release.
-    this.indicator.dom.style.top = this.top - parentTop + "px";
 };
 
 //
@@ -325,8 +315,9 @@ CommentDialog.prototype = {
             this.initalized = true;
         }
         if (!this.el.isVisible()) {
-            this.xy[0] = block.xy[0] + 50;
-            this.xy[1] = block.xy[1] - 200;
+            var xy = block.el.getXY();
+            this.xy[0] = xy[0] + 50;
+            this.xy[1] = xy[1] - 200;
             this.el.setStyle('display', 'block');
             this.el.setBounds(this.xy[0], this.xy[1], this.size.width, this.size.height);
             this.el.show();            

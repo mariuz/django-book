@@ -13,7 +13,7 @@ div.nav { margin: 0; font-size: 11px; text-align: right; color: #487858;}
 /*** content ***/
 #chapter-body { position: relative; }
 #yui-main div.yui-b { margin: 0 0 0 20px; background: white; color: black; padding: 0.3em 2em 1em 2em; }
-dd { margin-left:1em; }
+dd { margin-left:15px; }
 h1 { font-size:218%; margin-top:0.6em; margin-bottom:.4em; line-height:1.1em; }
 h1,h2,h3,h4 { margin-top:1.4em; font-family:"Trebuchet MS",sans-serif; font-weight:normal; }
 h2#chapter-title { font-size: 218%; line-height:1.2em; margin-bottom: 0.8em; }
@@ -25,6 +25,7 @@ caption { font-size:1em; font-weight:bold; margin-top:0.5em; margin-bottom:0.5em
 hr { color:#ccc; background-color:#ccc; height:1px; border:0; }
 p, ul, dl { margin-top:.6em; margin-bottom:1em; padding-bottom: 0.1em;}
 img.full { width: 53em; }
+img.center { margin-left: auto; margin-right: auto; display: block; }
 table { color:#000; margin-bottom: 1em; }
 table.docutils td p { margin-top:0; margin-bottom:.5em; }
 table.docutils td, table.docutils th { border-bottom:1px solid #dfdfdf; padding:4px 2px;}
@@ -33,6 +34,7 @@ table.docutils thead th p { margin: 0; padding: 0; }
 table.docutils { border-collapse:collapse; }
 blockquote { padding: 0 1em; margin: 1em 0; font:125%/1.2em "Trebuchet MS", sans-serif; color:#234f32; border-left:2px solid #94da3a; } 
 strong { font-weight: bold; }
+em { font-style: italic; }
 
 /*** links ***/
 a img {border: none;}
@@ -44,7 +46,7 @@ h2 a, h3 a, h4 a { text-decoration:none !important; }
 #bd a:link, #bd a:visited { color:#ab5603; }
 
 /*** lists ***/
-ul { padding-left:2em; }
+ul { padding-left:30px; }
 ol { padding-left:30px; }
 ol.arabic { list-style-type: decimal; }
 ul li { list-style-type:square; margin-bottom:.4em; }
@@ -69,7 +71,7 @@ ol.toc span.comment-count { font-size: 75%; color: #999; }
 .literal, .literal-block { color:#234f32; }
 .sidebar .literal { color:white; background:transparent; font-size:11px; }
 h4 .literal { color: #234f32; font-size: 13px; }
-pre, .literal-block { font-size:medium; background:#E0FFB8; border:1px solid #94da3a; border-width:1px 0; margin: 1em 0; padding: .3em .4em; overflow: auto; }
+pre, .literal-block { font-size:medium; background:#E0FFB8; border:1px solid #94da3a; border-width:1px 0; margin: 1em 0; padding: .3em .4em; overflow: hidden; }
 dt .literal, table .literal { background:none; }
 
 /*** notes & admonitions ***/
@@ -81,6 +83,7 @@ dt .literal, table .literal { background:none; }
 .admonition-behind-the-scenes { padding-left:65px; background:url(http://media.djangoproject.com/img/doc/icons/docicons-behindscenes.gif) .8em .8em no-repeat;}
 
 /*** comment stuff ***/
+.cn { position: relative; }
 #comments { padding: 0; border: 1px #092e20 solid; left: 300; top:0; position: absolute;  z-index: 10; background-color: #E0FFB8; width: 600px; height: 400px; color: black; overflow: hidden; display: none; text-align: left; }
 #comment-tabs { padding: 6px; }
 #comments .ft { height:50px; overflow:hidden; padding: 6px; }
@@ -119,7 +122,9 @@ dt .literal, table .literal { background:none; }
 #comment-tabs div.tab a:link, #comment-tabs div.tab a:visited { color:#ab5603; }
 
 /*** comment indicator ***/
-div.comment-indicator { position: absolute; width: 20px; z-index: 999; text-align: center; color: black; font-size: 11px; left: -44px; }
+div.comment-indicator { position: absolute; width: 20px; z-index: 999; text-align: center; color: black; font-size: 11px; left: -44px; top: 0; }
+li.cn div.comment-indicator { left: -74px; }
+div.admonition div.comment-indicator { left: -45px; }
 div.comment-indicator:hover { background-color: #406b4e; }
 div.comment-indicator span { position: absolute; top: -10px; left: -10px; width: 25px; height: 25px; }
 div.comment-indicator:hover span { background-image: url(images/comment-hover.png); }
