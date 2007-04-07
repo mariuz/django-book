@@ -49,6 +49,27 @@ class BookVersion(models.Model):
     @models.permalink
     def permalink(self):
         return ("djangobook.views.toc", (self.language, self.version))
+        
+class PrivateVersion(models.Model):
+    slug = models.SlugField()
+    svn_root = models.CharField(maxlength=200, validator_list=[isValidSVNRoot])
+
+    class Admin:
+        list_display = ["slug", "svn_root"]
+        
+    def __str__(self):
+        return "Private version from %s" % self.svn_root
+        
+    @models.permalink
+    def permalink(self):
+        return ("djangobook.views.private_toc", (self.slug))
+        
+    def get_content(self, chapterslug):
+        c = pysvn.Client()
+        try:
+            return c.cat(urlparse.urljoin(self.svn_root, chapterslug + ".txt"))
+        except pysvn.ClientError:
+            return None
 
 class ReleasedChapter(models.Model):
     version       = models.ForeignKey(BookVersion, related_name="chapters")

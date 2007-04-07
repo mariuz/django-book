@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 from djangobook.feeds import PublishedChaptersFeed, CommentFeed
-from djangobook.views import toc, chapter, comments, comment_counts, remove_comment, mark_comment_reviewed
+from djangobook.views import *
 
 urlpatterns = patterns('',
     (r'accounts/login/$',  'django.contrib.auth.views.login'),
@@ -17,6 +17,14 @@ urlpatterns = patterns('',
     (
         r'^tools/markreviewed/(?P<comment_id>\d+)/$',
         mark_comment_reviewed,
+    ),
+    (
+        r'^private/(?P<slug>[\w-]+)/$',
+        private_toc
+    ),
+    (
+        r'^private/(?P<slug>[\w-]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2})/$', 
+        private_chapter
     ),
     (
         r'^(?P<lang>[\w-]+)/(?P<version>[\w-]+)/$',
@@ -42,5 +50,5 @@ urlpatterns = patterns('',
     (
         r'(?P<url>.*)$',
         'django.contrib.flatpages.views.flatpage',
-    )
+    ),
 )

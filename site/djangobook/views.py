@@ -7,11 +7,11 @@ from docutils.core import publish_parts
 from django.template import RequestContext
 from django.http import Http404, HttpResponse
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.shortcuts import render_to_response, get_object_or_404
 
 from djangobook.rst import DjangoBookHTMLWriter
-from djangobook.models import Chapter, BookVersion, ReleasedChapter, Comment
+from djangobook.models import Chapter, BookVersion, ReleasedChapter, Comment, PrivateVersion
 
 def toc(request, lang, version):
     book = get_object_or_404(BookVersion, version=version, language=lang)
@@ -52,6 +52,31 @@ def chapter(request, lang, version, type, chapter):
     return render_to_response(
         ["book/%s%02i.html" % (release.chapter.get_type_display(), release.chapter.number), "book/chapter.html"], 
         {"release" : release, "content" : parts},
+        RequestContext(request, {})
+    )
+
+@login_required
+def private_toc(request, slug):
+    vers = get_object_or_404(PrivateVersion, slug=slug)
+    chapters = list(Chapter.objects.all())
+    for c in chapters:
+        c.exists_in_branch = bool(vers.get_content("%s%02i" % (c.get_type_display().lower(), c.number)))
+    return render_to_response(
+        "book/private_toc.html",
+        {"contents" : chapters, "version" : vers},
+        RequestContext(request, {})
+    )
+
+@login_required
+def private_chapter(request, slug, type, chapter):
+    vers = get_object_or_404(PrivateVersion, slug=slug)
+    content = vers.get_content(type+chapter)
+    if not content:
+        raise Http404
+    parts = publish_parts(source=content, writer=DjangoBookHTMLWriter(), settings_overrides={'initial_header_level' : 3})
+    return render_to_response(
+        ["book/private_%s%s.html" % (type, chapter), "book/private_chapter.html"], 
+        {"version" : vers, "content" : parts},
         RequestContext(request, {})
     )
 

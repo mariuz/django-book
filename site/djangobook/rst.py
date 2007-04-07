@@ -26,7 +26,7 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
             self.body.append(self.starttag(node, 'p', '', CLASS='admonition-title'))
             self.context.append("</p>\n")
         else:
-            html4css1.HTMLTranslator.visit_title(self, node, move_ids=0)
+            html4css1.HTMLTranslator.visit_title(self, node)
     
     # Avoid doing <blockquote><ul>...
     # Adapted from http://thread.gmane.org/gmane.text.docutils.user/742/focus=804
