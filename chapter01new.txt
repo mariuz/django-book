@@ -1,0 +1,299 @@
+=====================================
+Chapter 1: Welcome to the Django Book
+=====================================
+
+This book is about Django, a Web development framework that saves you time
+and makes Web development a joy. Using Django, you can build and maintain
+high-quality Web applications with minimal fuss.
+
+At its best, Web development is an exciting, creative act; at its worst,
+it can be a repetitive, frustrating nuisance. Django lets you focus on the fun
+stuff -- the meat of your Web application -- while easing the pain of the
+repetitive bits. In doing so, it provides high-level abstractions of common
+Web development patterns, shortcuts for frequent programming tasks and
+clear conventions on how to solve problems. At the same time, Django tries to
+stay out of your way, letting you work outside the scope of the framework as
+needed.
+
+The goal of this book is to make you a Django expert. The focus is twofold.
+First, we intend to explain, in depth, what Django does and how to build Web
+apps with it. Second, we will try to discuss higher-level concepts where
+appropriate, answering the question, "How can I apply these tools effectively
+in my own projects?" By reading this book, you'll learn the skills needed to
+develop powerful Web sites quickly, with code that is clean and easy to
+maintain.
+
+Web frameworks
+==============
+
+Django is a prominent member of a new generation of "Web frameworks." What,
+exactly, does that term mean?
+
+To answer that question, consider the design of a Web application written using
+the CGI (Common Gateway Interface) standard, a popular way to write Web apps
+circa 1998. Using CGI,
+
+
+
+
+
+
+#######################################
+# EVERYTHING UNDER THIS IS JUST NOTES #
+#######################################
+
+
+
+
+
+A high-level introduction to Django
+===================================
+
+At its core, Django is simply a collection of libraries written in the Python
+programming language. To develop a site using Django, you write Python code
+that uses these libraries.
+
+These libraries provide a wealth of Web development functionality -- ranging
+from low-level matters, such as HTTP transactions and database connections, to
+high-level abstractions, such as automatic HTML form display and SQL generation.
+The value of Django is its slick integration of these libraries into a full
+package. Sure, you could write Web applications by piecing together your own
+components, starting from scratch, as we did in the days of CGI (and as many
+developers do today with PHP), but Django provides an infrastructure so you
+don't have to write it yourself.
+
+
+
+
+
+
+
+
+
+
+Because Django's developers have worked hard on making sure each level
+of the "stack" works well with the next,
+
+
+
+
+
+
+Python
+using Python
+
+What are some of the
+
+
+
+
+
+
+
+
+-- in a way that is conveniently integrated but loosely coupled.
+
+
+The value of Django is its integration of these libraries, along with its conventions.
+Community.
+
+
+At its core, Django is simply a collection of libraries written in the Python
+programming language. To develop a site using Django, you write Python code
+that uses these libraries. Learning Django, then, is a matter of learning how
+to program in Python and learning how the Django libraries work.
+
+If you have experience programming in Python, you should have no trouble diving
+in; by and large, the Django code doesn't perform "black magic" -- i.e.
+programming trickery whose implementation is difficult to explain or
+understand. For you, learning Django will be a matter of learning Django's
+conventions and APIs.
+
+If you don't have experience programming in Python, you're in for a treat.
+Django is a great reason
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ It's just Python, and Django applications have a high
+"understandability" factor -- that is, given the code to a Django app, it's
+easy to read it
+
+
+
+
+
+Python is a beautiful, concise, powerful, high-level programming language.
+
+
+ To develop a site using Django, you write Python code
+that uses the Django libraries. Although this book doesn't include a full
+Python tutorial, it highlights Python features and functionality where
+appropriate, particularly when code doesn't immediately make sense.
+
+
+
+Dynamic Web sites
+=================
+
+
+
+
+
+
+
+We can't stress this point enough: Under the hood, Django is just Python.
+
+Here's an example Python function:
+
+    def say_hello():
+        print 'Hello world'
+
+And here's an example Python function that creates a Web page using Django:
+
+    from django.http import HttpResponse
+
+    def say_hello(request):
+        return HttpResponse('Hello world')
+
+
+
+
+
+
+This statement cannot be stressed enough: It's just Python!
+
+
+
+What does Django do? The best way to answer this question is to look at Web sites.
+
+Let's start at square one. Django makes dynamic Web sites.
+
+
+
+In order to explain
+
+
+For clarity, a dynamic Web site is one in which pages aren't simply
+HTML documents sitting on a server's filesystem somewhere. In a
+dynamic Web site, rather, each page is generated by a computer program -- a
+so-called "Web application" -- that you, the Web developer, create. A Web
+application may, for instance, retrieve records from a database or take some
+action based on user input.
+
+
+
+
+
+Open-source
+===========
+
+Django is an open-source project. You can contribute.
+
+
+History of Django
+=================
+
+In learning Django, it's helpful to understand why it was created.
+
+
+Django is deeply rooted in the problems and solutions of the Real World. It
+wasn't created to be marketed and sold to developers, nor was it created as an
+academic exercise in somebody's spare time. It was built from Day One to solve
+daily problems for an industry-leading Web-development team.
+
+It started in fall 2003, at -- wait for it -- a small-town newspaper in
+Lawrence, Kansas.
+
+For one reason or another, The Lawrence Journal-World newspaper managed to
+attract a talented bunch of Web designers and developers in the early 2000s.
+The newspaper's Web operation, World Online, quickly turned into one of the
+most innovative newspaper Web operations in the world. Its three main sites,
+LJWorld.com (news), Lawrence.com (entertainment/music) and KUsports.com
+(college sports), began winning award after award in the online-journalism
+industry. Its innovations were many, including:
+
+    * The most in-depth local entertainment site in the world, Lawrence.com,
+      which merges databases of local events, bands, restaurants, drink
+      specials, downloadable songs and traditional-format news stories.
+
+    * A summer section of LJWorld.com that treated local Little League players
+      like they were the New York Yankees -- giving each team and league its
+      own page, hooking into weather data to display forecasts for games,
+      providing 360-degree panoramas of every playing field in the vicinity
+      and alerting parents via cell-phone text messages when games were
+      cancelled.
+
+    * Cell-phone game alerts for University of Kansas basketball and football
+      games, which let fans get notified of scores and key stats during games,
+      and a second system that used artificial-intelligence algorithms to let
+      fans send plain-English text messages to the system to query the
+      database ("how many points does giddens have" or "pts giddens").
+
+    * A deep database of all the college football and basketball stats you'd
+      ever want, including a way to compare any two or more players or teams
+      in the NCAA.
+
+    * Giving out blogs to community members and featuring community writing
+      prominently -- back before blogs were trendy.
+
+Journalism pundits worldwide pointed to World Online as an example of the
+future of journalism. The New York Times did a front-page business-section
+story on the company; National Public Radio did a two-day series on it. World
+Online's head editor, Rob Curley, spoke nearly *weekly* at journalism
+conferences across the globe, showcasing World Online's innovative ideas and
+site features. In a bleak, old-fashioned industry resistant to change, World
+Online was a rare exception.
+
+Much of World Online's success was due to the technology behind its sites, and
+the philosophy that computer programmers are just as important in creating
+quality 21st Century journalism as are journalists themselves.
+
+This is why Django was developed: World Online's developers needed a framework
+for developing complex database-driven Web sites painlessly, easily and on
+journalism deadlines.
+
+In fall 2003, World Online's two developers, Adrian Holovaty and Simon
+Willison, set about creating this framework. They decided to use Python, a
+language with which they'd recently fallen in love. After exploring (and being
+disappointed by) the available Python Web-programming libraries, they began
+creating Django.
+
+Two years later, in summer 2005, after having developed Django to a point
+where it was efficiently powering most of World Online's sites, the World
+Online team, which now included Jacob Kaplan-Moss, decided it'd be a good idea
+to open-source the framework. That way, they could give back to the
+open-source community, get free improvements from outside developers, and
+generate some buzz for their commercial Django-powered content-management
+system, Ellington (http://www.ellingtoncms.com/). Django was open-sourced in
+July 2005 and quickly became popular.
+
+Although Django is now an open-source project with contributors across the
+planet, the original World Online developers still provide central guidance
+for the framework's growth, and World Online contributes other important
+aspects such as employee time, marketing materials and hosting/bandwidth for
+the framework's Web site (http://www.djangoproject.com/).
+
+
+
+
+
+
+Intended audience
+=================
+
+Although this book doesn't include a full
+Python tutorial, it highlights Python features and functionality where
+appropriate, particularly when code doesn't immediately make sense.
