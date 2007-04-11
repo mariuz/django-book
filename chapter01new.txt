@@ -73,12 +73,12 @@ read. It's also simple to deploy -- just save this code in a file called
 a browser.
 
 But as a Web application grows beyond the trivial, this write-it-from-scratch
-approach breaks down, and you're faced with a number of problems:
+approach breaks down, and you face a number of problems:
 
     * What happens when multiple pages need to connect to the database? Surely
       that database-connecting code shouldn't be duplicated in each individual
       CGI script, so the pragmatic thing to do would be to refactor it into a
-      function.
+      shared function.
 
     * Should a developer *really* have to worry about printing the
       "Content-Type" line and remembering to close the database connection?
@@ -90,11 +90,11 @@ approach breaks down, and you're faced with a number of problems:
       a separate database and password? At this point, some
       environment-specific configuration becomes essential.
 
-    * What happens when a Web designer, who has no knowledge of programming,
+    * What happens when a Web designer, who has no experience coding Python,
       wishes to redesign the page? Ideally, the logic of the page -- the
       retrieval of books from the database -- would be separate from the
-      display of the page, so that a designer could edit the latter without
-      affecting the former.
+      HTML display of the page, so that a designer could edit the latter
+      without affecting the former.
 
 These problems are precisely what a Web framework intends to solve. A Web
 framework provides a programming infrastructure for your applications, so that
@@ -104,7 +104,9 @@ the wheel. In a nutshell, that's what Django does.
 The MVC design pattern
 ======================
 
-Here's how one might write the previous CGI code using Django::
+Let's dive in with a quick example that demonstrates the difference between the
+write-it-from-scratch approach and a Web framework. Here's how one might write
+the previous CGI code using Django::
 
     # models.py (the database tables)
 
@@ -149,12 +151,12 @@ Here's how one might write the previous CGI code using Django::
 
 Don't worry about the particulars of *how* this works just yet -- just get a
 feel for the overall design. The main thing to note here is the
-*separation of concerns.*
+*separation of concerns*:
 
     * The ``models.py`` file contains a description of the database table, as a
       Python class. This is called a **model**. Using this class, you can
       create, retrieve, update and delete records in your database using simple
-      Python code rather than writing repetitive SQL.
+      Python code rather than writing repetitive SQL statements.
 
     * The ``views.py`` file contains the business logic for the page, in the
       ``latest_books()`` function. This function is called a **view**.
@@ -178,8 +180,8 @@ key purpose and can be changed independently without affecting the other
 pieces. For example, a developer can change the URL for a given part of the
 application without affecting the underlying implementation. A designer can
 change a page's HTML without having to touch the Python code that renders it.
-A database administrator can rename a database table and make the change in a
-single place.
+A database administrator can rename a database table and specify the change in
+a single place, rather than having to search and replace through a dozen files.
 
 In this book, each component of this stack gets its own chapter. For example,
 Chapter 3 covers views, Chapter 4 covers templates and Chapter 5 covers models.
@@ -208,20 +210,20 @@ This is precisely how Django itself was created!
 Django grew organically from real-world applications written by a Web
 development team in Lawrence, Kansas, USA. It was born in fall 2003, when the
 Web programmers at the Lawrence Journal-World newspaper, Adrian Holovaty and
-Simon Willison, began using Python instead of PHP to build applications. The
-World Online team, responsible for the production and maintenance of several
-local news sites, thrived in a development environment dictated by journalism
-deadlines. For the sites -- including LJWorld.com, Lawrence.com and KUsports.com
--- journalists (and management) demanded that features be added on an intensely
-fast schedule, often with only days' or hours' notice. Thus, Adrian and Simon
-developed a timesaving Web development framework almost out of necessity -- it
-was the only way they could build maintainable applications under the extreme
-deadlines.
+Simon Willison, began using Python to build applications. The World Online
+team, responsible for the production and maintenance of several local news
+sites, thrived in a development environment dictated by journalism deadlines.
+For the sites -- including LJWorld.com, Lawrence.com and KUsports.com --
+journalists (and management) demanded that features be added and entire
+applications be built on an intensely fast schedule, often with only days' or
+hours' notice. Thus, Adrian and Simon developed a timesaving Web development
+framework out of necessity -- it was the only way they could build maintainable
+applications under the extreme deadlines.
 
 In summer 2005, after having developed this framework to a point where it was
 efficiently powering most of World Online's sites, the World Online team, which
 now included Jacob Kaplan-Moss, decided to release the framework open-source.
-They open-sourced it in July 2005, naming it Django, after the jazz guitarist
+They open-sourced it in July 2005 and named it Django, after the jazz guitarist
 Django Reinhardt.
 
 Although Django is now an open-source project with contributors across the
@@ -230,54 +232,60 @@ for the framework's growth, and World Online contributes other important
 aspects such as employee time, marketing materials and hosting/bandwidth for
 the framework's Web site (http://www.djangoproject.com/).
 
+This history is relevant because it helps explain two key things. The first is
+Django's "sweet spot." Because Django was born in a news environment, it offers
+several features (particularly its admin interface, covered in Chapter 6) that
+are particularly well-suited for "content" sites -- sites, like eBay,
+craigslist.org, or washingtonpost.com, that offer dynamic, database-driven
+information. (Don't let that turn you off, though -- although Django is
+particularly good for developing those sorts of sites, that doesn't preclude it
+from being an effective tool for building any sort of dynamic Web site. There's
+a difference between being *particularly effective* at something and being
+*ineffective* at other things.)
 
+The second thing to note is how Django's origins have shaped the culture of its
+open-source community. Because Django was extracted from real-world code,
+rather than being an academic exercise or commercial product, it is acutely
+focused on solving Web development problems that Django's developers themselves
+have faced -- and continue to face. As a result, Django itself is actively
+improved on an almost-daily basis. The framework's developers have a keen
+interest in making sure Django saves developers time, produces apps that are
+easy to maintain and performs well under load. If nothing else, the developers
+are motivated by their own selfish desires to save themselves time and enjoy
+their jobs. They eat their own dog food!
 
-#######################################
-# EVERYTHING UNDER THIS IS JUST NOTES #
-#######################################
+How to read this book
+=====================
 
+In writing this book, we've tried to strike a balance between readability and
+reference, with a bias toward readability. Our goal with this book, as stated
+above, is to make you a Django expert, and we believe the best way to teach is
+through prose and plenty of examples, rather than a providing an exhaustive,
+but bland, catalog of Django features. (As someone once said, you can't expect
+to teach somebody how to speak merely by teaching them the alphabet.)
 
+With that in mind, we recommend that you read chapters 1 through 8 in order.
+They form the foundation of how to use Django; once you've read them, you'll be
+able to build Django-powered Web sites. The remaining chapters, which focus on
+specific Django features, can be read in any order.
 
-A high-level introduction to Django
-===================================
+The appendices are for reference. They, along with the free documentation at
+www.djangoproject.com, are probably what you'll flip back to occasionally to
+recall syntax or find quick synopses of what certain parts of Django do.
 
-At its core, Django is simply a collection of libraries written in the Python
-programming language. To develop a site using Django, you write Python code
-that uses these libraries.
+Required programming knowledge
+------------------------------
 
-These libraries provide a wealth of Web development functionality -- ranging
-from low-level matters, such as HTTP transactions and database connections, to
-high-level abstractions, such as automatic HTML form display and SQL generation.
-The value of Django is its slick integration of these libraries into a full
-package. Sure, you could write Web applications by piecing together your own
-components, starting from scratch, as we did in the days of CGI (and as many
-developers do today with PHP), but Django provides an infrastructure so you
-don't have to write it yourself.
+Readers of this book should understand the basics of procedural and
+object-oriented programming: control structures (``if``, ``while``, ``for``),
+data structures (lists, hashes/dictionaries), variables, classes and objects.
 
+Experience in Web development is, as you may expect, very helpful -- but it's
+not required for reading this book. Throughout the book, we try to promote best
+practices in Web development for readers who lack much experience.
 
-
-
-
-
-
-
-
-
-Because Django's developers have worked hard on making sure each level
-of the "stack" works well with the next,
-
-
-
-
-
-
-
--- in a way that is conveniently integrated but loosely coupled.
-
-
-The value of Django is its integration of these libraries, along with its conventions.
-Community.
-
+Required Python knowledge
+-------------------------
 
 At its core, Django is simply a collection of libraries written in the Python
 programming language. To develop a site using Django, you write Python code
@@ -290,104 +298,43 @@ programming trickery whose implementation is difficult to explain or
 understand. For you, learning Django will be a matter of learning Django's
 conventions and APIs.
 
-If you don't have experience programming in Python, you're in for a treat.
-Django is a great reason
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- It's just Python, and Django applications have a high
-"understandability" factor -- that is, given the code to a Django app, it's
-easy to read it
-
-
-
-
-
-Python is a beautiful, concise, powerful, high-level programming language.
-
-
- To develop a site using Django, you write Python code
-that uses the Django libraries. Although this book doesn't include a full
+If you don't have experience programming in Python, you're in for a treat:
+It's easy to learn and a joy to use! Although this book doesn't include a full
 Python tutorial, it highlights Python features and functionality where
-appropriate, particularly when code doesn't immediately make sense.
+appropriate, particularly when code doesn't immediately make sense. Still, we
+recommend you read the official Python tutorial, available online at
+http://docs.python.org/tut/ . We also recommend Mark Pilgrim's free book
+"Dive Into Python," available at http://www.diveintopython.org and published in
+print by Apress.
 
+New Django features
+-------------------
 
+As we noted above, Django is frequently improved, and it will likely have a
+number of useful, even *essential*, new features by the time this book is
+published. Thus, our goal as authors of The Django Book is twofold:
 
-Dynamic Web sites
-=================
+    * Make sure this book is as "future-proof" as possible, so that whatever
+      you read here will still be relevant in future Django versions.
 
+    * Actively update this book on its Web site, http://www.djangobook.com, so
+      you can access the latest and greatest documentation as soon as we write
+      it.
 
+If you want to implement something with Django that isn't explained in this
+book, check the latest version of this book, on the aforementioned Web site,
+and check the official Django documentation.
 
+Getting help
+------------
 
+One of the greatest benefits of Django is its kind and helpful user community.
+For help with any aspect of Django -- from installation to application design
+to database design to deployment -- feel free to ask questions online:
 
+    * The django-users mailing list is where thousands of Django users hang out
+      to ask and answer questions. Sign up for free at www.djangoproject.com/r/django-users.
 
-
-We can't stress this point enough: Under the hood, Django is just Python.
-
-Here's an example Python function:
-
-    def say_hello():
-        print 'Hello world'
-
-And here's an example Python function that creates a Web page using Django:
-
-    from django.http import HttpResponse
-
-    def say_hello(request):
-        return HttpResponse('Hello world')
-
-
-
-
-
-
-This statement cannot be stressed enough: It's just Python!
-
-
-
-What does Django do? The best way to answer this question is to look at Web sites.
-
-Let's start at square one. Django makes dynamic Web sites.
-
-
-
-In order to explain
-
-
-For clarity, a dynamic Web site is one in which pages aren't simply
-HTML documents sitting on a server's filesystem somewhere. In a
-dynamic Web site, rather, each page is generated by a computer program -- a
-so-called "Web application" -- that you, the Web developer, create. A Web
-application may, for instance, retrieve records from a database or take some
-action based on user input.
-
-
-
-
-
-Open-source
-===========
-
-Django is an open-source project. You can contribute.
-
-
-
-Intended audience
-=================
-
-Although this book doesn't include a full
-Python tutorial, it highlights Python features and functionality where
-appropriate, particularly when code doesn't immediately make sense.
+    * The Django IRC channel is where Django users hang out to chat and help
+      each other in real time. Join the fun by logging onto #django on the
+      Freenode IRC network.
