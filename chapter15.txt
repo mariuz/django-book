@@ -3,8 +3,7 @@ Chapter 15: Other contributed sub-frameworks
 ============================================
 
 One of the many strengths of Python is its "batteries included" philosophy;
-when you install Python, it comes with a large "standard library" of commonly
-used modules that you can start using immediately, without having to download
+when you install Python, it comes with a large standard library of modules that you can start using immediately, without having to download
 anything else. Django aims to follow this philosophy, as it includes its own
 standard library of add-ons useful for common Web development tasks. This
 chapter covers that collection of add-ons.
@@ -24,7 +23,7 @@ solely of middleware or template tags.
 
 The single characteristic the ``django.contrib`` packages have in common is
 this: If you were to remove the ``django.contrib`` package entirely, you could
-still use Django's fundamentals with no problems. When the developers of Django
+still use Django's fundamental features with no problems. When the Django developers
 add new functionality to the framework, they use this rule of thumb in deciding
 whether the new functionality should live in ``django.contrib`` or elsewhere.
 
@@ -78,9 +77,9 @@ Sites
 Django's "sites" system is a generic framework that lets you operate multiple
 Web sites off of the same database and Django project. As this is an abstract
 concept, it can be tricky to understand -- so we'll start with a couple of
-examples.
+scenarios where it would  be useful.
 
-Example 1: Reusing data on multiple sites
+Scenario 1: Reusing data on multiple sites
 -----------------------------------------
 
 As we explained in Chapter 1, the Django-powered sites LJWorld.com and
@@ -100,7 +99,7 @@ article is associated with one or more sites via a many-to-many relationship.
 The Django sites framework provides the database table to which articles can be
 related. It's a hook for associating data with one or more "sites."
 
-Example 2: Storing your site name/domain in one place
+Scenario 2: Storing your site name/domain in one place
 -----------------------------------------------------
 
 LJWorld.com and Lawrence.com both have e-mail alert functionality, which lets
@@ -155,7 +154,7 @@ Things you can do with the sites framework
 Reusing data on multiple sites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To reuse data on multiple sites, as explained in "Example 1," just create a
+To reuse data on multiple sites, as explained in the first scenario, just create a
 ``ManyToManyField`` to ``Site`` in your models. For example::
 
     from django.db import models
@@ -619,14 +618,13 @@ How it works
 is a simple lookup table with ``site_id``, ``old_path`` and ``new_path`` fields.
 
 You can create redirects through either the Django admin interface or the
-Django database API. For more, see "How to add, change and delete redirects"
-below.
+Django database API. For more, see the later section "How to add, change and delete redirects".
 
-Once you've created redirects, the ``RedirectFallbackMiddleware`` does all of
+Once you've created redirects, the ``RedirectFallbackMiddleware`` class does all of
 the work. Each time any Django application raises a 404 error, this middleware
 checks the redirects database for the requested URL as a last resort.
 Specifically, it checks for a redirect with the given ``old_path`` with a site
-ID that corresponds to the ``SITE_ID`` setting. (See "Sites" above for more on
+ID that corresponds to the ``SITE_ID`` setting. (See the earlier section "Sites" for more on
 ``SITE_ID`` and the sites framework.) Then, it follows these steps:
 
     * If it finds a match, and ``new_path`` is not empty, it redirects to
@@ -676,7 +674,7 @@ via the Django database API. For example::
 CSRF protection
 ===============
 
-The ``django.contrib.csrf`` package provides easy-to-use protection against
+The ``django.contrib.csrf`` package protects against
 Cross-Site Request Forgeries (CSRF).
 
 CSRF explained
@@ -691,7 +689,7 @@ so we've included two examples here:
 A simple example
 ~~~~~~~~~~~~~~~~
 
-Say you're logged into a webmail account at ``example.com``. Say this webmail
+Say you're logged into a webmail account at ``example.com``. This webmail
 site has a "Log out" button that points to the URL ``example.com/logout`` --
 that is, the only action you need to take in order to log out is to visit the
 page ``example.com/logout``.
@@ -715,7 +713,7 @@ a state change (i.e., logging yourself out) to be requested via the HTTP
 request that changes state on the server. But even Web sites that require
 ``POST`` for state-changing actions are vulnerable to CSRF.
 
-Say ``example.com`` has upgraded its "Log out" functionality so that it's a
+Suppose ``example.com`` has upgraded its "Log out" functionality so that it's a
 ``<form>`` button that is requested via ``POST`` to the URL
 ``example.com/logout``. Furthermore, the log-out ``<form>`` includes this
 hidden field::
@@ -723,7 +721,7 @@ hidden field::
     <input type="hidden" name="confirm" value="true" />
 
 This ensures that a simple ``POST`` to the URL ``example.com/logout`` won't
-perform the logging out; in order for a user to log out, the user must request
+log the user out; in order for a user to log out, the user must request
 ``example.com/logout`` via ``POST`` *and* send the ``confirm`` ``POST``
 variable with a value of ``'true'``.
 
