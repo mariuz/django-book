@@ -8,7 +8,7 @@ high-quality Web applications with minimal fuss.
 
 At its best, Web development is an exciting, creative act; at its worst,
 it can be a repetitive, frustrating nuisance. Django lets you focus on the fun
-stuff -- the meat of your Web application -- while easing the pain of the
+stuff -- the crux of your Web application -- while easing the pain of the
 repetitive bits. In doing so, it provides high-level abstractions of common
 Web development patterns, shortcuts for frequent programming tasks and
 clear conventions on how to solve problems. At the same time, Django tries to
@@ -23,7 +23,7 @@ in my own projects?" By reading this book, you'll learn the skills needed to
 develop powerful Web sites quickly, with code that is clean and easy to
 maintain.
 
-Web frameworks
+What is a Web Framework?
 ==============
 
 Django is a prominent member of a new generation of "Web frameworks." What,
@@ -66,13 +66,13 @@ prints the closing HTML and closes the database connection.
 
 With a one-off dynamic page such as this one, the write-it-from-scratch
 approach isn't necessarily bad. For one thing, this code is simple to
-comprehend -- a developer can read these 16 lines of Python and understand all
+comprehend -- even a novice developer can read these 16 lines of Python and understand all
 it does, from start to finish. There's nothing else to learn, no other code to
 read. It's also simple to deploy -- just save this code in a file called
 ``latestbooks.cgi``, upload that file to a Web server and visit that page with
 a browser.
 
-But as a Web application grows beyond the trivial, this write-it-from-scratch
+But as a Web application grows beyond the trivial, this
 approach breaks down, and you face a number of problems:
 
     * What happens when multiple pages need to connect to the database? Surely
@@ -105,7 +105,7 @@ The MVC design pattern
 ======================
 
 Let's dive in with a quick example that demonstrates the difference between the
-write-it-from-scratch approach and a Web framework. Here's how one might write
+previous approach and that undertaken using a Web framework. Here's how one might write
 the previous CGI code using Django::
 
     # models.py (the database tables)
@@ -169,7 +169,7 @@ feel for the overall design. The main thing to note here is the
       of the page.
 
 Taken together, these pieces loosely follow the MVC (Model-View-Controller)
-design pattern. Simply put, this is a way of developing software so that the
+design pattern. Simply put, MVC defines a way of developing software so that the
 code for defining and accessing data (the model) is separate from request
 routing logic (the controller), which in turn is separate from the user
 interface (the view).
@@ -191,8 +191,7 @@ Django's history
 ================
 
 Before we dive into more code, we should take a moment to explain Django's
-history. It's helpful to understand why the framework was created, along with
-the background of its developers.
+history. It's helpful to understand why the framework was created, as it places into context why it approaches the problem of Web application development in its own way.
 
 If you've been building Web applications for a while, the problems with the CGI
 example we presented above probably sound familiar. The classic Web developer's
@@ -232,7 +231,7 @@ for the framework's growth, and World Online contributes other important
 aspects such as employee time, marketing materials and hosting/bandwidth for
 the framework's Web site (http://www.djangoproject.com/).
 
-This history is relevant because it helps explain two key things. The first is
+This history is relevant because it helps explain two key matters. The first is
 Django's "sweet spot." Because Django was born in a news environment, it offers
 several features (particularly its admin interface, covered in Chapter 6) that
 are particularly well-suited for "content" sites -- sites, like eBay,
@@ -243,7 +242,7 @@ from being an effective tool for building any sort of dynamic Web site. There's
 a difference between being *particularly effective* at something and being
 *ineffective* at other things.)
 
-The second thing to note is how Django's origins have shaped the culture of its
+The second matter to note is how Django's origins have shaped the culture of its
 open-source community. Because Django was extracted from real-world code,
 rather than being an academic exercise or commercial product, it is acutely
 focused on solving Web development problems that Django's developers themselves
