@@ -8,8 +8,8 @@ handles it, or maybe log information about the request for debugging purposes,
 etc.
 
 Django's **middleware** framework is essentially a set of hooks into Django's
-request/response processing. It's a light, low-level "plugin" system for
-globally altering Django's input and/or output.
+request/response processing. It's a light, low-level "plugin" system capable of
+globally altering both Django's input and output.
 
 Each middleware component is responsible for doing some specific function. If
 you're reading this book linearly -- sorry, postmodernists -- you'll have
@@ -25,7 +25,7 @@ already seen middleware a number of times:
       the response for that view has already been cached.
       
     * The ``flatpages``, ``redirects`` and ``csrf`` contributed apps from
-      Chapter 15 all do their magic through the use of middleware components
+      Chapter 15 all do their magic through middleware components
 
 This chapters dives deeper into exactly what middleware is and how it works,
 and explains how you can write your own middleware.
@@ -33,7 +33,7 @@ and explains how you can write your own middleware.
 What's middleware?
 ==================
 
-Middleware is actually incredible simple. A middleware component is simply a
+A middleware component is simply a
 Python class that conforms to a certain API -- duck typing strikes again!
 Before diving into the formal aspects of what that API is, let's look at a
 very simple example.
@@ -95,6 +95,10 @@ name. For example, here's the default ``MIDDLEWARE_CLASSES`` created by
 A Django installation doesn't require any middleware -- e.g.,
 ``MIDDLEWARE_CLASSES`` can be empty, if you'd like -- but it's strongly
 suggested that you use ``CommonMiddleware``.
+
+.. XXX WJG Per the above statement about it being strongly suggested that
+.. XXX WJG the reader uses CommonMiddleware, can you elaborate? What does
+.. XXX WJG CommonMiddleware offer that's so important?
 
 The order is significant. On the request and view phases, Django applies
 middleware in the order given in ``MIDDLEWARE_CLASSES``, and on the response
@@ -183,6 +187,9 @@ This method gets called after the view function has already been called and
 the response has been generation. This is where middleware can modify the
 content of a response; content compression (see below) is one obvious use for
 response middleware.
+
+.. XXX WJG Per the above statement "(see below)", where exactly? Is there a specific
+.. XXX WJG section you can cite?
 
 The parameters should be pretty self-explanatory -- ``request`` is the request
 object, and ``response`` is the response object returned from the view.
@@ -296,6 +303,8 @@ Reverse proxy support (``X-Forwarded-For`` middleware)
 
 Middleware class: ``django.middleware.http.SetRemoteAddrFromForwardedFor``
 
+.. XXX WJG Per the below, "This is the example we looked at above", where exactly?
+
 This is the example we looked at above. It sets
 ``request.META['REMOTE_ADDR']`` based on
 ``request.META['HTTP_X_FORWARDED_FOR']``, if the latter is set. This is useful
@@ -321,6 +330,8 @@ Middleware class: ``django.contrib.sessions.middleware.SessionMiddleware``.
 
 Enables session support; see Chapter 15 for details.
 
+.. XXX WJG Per the above cross-reference, don't you mean Chapter 12?
+
 Site-wide cache middleware
 --------------------------
 
@@ -345,6 +356,8 @@ the same transaction control as the view functions.
 
 See XXX for more about information about database transactions.
 
+.. XXX WJG Just a note to fill in the above XXX.
+
 "X-View" middleware
 -------------------
 
@@ -354,4 +367,4 @@ Sends custom ``X-View`` HTTP headers to HEAD requests that come from IP
 addresses defined in the ``INTERNAL_IPS`` setting. This is used by Django's
 automatic documentation system.
 
-
+.. XXX WJG Seems this chapter ends a bit abruptly?
