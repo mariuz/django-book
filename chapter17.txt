@@ -7,23 +7,28 @@ so-called "green-field" development -- it's possible to integrate the framework
 into legacy databases and applications. This chapter explains a few integration
 strategies.
 
+.. XXX WJG Is "green-field" really a commonly used term? Admittedly I've
+.. XXX WJG never heard of it.
+
 Integrating with a legacy database
 ==================================
 
 Django's database layer generates SQL schemas from Python code -- but in the
 case of a legacy database, you already have the SQL schemas. In that case,
-you'll need to write models for your existing database tables. (For performance
+you'll need to create models for your existing database tables. (For performance
 reasons, Django's database layer does not support on-the-fly object-relational
 mapping by introspecting the database at run time; in order to use the database
 API, you're required to write model code.) Fortunately, Django comes with a
-utility that can generate model code by reading your database table layouts.
-This utility is called ``manage.py inspectdb``.
+feature that can generate model code by reading your database table layouts.
+You can generate the model code by calling ``manage.py inspectdb``.
+
+.. XXX WJG See the diff to verify the change I made in the last two above sentences.
 
 Using ``inspectdb``
 -------------------
 
 The ``inspectdb`` utility introspects the database pointed to by your settings
-file, determines the Django model representation of your tables and prints the
+file, determines the Django model representation of your tables, and prints the
 Python model code to standard output. Here's a walkthrough of a typical
 legacy-database process from scratch; the only things it assumes are that
 Django is installed and that you have a legacy database.
@@ -72,7 +77,7 @@ for dealing with the generated models:
     2. Each generated model has an attribute for every field -- including
        ``id`` primary-key fields. However, recall that Django automatically
        adds an ``id`` primary-key field if a model doesn't have a primary key.
-       Thus, if you're particularly anal, you'll want to remove any lines that
+       Thus, if you're particularly detail-oriented, you'll want to remove any lines that
        look like this, because they're redundant::
 
            id = models.IntegerField(primary_key=True)
@@ -98,6 +103,8 @@ for dealing with the generated models:
        models so that models that refer to other models are ordered properly.
        For example, if model ``Foo`` has a ``ForeignKey`` to model ``Bar``,
        model ``Bar`` should be defined before model ``Foo``.
+
+.. XXX WJG Minor nit, how about replacing "Foo" and "Bar" with more realistic terms?
 
     6. ``inspectdb`` detects primary keys for PostgreSQL, MySQL and SQLite.
        That is, it inserts ``primary_key=True`` where appropriate. For other
