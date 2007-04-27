@@ -5,11 +5,20 @@ Chapter 19: Internationalization
 Django has full support for internationalization of text in code and templates.
 Here's how it works.
 
+.. XXX WJG I'm debating whether this comment is out-of-scope, however what about 
+.. XXX WJG two paragraphs explaining what internationalization and localization mean?
+.. XXX WJG I'm coincidentally writing this chapter for my 3rd edition, and think many
+.. XXX WJG readers actually don't understand what these terms truly mean.
+
 Overview
 ========
 
 The goal of internationalization is to allow a single Web application to offer
 its content and functionality in multiple languages.
+
+.. XXX WJG While this is true, it isn't just a language issue. Internationalization
+.. XXX WJG also means adapting an application to conform to a country's monetary and
+.. XXX WJG numerical standards for instance.
 
 You, the Django developer, can accomplish this goal by adding a minimal amount
 of hooks to your Python code and templates. These hooks are called
@@ -43,9 +52,9 @@ How to internationalize your app: in three steps
 If you don't need internationalization
 ======================================
 
-Django's internationalization hooks are on by default, and that means there's a
+Django's internationalization hooks are enabled by default, and that means there's a
 bit of i18n-related overhead in certain places of the framework. If you don't
-use internationalization, you should take the two seconds to set
+use internationalization, you should set
 ``USE_I18N = False`` in your settings file. If ``USE_I18N`` is set to
 ``False``, then Django will make some optimizations so as not to load the
 internationalization machinery.
@@ -143,6 +152,8 @@ strings lazily -- when the value is accessed rather than when the
 
 For example, to translate a model's ``help_text``, do the following::
 
+.. XXX WJG To translate a model's help_text what exactly?
+
     from django.utils.translation import gettext_lazy
 
     class MyThing(models.Model):
@@ -177,7 +188,9 @@ Pluralization
 ~~~~~~~~~~~~~
 
 Use the function ``django.utils.translation.ngettext()`` to specify pluralized
-messages. Example::
+messages. For example::
+
+.. XXX WJG Can you elaborate as to what a pluralized message is?
 
     from django.utils.translation import ngettext
     def hello_world(request, count):
@@ -204,6 +217,8 @@ content::
 
 If you only want to mark a value for translation, but translate it later from a
 variable, use the ``noop`` option::
+
+.. XXX WJG Do you mean "translate it later based on a variable value"?
 
     <title>{% trans "value" noop %}</title>
 
@@ -242,6 +257,8 @@ Internally, all block and inline translations use the appropriate
 ``gettext`` / ``ngettext`` call.
 
 Each ``RequestContext`` has access to two translation-specific variables:
+
+.. XXX WJG Each RequestContext what exactly? Extension?
 
     * ``LANGUAGES`` is a list of tuples in which the first element is the
       language code and the second is the language name (in that language).
@@ -285,7 +302,7 @@ available translation strings and how they should be represented in the given
 language. Message files have a ``.po`` file extension.
 
 Django comes with a tool, ``bin/make-messages.py``, that automates the creation
-and upkeep of these files.
+and maintenance of these files.
 
 To create or update a message file, run this command::
 
@@ -338,7 +355,7 @@ following snippet -- a message::
     msgid "Welcome to my site."
     msgstr ""
 
-A quick explanation:
+A quick explanation is in order:
 
     * ``msgid`` is the translation string, which appears in the source. Don't
       change it.
@@ -348,7 +365,7 @@ A quick explanation:
     * As a convenience, each message includes the filename and line number
       from which the translation string was gleaned.
 
-Long messages are a special case. There, the first string directly after the
+Long messages are a special case. The first string directly after the
 ``msgstr`` (or ``msgid``) is an empty string. Then the content itself will be
 written over the next few lines as one string per line. Those strings are
 directly concatenated. Don't forget trailing spaces within the strings;
@@ -388,6 +405,9 @@ How Django discovers language preference
 Once you've prepared your translations -- or, if you just want to use the
 translations that come with Django -- you'll just need to activate translation
 for your app.
+
+.. XXX WJG What exactly do you mean by "the translations that come with Django"?
+.. XXX WJG This seems to indicate Django automatically translates certain strings?
 
 Behind the scenes, Django has a very flexible model of deciding which language
 should be used -- installation-wide, for a particular user, or both.
@@ -625,6 +645,8 @@ Django provides an integrated solution for these problems: It passes the
 translations into JavaScript, so you can call ``gettext``, etc., from within
 JavaScript.
 
+.. XXX WJG Can you reword the above to remove "etc."?
+
 The ``javascript_catalog`` view
 -------------------------------
 
@@ -633,6 +655,8 @@ sends out a JavaScript code library with functions that mimic the ``gettext``
 interface, plus an array of translation strings. Those translation strings are
 taken from the application, project or Django core, according to what you
 specify in either the {{{info_dict}}} or the URL.
+
+.. XXX WJG Can you reword "sends out"?
 
 You hook it up like this::
 
@@ -647,7 +671,7 @@ You hook it up like this::
 Each string in ``packages`` should be in Python dotted-package syntax (the
 same format as the strings in ``INSTALLED_APPS``) and should refer to a package
 that contains a ``locale`` directory. If you specify multiple packages, all
-those catalogs are merged into one catalog. This is useful if you have
+those catalogs are merged into one catalog. This is useful if you're depending upon
 JavaScript that uses strings from different applications.
 
 You can make the view dynamic by putting the packages into the URL pattern::
