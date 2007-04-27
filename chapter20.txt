@@ -4,12 +4,11 @@ Security
 
 The internet can be a scary place.
 
-In the past few years, internet horror stories have been in the news almost
-continuously. We've seen viruses spread with amazing speed, swarms of
+These days, high-profile security gaffes seem to crop up on a daily basis. We've seen viruses spread with amazing speed, swarms of
 compromised computers wielded as weapons, a never-ending arms race against
 spammers, and many, many reports of identify theft from compromised web sites.
 
-As good web developers, it's our duty to do what we can to combat these forces
+As web developers, it's our duty to do what we can to combat these forces
 of darkness. Every web developer needs to treat security as a fundamental
 aspect of web programming. Unfortunately, it turns out that security is *hard*
 -- attackers only need to find a single vulnerability, but defenders have to
@@ -55,13 +54,13 @@ SQL injection
 parameters (such as ``GET``/``POST`` data or URLs) to insert arbitrary SQL
 snippets that a naive Web application executes in its database directly. It's
 probably the most dangerous -- and unfortunately one of the most common --
-vulnerabilities in the wild.
+vulnerabilities out there.
 
 This vulnerability most commonly crops up when constructing SQL "by hand" from
 user input. For example, imagine writing a function to gather a list of a
 contact info from a contact search page. To prevent spammers from reading
 every single email in our system, we'll force the user to type in someone's
-username before we provide their email address::
+username before providing their email address::
 
     def user_contacts(request):
         user = request.GET['username']
@@ -156,6 +155,8 @@ user-submitted content before rendering it into HTML. This allows an attacker
 to maliciously insert arbitrary HTML, usually in the form of ``<script>``
 tags. 
 
+.. XXX WJG In the previous section you said SQL injection is the most common vulnerability. :-)
+
 Attackers often use XSS attacks to steal cookie and session info, or to trick
 users into giving private information to the wrong person (a.k.a
 **phishing**).
@@ -197,9 +198,11 @@ of this nature. A user inserted javascript into his profile that automatically
 added him as your friend when you visited his profile page. Within a few days
 he had millions of friends.
 
+.. XXX WJG Added him as your friend, or added you as his friend?
+
 Now, this may sound relatively benign, but keep in mind that this attacker
 managed to get *his* code -- not MySpace's -- running on *your* computer. This
-violoates the assumed trust that all the code on MySpace is actually written
+violates the assumed trust that all the code on MySpace is actually written
 by MySpace.
 
 MySpace was extremely lucky that this malicious code didn't automatically
@@ -223,9 +226,9 @@ then we're no longer vulnerable. You should *always* use the ``escape`` tag
     templates is a frequent topic of discussion on the Django developer
     mailing list.
     
-    So far, Django's templates have avoided this behavior because it subtley
-    and invisibly changes what should be relatively streightforward behavior
-    (displaying variables). It's a tricky issue and a difficult trade-off to
+    So far, Django's templates have avoided this behavior because it subtly
+    changes what should be relatively streightforward behavior
+    (displaying variables). It's a tricky issue and a difficult tradeoff to
     evaluate. Adding hidden implicit behavior is against Django's core ideals
     (and Python's, for that matter), but security is equally important.
     
@@ -288,6 +291,8 @@ user's session data. It can take a number of different forms:
       attacker who tricks a user into clicking on a link with a hardcoded
       session ID will cause the user to pick up that session.
       
+.. XXX WJG While PHP does indeed allow this, it isn't the default behavior.
+
       This has been used in phishing attacks to trick users into entering
       personal information into the an account which the attacker owns; he can
       later log into that account and retrieve the data.
@@ -456,7 +461,7 @@ content serving view (in ``django.views.static``). Here's the relevant code::
         
         newpath = os.path.join(newpath, part).replace('\\', '/')
 
-Django itself doesn't read files (unless you use the ``static.serve``
+Django doesn't read files (unless you use the ``static.serve``
 function, but that's protected with the code shown above), so this
 vulnerability doesn't affect the core code much.
 
@@ -523,3 +528,5 @@ your users is priceless.
 **Did we miss anything?** Are there other security vulnerabilities you think
 we should cover in this chapter? Did we get something wrong (``$DEITY``
 forbid)? Leave a note on this paragraph and let us know!
+
+.. XXX WJG Great chapter!
