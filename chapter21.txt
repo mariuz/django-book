@@ -6,7 +6,7 @@ Throughout this book we've mentioned a number of goals that drive the
 development of Django. Ease of use, friendliness to new programmers,
 abstraction of repetitive tasks -- these all drive Django's developers.
 
-However, since its inception as an internal, closed-source project, there's
+However, since its inception, there's
 always been another incredibly important goal: Django should be easy to
 deploy, and should make serving large amounts of traffic possible with limited
 resources.
@@ -19,9 +19,9 @@ resources. Indeed, for years Django's developers acted as their own systems
 administrators -- there simply wasn't enough hardware to *need* dedicated
 admins -- even as their sites handled tens of millions of hits a day.
 
-As Django became an open-source project, this focus on performance and ease of
+As Django became an open source project, this focus on performance and ease of
 deployment became important for a different reason: hobbyist developers.
-Individuals who want to use Django are please to find out that they can host a
+Individuals who want to use Django are pleased to learn they can host a
 small- to medium-traffic site for as little as $10 a month.
 
 But being able to scale down is only half the battle. Django also needs to be
@@ -45,7 +45,7 @@ called "shared nothing."
     philosophies proven by the LAMP stack permeate Django's deployment
     mentality.
 
-    There have been a few (mostly humourous) attempts at coining a similar
+    There have been a few (mostly humorous) attempts at coining a similar
     acronym to describe Django's technology stack; your authors are fond 
     of **PAID** (PostgreSQL, Apache, Internet and Django) or **LAPD** 
     (Linux, Apache, PostgreSQL, and Django).
@@ -71,7 +71,7 @@ What the LAMP community noticed, however, was that if you broke each piece of
 the web stack up into individual components, you could easily start with an
 inexpensive server, and simply add more inexpensive servers as you grew. If
 your $3,000 database server couldn't handle the load, you'd simply buy a
-second (or third, or forth) until it could. If you needed more storage
+second (or third, or fourth) until it could. If you needed more storage
 capacity, you'd add an NFS server.
 
 For this to work, though, web applications had to stop assuming that the same
@@ -130,7 +130,7 @@ A note on personal preferences
 Before we get into the details, a quick aside.
 
 Open source is famous for its so-called "religious wars": much (digital) ink
-has been spilled arguing about text editors (``emacs`` vs. ``vi``), operating
+has been spilled arguing over text editors (``emacs`` vs. ``vi``), operating
 systems (Linux vs. Windows vs. MacOS), database engines (MySQL vs.
 PostgreSQL), and -- of course -- programming languages.
 
@@ -148,8 +148,7 @@ we'll state them here. We prefer:
     
     * PostgreSQL as a database server.
     
-Of course, we can point to many Django users who have made other choices and
-done perfectly well.
+Of course, we can point to many Django users who have made other choices with great success.
 
 How to use Django with Apache and mod_python
 ============================================
@@ -179,7 +178,7 @@ Django requires Apache 2.x and mod_python 3.x, and you should use Apache's
     
         * The free `online apache documentation`_.
         
-        * `Pro Apache`_ by Peter Wainwrite (Apress).
+        * `Pro Apache, Third Edition`_ by Peter Wainwright (Apress).
         
         * `Apache: The Definitive Guide`_ by Ben Laurie and Peter Laurie
           (O'Reilly).
@@ -188,12 +187,14 @@ Django requires Apache 2.x and mod_python 3.x, and you should use Apache's
 .. _pro apache: http://www.djangoproject.com/r/books/pro-apache/
 .. _`apache: the definitive guide`: http://www.djangoproject.com/r/books/apache-pra/
 
+.. XXX WJG The third link in the above list is broken
+
 Basic configuration
 -------------------
 
 To configure Django with mod_python, first make sure you have Apache installed
 with the mod_python module activated. This usually means having a
-``LoadModule`` directive in your Apache conf; it'll usually look something
+``LoadModule`` directive in your Apache configuration file; it'll usually look something
 like::
 
     LoadModule python_module /usr/lib/apache2/modules/mod_python.so
@@ -255,6 +256,9 @@ this directive inside a ``<VirtualHost>`` block) will be served by Django.
 
 Multiple Django installations on the same Apache instance
 ---------------------------------------------------------
+
+.. XXX WJG So why might the reader want to do this? Maybe offer a hypothetical
+.. XXX WJG scenario or two?
 
 It's entirely possible to run multiple Django installations on the same Apache
 instance. Just use ``VirtualHost`` for that, like so::
@@ -404,7 +408,7 @@ their imports, as necessary.
 How to use Django with FastCGI
 ==============================
 
-Although Django under Apache and mod_python is the most robust depoyment
+Although Django under Apache and mod_python is the most robust deployment
 setup, many people use shared hosting on which FastCGI is the only viable
 option. 
 
@@ -601,7 +605,7 @@ FastCGI and lighttpd
 --------------------
 
 lighttpd_ is a lightweight Web server commonly used for serving static files.
-It supports FastCGI natively and, thus, is a good choice for serving both
+It supports FastCGI natively and, thus, is also an ideal choice for serving both
 static and dynamic pages, if your site doesn't have any Apache-specific needs.
 
 .. _lighttpd: http://www.djangoproject.com/r/lighttpd/
@@ -762,8 +766,7 @@ Separating out the database server
 As far as Django is concerned, this is extremely easy: you'll simply need to
 change the ``DATABASE_HOST`` setting to the IP or DNS name of your database
 server. It's probably a good idea to use the IP if at all possible; relying on
-DNS for the connection between your web and database server could be a big
-problem.
+DNS for the connection between your web and database server isn't recommended.
 
 With a separate database server, our architecture now looks like:
 
@@ -779,8 +782,8 @@ machines.
 
 At this point if you anticipate ever needing to grow beyond a single database
 server, it's probably a good idea to start thinking now about connection
-pooling and/or database replication. There's not nearly enough space to do
-those topics justice in this book -- unfortunately -- so you'll need to
+pooling and/or database replication. There's unfortunately not nearly enough space to do
+those topics justice in this book, so you'll need to
 consult your database's documentation and/or community for more information.
 
 A separate media server
@@ -800,7 +803,7 @@ anything *not* generated by a Django view -- onto a dedicated server:
    :class: center
 
 Ideally, this media server should run a stripped-down web server optimized for
-static media deliver. lighttpd_ and tux_ are both excellent choices here, but
+static media delivery. lighttpd_ and tux_ are both excellent choices here, but
 a heavily stripped down Apache could work, too.
 
 .. _tux: http://www.djangoproject.com/r/tux/
