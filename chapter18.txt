@@ -5,14 +5,13 @@ Chapter 18: Extending Django's admin interface
 Chapter 6 introduced Django's admin interface, and now it's time to circle
 back and take a closer look.
 
-As we've said a few times before, the admin is one of Django's "killer
+As we've said a few times before, Django's admin is one of the framework's "killer
 features," and most Django developers quickly fall in love with all its
 timesaving features. It follows naturally, then, that eventually most Django
 developers look to customize or extend the admin.
 
-The last few sections of Chapter 6 talk about some simple ways to customize
-certain parts of the admin interface. It's probably a good idea to go read
-back over that material; it covers some simple ways to customize the admin
+The last few sections of Chapter 6 offer some simple ways to customize
+certain parts of the admin interface. Before proceeding with this chapter, consider reviewing that material; it covers some simple ways to customize the admin
 change lists and edit forms, as well as an easy way to "re-brand" the admin to
 match your site.
 
@@ -201,7 +200,7 @@ of that book page. Maybe something like this:
    :height: 624
    
 This is pretty easy to do: simple create a template called
-`admin/bookstore/book/change_form.html``, and insert this code::
+``admin/bookstore/book/change_form.html``, and insert this code::
 
     {% extends "admin/change_form.html" %}
 
@@ -240,8 +239,8 @@ history, it's as simple as::
 
 __ http://jquery.com/
 
-(I'm not sure why you'd need jQuery on the object history page, but of course
-this example applies to any of the admin templates.)
+We're not sure why you'd need jQuery on the object history page, but of course
+this example applies to any of the admin templates.
 
 You can use this technique to include any sort of extra JavaScript widgets you
 might need.
@@ -380,6 +379,9 @@ At times the default admin views just don't cut it. You can easily swap in
 your own custom view for any stage of the admin; just let your URL shadow the
 built-in admin one.
 
+.. XXX WJG Regarding the above, what do you mean by "shadow"? Perhaps
+.. XXX WJG use different terminology?
+
 For example, we could replace the built-in "create" view for a book with a
 form that lets the user simply enter an ISBN We could then look up the book's
 information from http://isbn.nu/ and create the object automatically.
@@ -394,6 +396,8 @@ view will completely replace the standard admin view.
 
 We could follow a similar tact to replace a delete confirmation page, the edit
 stage, or any other part of the admin.
+
+.. XXX WJG Don't forget to finish the below.
 
 Contribute!
 -----------
