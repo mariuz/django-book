@@ -1,0 +1,21 @@
+{% extends "book/chapter.html" %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block title %}{{ content.title }}{% endblock %}
+
+{% block content %}
+	{% load markup %}
+  <h2 id="chapter-title">{{ content.title }}</h2>
+  <h3 id="chapter-subtitle">{{ version }}</h3>
+  {% if content.subtitle %}
+    <h3 id="chapter-subtitle">{{ content.subtitle }}</h3>
+  {% endif %}
+  <div id="chapter-body">
+    {{ content.body }}
+  </div>
+{% endblock %}
+
+{% block afterbody %}
+{% endblock %}
