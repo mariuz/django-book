@@ -3,8 +3,9 @@ from djangobook.feeds import PublishedChaptersFeed, CommentFeed
 from djangobook.views import *
 
 urlpatterns = patterns('',
-    (r'accounts/login/$',  'django.contrib.auth.views.login'),
-    (r'accounts/logout/$', 'django.contrib.auth.views.logout'),
+    (r'^admin/', include('django.contrib.admin.urls')),
+    (r'^accounts/login/$',  'django.contrib.auth.views.login'),
+    (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
     (    
         r'^feed/(?P<url>.*)/$', 
         'django.contrib.syndication.views.feed', 

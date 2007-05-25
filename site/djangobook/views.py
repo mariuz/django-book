@@ -11,20 +11,13 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.shortcuts import render_to_response, get_object_or_404
 
 from djangobook.rst import DjangoBookHTMLWriter
-from djangobook.models import Chapter, BookVersion, ReleasedChapter, Comment, PrivateVersion
+from djangobook.models import Chapter, BookVersion, Comment, PrivateVersion
 
 def toc(request, lang, version):
-    book = get_object_or_404(BookVersion, version=version, language=lang)
-    toc = []
-    for chapter in Chapter.objects.all():
-        try:
-            release = chapter.releases.get(version=book)
-        except ReleasedChapter.DoesNotExist:
-            release = None
-        toc.append({"chapter" : chapter, "release" : release})
+    bookversion = get_object_or_404(BookVersion, version=version, language=lang)
     return render_to_response(
         "book/toc.html", 
-        {"contents" : toc, "book_version" : book},
+        {"contents" : Chapter.objects.filter(version=bookversion), "book_version" : bookversion},
         RequestContext(request, {})
     )
 
@@ -32,12 +25,12 @@ def _get_release_or_404(lang, version, type, chapter, show_future_chapters=False
     lookup = dict(
         version__version=version, 
         version__language=lang,
-        chapter__type=type[0].upper(),
-        chapter__number=int(chapter),
+        type=type[0].upper(),
+        number=int(chapter),
     )
     if not show_future_chapters:
         lookup["release_date__lte"] = datetime.datetime.now()
-    release = get_object_or_404(ReleasedChapter, **lookup)
+    release = get_object_or_404(Chapter, **lookup)
     content = release.get_content()
     if content is None:
         raise Http404("Chapter release has no content.")
@@ -50,7 +43,7 @@ def chapter(request, lang, version, type, chapter):
         parts = publish_parts(source=content, writer=DjangoBookHTMLWriter(), settings_overrides={'initial_header_level' : 3})
         cache.set("djangobook:rendered_content:%s" % release.id, parts, 5*60)
     return render_to_response(
-        ["book/%s%02i.html" % (release.chapter.get_type_display(), release.chapter.number), "book/chapter.html"], 
+        ["book/%s%02i.html" % (release.get_type_display(), release.number), "book/chapter.html"], 
         {"release" : release, "content" : parts},
         RequestContext(request, {})
     )

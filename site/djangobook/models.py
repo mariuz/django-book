@@ -19,21 +19,6 @@ def isValidSVNRoot(field_data, all_data):
     if not c.is_url(field_data):
         raise validators.ValidationError("Please enter a valid SVN URL.")
 
-class Chapter(models.Model):
-    type         = models.CharField(maxlength=1, choices=CHAPTER_TYPE_CHOICES)
-    number       = models.PositiveSmallIntegerField()
-    title        = models.CharField(maxlength=200)
-
-    class Meta:
-        unique_together = [("type", "number")]
-        ordering = ("-type", "number")
-
-    class Admin:
-        list_display = ("title", "number")
-        
-    def __str__(self):
-        return "%s %s: %s" % (self.get_type_display().title(), self.number, self.title)
-
 class BookVersion(models.Model):
     version  = models.CharField(maxlength=6)
     language = models.CharField(maxlength=5, choices=LANGUAGE_CHOICES)
@@ -49,53 +34,41 @@ class BookVersion(models.Model):
     @models.permalink
     def permalink(self):
         return ("djangobook.views.toc", (self.language, self.version))
-        
-class PrivateVersion(models.Model):
-    slug = models.SlugField()
-    svn_root = models.CharField(maxlength=200, validator_list=[isValidSVNRoot])
 
-    class Admin:
-        list_display = ["slug", "svn_root"]
-        
-    def __str__(self):
-        return "Private version from %s" % self.svn_root
-        
-    @models.permalink
-    def permalink(self):
-        return ("djangobook.views.private_toc", (self.slug))
-        
-    def get_content(self, chapterslug):
-        c = pysvn.Client()
-        try:
-            return c.cat(urlparse.urljoin(self.svn_root, chapterslug + ".txt"))
-        except pysvn.ClientError:
-            return None
-
-class ReleasedChapter(models.Model):
+class Chapter(models.Model):
+    type          = models.CharField(maxlength=1, choices=CHAPTER_TYPE_CHOICES)
+    number        = models.PositiveSmallIntegerField()
+    title         = models.CharField(maxlength=200)
     version       = models.ForeignKey(BookVersion, related_name="chapters")
-    chapter       = models.ForeignKey(Chapter, related_name="releases")
     release_date  = models.DateTimeField(blank=True, null=True)
     comments_open = models.BooleanField("comments are open", default=True)
 
     class Meta:
-        unique_together = [("version", "chapter")]
+        unique_together = [("type", "number", "version")]
+        ordering = ("version", "-type", "number")
 
     class Admin:
-        ordering = ("-release_date",)
-        list_display = ('chapter', 'version', 'release_date')
+        list_filter = ("version",)
+        list_display = ("title", "number", "version", "release_date", "comments_open")
 
     def __str__(self):
-        return "%s (%s; %s)" % (self.chapter, self.version.version, self.version.language)
-        
+        return "%s %s: %s" % (self.get_type_display().title(), self.get_number_display(), self.title)
+    
+    def get_number_display(self):
+        if self.type == "C":
+            return str(self.number)
+        else:
+            return chr(ord('A') + self.number - 1)
+    
     @models.permalink
     def permalink(self):
         return ("djangobook.views.chapter", (self.version.language, 
                                              self.version.version, 
-                                             self.chapter.type,
-                                             "%02i" % self.chapter.number))
+                                             self.type,
+                                             "%02i" % self.number))
 
     def get_svn_url(self):
-        filename = "%s%02i.txt" % (self.chapter.get_type_display().lower(), self.chapter.number)
+        filename = "%s%02i.txt" % (self.get_type_display().lower(), self.number)
         return urlparse.urljoin(self.version.svn_root, filename)
         
     def get_content(self):
@@ -106,47 +79,38 @@ class ReleasedChapter(models.Model):
             return None
         
     def is_released(self):
-        return self.release_date < datetime.datetime.now()
+        return self.release_date and self.release_date < datetime.datetime.now()
 
     def get_public_comments(self):
         return self.comments.filter(is_removed=False).order_by("date_posted")
         
     def get_next_chapter(self):
         if not hasattr(self, "_next_chapter"):
-            toc = list(Chapter.objects.all())
-            index = toc.index(self.chapter)
-            if index == len(toc) - 1:
-                self._next_chapter = None
-            else:
-                try:
-                    self._next_chapter = ReleasedChapter.objects.get(
-                        version__pk = self.version_id, 
-                        chapter__pk = toc[index+1].id,
-                        release_date__lte = datetime.datetime.now(),
-                    )
-                except ReleasedChapter.DoesNotExist:
-                    self._next_chapter = None
+            self._next_chapter = None
+            toc = list(Chapter.objects.filter(version=self.version))
+            index = toc.index(self)
+            for c in toc[index+1:]:
+                if c.is_released():
+                    self._next_chapter = c
+                    break;
         return self._next_chapter
         
     def get_previous_chapter(self):
-        if not hasattr(self, "_previous_chapter"):
-            toc = list(Chapter.objects.all())
-            index = toc.index(self.chapter)
-            if index == 0:
-                self._previous_chapter = None
-            else:
-                try:
-                    self._previous_chapter = ReleasedChapter.objects.get(
-                        version__pk = self.version_id, 
-                        chapter__pk = toc[index-1].id,
-                        release_date__lte = datetime.datetime.now(),
-                    )
-                except ReleasedChapter.DoesNotExist:
-                    self._previous_chapter = None
-        return self._previous_chapter
+        if not hasattr(self, "_prev_chapter"):
+            self._prev_chapter = None
+            toc = list(Chapter.objects.filter(version=self.version))
+            index = toc.index(self)
+            for c in reversed(toc[:index]):
+                if c.is_released():
+                    self._prev_chapter = c
+                    break;
+        return self._prev_chapter
+        
+    next = property(get_next_chapter)
+    previous = property(get_previous_chapter)
         
 class Comment(models.Model):
-    chapter     = models.ForeignKey(ReleasedChapter, related_name="comments")
+    chapter     = models.ForeignKey(Chapter, related_name="comments")
     name        = models.CharField(maxlength=50)
     email       = models.EmailField()
     url         = models.URLField(verify_exists=False, blank=True)
@@ -167,3 +131,24 @@ class Comment(models.Model):
     def get_truncated_comment(self):
         return text.truncate_words(self.comment, 100)
     get_truncated_comment.short_description = "Comment"
+    
+class PrivateVersion(models.Model):
+    slug = models.SlugField()
+    svn_root = models.CharField(maxlength=200, validator_list=[isValidSVNRoot])
+
+    class Admin:
+        list_display = ["slug", "svn_root"]
+
+    def __str__(self):
+        return "Private version from %s" % self.svn_root
+
+    @models.permalink
+    def permalink(self):
+        return ("djangobook.views.private_toc", (self.slug))
+
+    def get_content(self, chapterslug):
+        c = pysvn.Client()
+        try:
+            return c.cat(urlparse.urljoin(self.svn_root, chapterslug + ".txt"))
+        except pysvn.ClientError:
+            return None
