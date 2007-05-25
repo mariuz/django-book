@@ -7,18 +7,18 @@
     {% for chapter in contents %}
       <li class="{% cycle a,b %}">
         <span class="release-date">
-          {% if chapter.release %}
-            {{ chapter.release.release_date|date:"F j, Y" }}
+          {% if chapter.release_date %}
+            {{ chapter.release_date|date:"F j, Y" }}
           {% else %}
             TBA
           {% endif %}
         </span>
-        {% if chapter.release.is_released %}
-          <a href='{{ chapter.chapter.get_type_display }}{{ chapter.chapter.number|stringformat:"02i" }}/'>
-            {{ chapter.chapter }}
+        {% if chapter.is_released %}
+          <a href='{{ chapter.get_type_display }}{{ chapter.number|stringformat:"02i" }}/'>
+            {{ chapter }}
           </a>
         {% else %}
-          {{ chapter.chapter }}
+          {{ chapter }}
         {% endif %}
       </li>
     {% endfor %}
