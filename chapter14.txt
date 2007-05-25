@@ -1,5 +1,5 @@
 ============================================
-Chapter 15: Other contributed sub-frameworks
+Chapter 14: Other contributed sub-frameworks
 ============================================
 
 One of the many strengths of Python is its "batteries included" philosophy;
@@ -35,7 +35,10 @@ whether the new functionality should live in ``django.contrib`` or elsewhere.
 
     * ``auth`` -- Django's authentication framework. See Chapter 12.
 
-    * ``comments`` -- A comments application. See Chapter 13.
+    * ``comments`` -- A comments application. This application is currently
+      under heavy development, and thus couldn't be covered fully in time for
+      this book's publication. Check the Django website for the latest
+      information about the comments application.
 
     * ``contenttypes`` -- A framework for hooking into "types" of content,
       where each installed Django model is a separate content type. See
@@ -397,7 +400,7 @@ Here's how Django uses the sites framework:
       is associated with a particular site. When Django searches for a
       redirect, it takes into account the current ``SITE_ID``.
 
-    * In the comments framework (see Chapter 13), each comment is associated
+    * In the comments framework, each comment is associated
       with a particular site. When a comment is posted, its ``site`` is set to
       the current ``SITE_ID``, and when comments are listed via the appropriate
       template tag, only the comments for the current site are displayed.
@@ -417,11 +420,6 @@ Here's how Django uses the sites framework:
     * In the authentication framework (see Chapter 12), the
       ``django.contrib.auth.views.login`` view passes the current ``Site`` name
       to the template as ``{{{ site_name }}}``.
-
-.. XXX WJG Per the below, which chapter?
-
-    * The shortcut view (see Chapter XX) uses the domain of the current
-      ``Site`` object when calculating an object's URL.
 
 Flatpages
 =========

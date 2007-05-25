@@ -1,5 +1,5 @@
 ======================
-Chapter 16: Middleware
+Chapter 15: Middleware
 ======================
 
 On occasion, you'll need to run a piece of code on each and every request that
@@ -25,7 +25,7 @@ already seen middleware a number of times:
       the response for that view has already been cached.
       
     * The ``flatpages``, ``redirects`` and ``csrf`` contributed apps from
-      Chapter 15 all do their magic through middleware components
+      Chapter 14 all do their magic through middleware components
 
 This chapters dives deeper into exactly what middleware is and how it works,
 and explains how you can write your own middleware.
@@ -39,7 +39,7 @@ Before diving into the formal aspects of what that API is, let's look at a
 very simple example.
 
 High-traffic sites often need to deploy Django behind a load balancing proxy
-(see Chapter 21). This can cause a few small complications, one of which is
+(see Chapter 20). This can cause a few small complications, one of which is
 that every request's remote IP (``request.META["REMOTE_IP"]``) will be that of
 the load balancer, not the actual IP making the request. Load balancers deal
 with this by setting a special header, ``X-Forwarded-For``, to the actual
@@ -239,7 +239,7 @@ Enables authentication support. Technically, this middleware adds the
 ``request.user`` attribute, representing the currently-logged-in user, to
 every incoming ``HttpRequest`` object.
 
-See Chapter 15 for the complete details.
+See Chapter 14 for the complete details.
 
 "Common" middleware
 -------------------
@@ -328,9 +328,7 @@ Session support middleware
 
 Middleware class: ``django.contrib.sessions.middleware.SessionMiddleware``.
 
-Enables session support; see Chapter 15 for details.
-
-.. XXX WJG Per the above cross-reference, don't you mean Chapter 12?
+Enables session support; see Chapter 12 for details.
 
 Site-wide cache middleware
 --------------------------
@@ -338,7 +336,7 @@ Site-wide cache middleware
 Middleware class: ``django.middleware.cache.CacheMiddleware``.
 
 If this is enabled, each Django-powered page will be cached. This is
-discussed in detail in Chapter 14.
+discussed in detail in Chapter 13.
 
 Transaction middleware
 ----------------------

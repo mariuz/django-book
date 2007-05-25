@@ -1,5 +1,5 @@
 ================================
-Chapter 19: Internationalization
+Chapter 18: Internationalization
 ================================
 
 Django has full support for internationalization of text in code and templates.

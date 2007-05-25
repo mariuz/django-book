@@ -83,7 +83,7 @@ arguments may either come from the URL pattern (as ``month``, ``day``,
 ``queryset``, ``date_field``, etc.).
 
 Most generic views require the ``queryset`` key, which is a ``QuerySet``
-instance; see the database API reference in Appendix 3 for more information
+instance; see the database API reference in Appendix C for more information
 about ``QuerySet`` objects.
 
 Most views also take an optional ``extra_context`` dictionary that you can use
@@ -947,7 +947,7 @@ page in their respective URLs; the ``object_detail`` view uses URLs like
 
     If you're using date-based detail pages with slugs in the URLs, you
     probably also want to use the ``unique_for_date`` option on the slug field
-    to validate that slugs aren't duplicated in a single day. See Appendix 2
+    to validate that slugs aren't duplicated in a single day. See Appendix B
     for details on ``unique_for_date``.
     
 Example

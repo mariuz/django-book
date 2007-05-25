@@ -117,7 +117,7 @@ Completely harmless.
 
 This applies to the entire Django database API, with a couple of exceptions:
 
-    * The ``where`` argument to the ``extra()`` method (see Appendix XXX).
+    * The ``where`` argument to the ``extra()`` method (see Appendix C).
       That parameter accepts raw SQL by design.
 
     * Queries done "by hand" using the lower-level database API.
@@ -251,7 +251,7 @@ loading a URL from a site at which they're already authenticated -- hence,
 taking advantage of their authenticated status.
 
 Django has built-in tools to protect from this kind of attack; both the attack
-itself and those tools are covered in great detail in Chapter 15.
+itself and those tools are covered in great detail in Chapter 14.
 
 Session forging/hijacking
 =========================

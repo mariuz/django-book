@@ -733,7 +733,7 @@ To install the sitemap app, follow these steps:
        in your ``TEMPLATE_LOADERS`` setting. It's in there by default, so
        you'll only need to change this if you've changed that setting.
     
-    #. Make sure you've installed the sites framework (see Chapter 15).
+    #. Make sure you've installed the sites framework (see Chapter 14).
 
 .. note:: 
 
@@ -877,7 +877,7 @@ defined for the current site and creates an entry in the sitemap. These
 entries include only the ``location`` attribute -- not ``lastmod``,
 ``changefreq`` or ``priority``.
 
-See Chapter 15 for more about flat pages.
+See Chapter 14 for more about flat pages.
 
 ``GenericSitemap``
 ``````````````````

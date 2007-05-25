@@ -1,5 +1,5 @@
 ===================
-Chapter 14: Caching
+Chapter 13: Caching
 ===================
 
 Static web sites, in which simple files are served directly to the Web, scale 

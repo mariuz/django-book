@@ -48,7 +48,7 @@ There's a couple of things going on here you've not seen yet.
 First, there's this ``request.GET`` business. This is how you access GET data
 from Django; POST data is accessed through a similar ``request.POST`` object.
 These objects behave exactly like standard Python dictionaries with some extra
-features covered in Chapter XXX.
+features covered in Appendix H.
 
 .. admonition:: What's GET and POST data?
 
@@ -78,7 +78,7 @@ search for either a street name or a crime type and "does the right thing" in
 each circumstance.
 
 Technically, these ``Q`` objects comprise a **QuerySet**, and you can read
-more about them in Chapter XXX.
+more about them in Appendix C.
 
 There's still no template for this search view, however. This should do the
 trick::
@@ -544,7 +544,7 @@ one. Here's a simple function that might drive the above form::
             if not errors:
                 manipulator.do_html2python(new_data)
 
-                # Send e-mail using new_data here... see Chapter XXX
+                # Send e-mail using new_data here...
 
                 return HttpResponseRedirect("/contact/thankyou/")
         else:
@@ -583,10 +583,10 @@ Some possible directions you might travel in:
       and Django's internationalization/localization framework.
 
     * Once you've finished an application and are ready to launch it, Chapter
-      19 has all the details about how to deploy and scale Django
+      20 has all the details about how to deploy and scale Django
       applications.
 
-    * Finally, Chapters 20 and above contain exhaustive reference material on
+    * Finally, the appendixes exhaustive reference material on
       the model API, database API, and others.
 
 Whatever you do, we hope you'll join the Django community. Visit

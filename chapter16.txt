@@ -1,5 +1,5 @@
 ==============================================================
-Chapter 17: Integrating with legacy databases and applications
+Chapter 16: Integrating with legacy databases and applications
 ==============================================================
 
 Although Django is best suited for developing projects from scratch --

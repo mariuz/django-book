@@ -1,5 +1,5 @@
 ==============================================
-Chapter 18: Extending Django's admin interface
+Chapter 17: Extending Django's admin interface
 ==============================================
 
 Chapter 6 introduced Django's admin interface, and now it's time to circle

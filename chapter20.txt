@@ -1,5 +1,5 @@
 ============================
-Chapter 21: Deploying Django
+Chapter 20: Deploying Django
 ============================
 
 Throughout this book we've mentioned a number of goals that drive the
@@ -846,7 +846,7 @@ open-source software load balancers out there.
 
 Apache's ``mod_proxy`` is one option, but we've found Perlbal_ to be simply
 fantastic. It's a load balancer and reverse proxy written by the same folks
-that wrote ``memcached`` (see Chapter 14).
+that wrote ``memcached`` (see Chapter 13).
 
 .. _perlbal: http://www.djangoproject.com/r/perlbal/
 
@@ -971,7 +971,7 @@ Use memcached often
 -------------------
 
 Of course, selecting memcached does you no good if you don't actually use it.
-Chapter 14 is your best friend here: learn how to use Django's cache
+Chapter 13 is your best friend here: learn how to use Django's cache
 framework, and use it everywhere possible. Aggressive, preemptive caching is
 usually the only think that will keep a site up under major traffic.
 
