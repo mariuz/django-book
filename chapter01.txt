@@ -24,7 +24,7 @@ develop powerful Web sites quickly, with code that is clean and easy to
 maintain.
 
 What is a Web Framework?
-==============
+========================
 
 Django is a prominent member of a new generation of "Web frameworks." What,
 exactly, does that term mean?
@@ -191,7 +191,9 @@ Django's history
 ================
 
 Before we dive into more code, we should take a moment to explain Django's
-history. It's helpful to understand why the framework was created, as it places into context why it approaches the problem of Web application development in its own way.
+history. It's helpful to understand why the framework was created, because a
+knowledge of the history will put into context why things with Django work they
+way they do.
 
 If you've been building Web applications for a while, the problems with the CGI
 example we presented above probably sound familiar. The classic Web developer's
