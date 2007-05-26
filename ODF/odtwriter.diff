@@ -1,0 +1,54 @@
+Index: odtwriter/__init__.py
+===================================================================
+--- odtwriter/__init__.py	(revision 4897)
++++ odtwriter/__init__.py	(working copy)
+@@ -21,8 +21,8 @@
+ import docutils
+ from docutils import frontend, nodes, utils, writers, languages
+ from docutils.parsers import rst
++import urllib2
+ 
+-
+ WhichElementTree = ''
+ try:
+     from lxml import etree
+@@ -501,15 +501,21 @@
+         for source, destination in embedded_files:
+             if source is None:
+                 continue
+-            try:
+-                #print 'zipping -- source: "%s"  destination: "%s"' % (
+-                #    source, destination, )
+-                #ipshell('(store_embedded_files) #1')
+-                destination1 = destination.decode('latin-1').encode('utf-8')
+-                zfile.write(source, destination1, zipfile.ZIP_STORED)
+-                #ipshell('(store_embedded_files) #2')
+-            except OSError, e:
+-                print "Error: Can't open file %s." % (source, )
++            destination1 = destination.decode('latin-1').encode('utf-8')
++            if "://" in source:
++                try:
++                    zfile.writestr(destination1, urllib2.urlopen(source).read())
++                except urllib2.HTTPError, e:
++                    print "Error: Can't read URL %s: %s" % (source, e)
++            else:
++                try:
++                    #print 'zipping -- source: "%s"  destination: "%s"' % (
++                    #    source, destination, )
++                    #ipshell('(store_embedded_files) #1')
++                    zfile.write(source, destination1, zipfile.ZIP_STORED)
++                    #ipshell('(store_embedded_files) #2')
++                except OSError, e:
++                    print "Error: Can't open file %s." % (source, )
+ 
+     def get_stylesheet(self):
+         """Retrieve the stylesheet from either a .xml file or from
+@@ -1085,7 +1091,7 @@
+         pass
+ 
+     def check_file_exists(self, path):
+-        if os.path.exists(path):
++        if "://" in path or os.path.exists(path):
+             return 1
+         else:
+             return 0
