@@ -2,22 +2,23 @@
 Chapter 17: Extending Django's admin interface
 ==============================================
 
-Chapter 6 introduced Django's admin interface, and now it's time to circle
-back and take a closer look.
+Chapter 6 introduced Django's admin interface, and now it's time to circle back
+and take a closer look.
 
-As we've said a few times before, Django's admin is one of the framework's "killer
-features," and most Django developers quickly fall in love with all its
-timesaving features. It follows naturally, then, that eventually most Django
-developers look to customize or extend the admin.
+As we've said a few times before, Django's admin is one of the framework's
+"killer features," and most Django developers quickly fall in love with all its
+timesaving features. Thus, eventually most Django developers look to customize
+or extend the admin.
 
-The last few sections of Chapter 6 offer some simple ways to customize
-certain parts of the admin interface. Before proceeding with this chapter, consider reviewing that material; it covers some simple ways to customize the admin
+The last few sections of Chapter 6 offer some simple ways to customize certain
+parts of the admin interface. Before proceeding with this chapter, consider
+reviewing that material; it covers some simple ways to customize the admin
 change lists and edit forms, as well as an easy way to "re-brand" the admin to
 match your site.
 
-Chapter 6 also discusses when and why you'd want to use the admin interface,
-and since that material makes a good jumping-off point for the rest of this
-chapter, we'll reproduce it here:
+Chapter 6 also discusses when and why you'd want to use the admin interface, and
+since that material makes a good jumping-off point for the rest of this chapter,
+we'll reproduce it here:
     
     Obviously, [the admin is] extremely useful for editing data (fancy that).
     If you have any sort of data entry tasks, the admin simply can't be beat.
@@ -25,7 +26,7 @@ chapter, we'll reproduce it here:
     whole host of data entry tasks.
     
     Django's admin especially shines when non-technical users need to be able
-    to enter data; that's the original genesis of the feature. At the
+    to enter data; that's the origin of the feature. At the
     newspaper where Django was first developed, development of a typical
     online feature -- a special report on water quality in the municipal
     supply, say -- goes something like this:
@@ -58,8 +59,7 @@ chapter, we'll reproduce it here:
           
 Django's admin handles these common cases with little or no customization. As
 with most design trade-offs, though, handling these common cases so well means
-that Django's admin doesn't handle some other modes of editing very well at
-all.
+that Django's admin doesn't handle some other modes of editing as well.
 
 We'll talk about the cases that Django's admin *isn't* designed to cover a bit
 later on, but first, a brief digression on philosophy:
@@ -67,14 +67,13 @@ later on, but first, a brief digression on philosophy:
 The Zen of Admin
 ================
 
-At it's core, Django's admin is designed for a single activity:
+At its core, Django's admin is designed for a single activity:
 
     Trusted users editing structured content.
 
-Yes, extremely simple -- but in that simplicity lies a whole host of
-suppositions that the admin takes as given. The entire philosophy of Django's
-admin follows directly from these assumptions, so let's dig into the subtext
-of this phrase:
+Yes, extremely simple -- but that simplicity is based on a whole host of
+assumptions. The entire philosophy of Django's admin follows directly from these
+assumptions, so let's dig into the subtext of this phrase:
 
 "Trusted users ..."
 -------------------
@@ -93,11 +92,11 @@ them not to edit anyone else's without permission.
 ".. editing ..."
 ----------------
 
-The primary purpose of Django's admin is to let people edit stuff. This seems
+The primary purpose of Django's admin is to let people edit data. This seems
 obvious at first, but again has some subtle and powerful repercussions.
 
 For instance, although the admin is quite useful for reviewing data (see
-above), it's not designed with that purpose as a goal: note the lack of a "can
+above), it's not designed with that purpose in mind: note the lack of a "can
 view" permission (see Chapter 12). Django assumes that if people are allowed
 to view content in the admin, they're also allowed to edit it.
 
@@ -133,6 +132,12 @@ Django views can do *anything* -- and because they can easily be visually
 integrated into the admin (see below) -- the built-in opportunities for
 customizing the admin are somewhat limited by design.
 
+You should keep in mind that the admin interface is "just an app" -- a very
+complicated one, but it doesn't do anything that any Django developer with
+sufficient time couldn't reproduce. It's entirely possible that in the future
+someone will develop a different "admin" that is based on a different set of
+assumptions and thus behaves differently.
+
 Customizing admin templates
 ===========================
 
@@ -155,9 +160,11 @@ which can be overridden in a number of ways.
 First, you can override the template globally. The admin view looks for
 templates using the standard template loading mechanism, so if you create
 templates in one of your template directories, Django will load those instead
-of the default admin templates bundles with Django.
+of the default admin templates bundled with Django.
 
 These global templates are:
+
+.. table:: Table 17-1: Global admin templates
 
     ======================  ==================================================
     View                    Base template name
@@ -193,13 +200,15 @@ template and adding information to one of the blocks defined in that template.
 For example, let's say we wanted to add a little bit of help text to the top
 of that book page. Maybe something like this:
 
-.. image:: http://media.djangobook.com/content/chapter18/book_extra.png
+.. figure:: http://media.djangobook.com/content/chapter18/book_extra.png
    :class: full
    :alt: Screenshot of a customized book edit form.
    :width: 827
    :height: 624
    
-This is pretty easy to do: simple create a template called
+   Figure 17-1: A customized admin edit form.
+   
+This is pretty easy to do: simply create a template called
 ``admin/bookstore/book/change_form.html``, and insert this code::
 
     {% extends "admin/change_form.html" %}
@@ -210,8 +219,8 @@ This is pretty easy to do: simple create a template called
     
 All these templates define a number of blocks you can override. As with most
 programs, the best documentation is the code, so we encourage you to look
-through the admin templates (they like in ``django/contrib/admin/templates/``)
-for the most up-to-date information.
+through the admin templates (they're in ``django/contrib/admin/templates/``) for
+the most up-to-date information.
  
 Custom JavaScript
 `````````````````
@@ -222,8 +231,8 @@ client-side behavior.
 
 Luckily, that couldn't be easier. Each admin template defines a ``{% block
 extrahead %}`` which you can use to put extra content in to the ``<head>``
-element. For example, if you wanted to include jQuery__ in one of your admin
-history, it's as simple as::
+element. For example, if you wanted to include jQuery (http://jquery.com/) in
+one of your admin history, it's as simple as::
 
     {% extends "admin/object_history.html" %}
     
@@ -237,10 +246,10 @@ history, it's as simple as::
     {% endblock %}
     
 
-__ http://jquery.com/
+.. note::  
 
-We're not sure why you'd need jQuery on the object history page, but of course
-this example applies to any of the admin templates.
+    We're not sure why you'd need jQuery on the object history page, but of
+    course this example applies to any of the admin templates.
 
 You can use this technique to include any sort of extra JavaScript widgets you
 might need.
@@ -252,8 +261,6 @@ At this point, anyone looking to add custom *behavior* to Django's admin is
 probably starting to get a bit frustrated. "All you've talked about is how to
 change the the admin *visually*," they'll cry, "but how do I change the way
 the admin *works*?"
-
-Well, cry no more, for here comes the answer.  
 
 The first thing to understand is that **it's not magic**. That is, nothing the
 admin does is "special" in any way -- the admin is just a set of views (they
@@ -284,16 +291,17 @@ like::
         (r'^admin/', include('django.contrib.admin.urls')),
     )
     
-Why put the custom view before the admin inclusion? Well, recall that Django
+Why put the custom view *before* the admin inclusion? Recall that Django
 processes URL patterns in order. Because the admin URLs match nearly anything
 that falls under the inclusion point, if we reverse the order of those lines
 Django will find a built-in admin view for that pattern, which of course won't
-work. In this particular case, it'll try to load a change list for a
-``Report`` model in the ``bookstore`` app, which doesn't exist.
+work. In this particular case, it'll try to load a change list for a ``Report``
+model in the ``bookstore`` app, which doesn't exist.
 
-Now let's write our view. For the sake of simplicity, we'll just load all
-books into the context and let the template handle the grouping with the 
-``{% regroup %}`` tag. Create a file ``bookstore/admin_views.py`` with this code::
+Now let's write our view. For the sake of simplicity, we'll just load all books
+into the context and let the template handle the grouping with the 
+``{% regroup %}`` tag. Create a file ``bookstore/admin_views.py`` with this
+code::
 
     from bookstore.models import Book
     from django.template import RequestContext
@@ -343,12 +351,12 @@ templates to make this view visually appear to be part of the admin::
       <h1>List of books by publisher:</h1>
       {% regroup book_list|dictsort:"publisher.name" by publisher as books_by_publisher %}
       {% for publisher in books_by_publisher %}
-      	<h3>{{ publisher.grouper }}</h3>
-      	<ul>
-      	  {% for book in publisher.list|dictsort:"title" %}
-      	  	<li>{{ book }}</li>
-      	  {% endfor %}
-      	</ul>
+        <h3>{{ publisher.grouper }}</h3>
+        <ul>
+          {% for book in publisher.list|dictsort:"title" %}
+            <li>{{ book }}</li>
+          {% endfor %}
+        </ul>
       {% endfor %}
     </div>
     {% endblock %}
@@ -356,14 +364,16 @@ templates to make this view visually appear to be part of the admin::
 By extending ``admin/base_site.html`` we get the look and feel of the Django
 admin "for free."  Here's what the end result looks like:
     
-.. image:: http://media.djangobook.com/content/chapter18/books_by_publisher.png
+.. figure:: http://media.djangobook.com/content/chapter18/books_by_publisher.png
    :class: full
    :alt: Screenshot of the custom "books by publisher" view.
    :width: 827
    :height: 624
+   
+   Figure 17-2: A custom "books by publisher" admin view.
 
-Where do you want to admin today?
-=================================
+What do you want to admin today?
+================================
 
 You can use this technique to add anything you can dream of to the admin.
 Remember that these so-called "custom admin views" are really just normal
@@ -376,11 +386,8 @@ Overriding built-in views
 -------------------------
 
 At times the default admin views just don't cut it. You can easily swap in
-your own custom view for any stage of the admin; just let your URL shadow the
-built-in admin one.
-
-.. XXX WJG Regarding the above, what do you mean by "shadow"? Perhaps
-.. XXX WJG use different terminology?
+your own custom view for any stage of the admin; just let your URL "shadow" the
+built-in admin one. That is, if your view comes before the default admin view in the URLconf, your view will be called instead of the default one.
 
 For example, we could replace the built-in "create" view for a book with a
 form that lets the user simply enter an ISBN We could then look up the book's
@@ -397,9 +404,16 @@ view will completely replace the standard admin view.
 We could follow a similar tact to replace a delete confirmation page, the edit
 stage, or any other part of the admin.
 
-.. XXX WJG Don't forget to finish the below.
+What's Next?
+============
 
-Contribute!
------------
+If you're a native English speaker--and we expect that most readers of this
+English-language book are--you might not have noticed one of the coolest
+features of the admin interface: it's available in almost 40 different
+languages!
 
-This section is not yet complete. Are there other types of custom admin views you'd like covered? Leave a comment on this paragraph and let us know!
+This is made possible by Django's internationalization framework (and the hard
+work of Django's volunteer translators); the next chapter explains how to use
+this framework to provide localized Django sites.
+
+Avanti!
