@@ -40,9 +40,11 @@ elsewhere.
       this book's publication. Check the Django website for the latest
       information about the comments application.
 
-    * ``contenttypes`` -- A framework for hooking into "types" of content,
-      where each installed Django model is a separate content type. See
-      "Content types" below.
+    * ``contenttypes`` -- A framework for hooking into "types" of content, where
+      each installed Django model is a separate content type. This framework is
+      used internally by other "contrib" apps, and is mostly intended for very
+      advanced Django developers. Those developers should find out more about
+      this app by reading the source code in ``django/contrib/contenttypes/``.
 
     * ``csrf`` -- Protection against Cross Site Request Forgeries. See
       the later section "CSRF protection".
@@ -75,8 +77,8 @@ elsewhere.
     * ``sites`` -- A framework that lets you operate multiple Web sites from the
       same database and Django installation. See the later section "Sites".
 
-    * ``syndication`` -- A framework for generating syndication feeds in RSS
-      and Atom. See the section "Syndication feeds", and also see Chapter 11.
+    * ``syndication`` -- A framework for generating syndication feeds in RSS and
+      Atom. See Chapter 11.
       
 The rest of this chapter goes into detail about each ``django.contrib`` package
 that hasn't yet been covered in this book.
@@ -90,7 +92,7 @@ concept, it can be tricky to understand -- so we'll start with a couple of
 scenarios where it would be useful.
 
 Scenario 1: Reusing data on multiple sites
------------------------------------------
+------------------------------------------
 
 As we explained in Chapter 1, the Django-powered sites LJWorld.com and
 Lawrence.com are operated by the same news organization -- the Lawrence
@@ -110,7 +112,7 @@ The Django sites framework provides the database table to which articles can be
 related. It's a hook for associating data with one or more "sites."
 
 Scenario 2: Storing your site name/domain in one place
------------------------------------------------------
+------------------------------------------------------
 
 LJWorld.com and Lawrence.com both have e-mail alert functionality, which lets
 readers sign up to get notifications when news happens. It's pretty basic: A
@@ -164,8 +166,8 @@ Things you can do with the sites framework
 Reusing data on multiple sites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To reuse data on multiple sites, as explained in the first scenario, just create a
-``ManyToManyField`` to ``Site`` in your models. For example::
+To reuse data on multiple sites, as explained in the first scenario, just create
+a ``ManyToManyField`` to ``Site`` in your models. For example::
 
     from django.db import models
     from django.contrib.sites.models import Site
@@ -459,8 +461,8 @@ Using flatpages
 To install the flatpages app, follow these steps:
 
     1. Add ``'django.contrib.flatpages'`` to your ``INSTALLED_APPS``.
-      ``django.contrib.flatpages`` depend on ``django.contrib.sites``, so make
-      sure the both packages are in ``INSTALLED_APPS``.
+       ``django.contrib.flatpages`` depend on ``django.contrib.sites``, so make
+       sure the both packages are in ``INSTALLED_APPS``.
 
     2. Add ``'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'``
        to your ``MIDDLEWARE_CLASSES`` setting.
@@ -844,27 +846,199 @@ happening, just view source in your Web browser to see whether the
 
 For more CSRF information and examples, visit http://en.wikipedia.org/wiki/Csrf
 
-Content types
-=============
-
-This section hasn't been written yet.
-
 Form tools
 ==========
 
-This section hasn't been written yet.
+This module contains a set of high-level tools for working with Django forms
+(see Chapter 7). Currently, this module only contains one tool, but there are
+plans to fill the module out with additional utilities.
+
+django.contrib.formtools.preview
+--------------------------------
+
+This is an abstraction of a common workflow: "display an HTML form, force a
+preview (of some object created by the form), and then do something with the
+submission".
+
+Given a ``Form`` that you define (see Chapter 7), this takes care of the
+following:
+
+    * Displays the form as HTML on a Web page.
+    
+    * Validates the form data once it's submitted via POST.
+    
+        * If it's valid, displays a preview page.
+        
+        * If it's not valid, redisplays the form with error messages.
+        
+    * At the preview page, if the preview confirmation button is pressed, calls
+      a hook that you define -- a done() method.
+    
+    The framework enforces the required preview by passing a shared-secret hash
+    to the preview page. If somebody tweaks the form parameters on the preview
+    page, the form submission will fail the hash comparison test.
+    
+Usage
+=====
+
+Subclass FormPreview and define a done() method::
+
+    class FormPreview(FormPreview):
+
+        def done(self, request, cleaned_data):
+            # ...
+
+This method takes an ``HttpRequest`` object and a dictionary of the form data
+after it has been validated and cleaned. It should return an
+``HttpResponseRedirect``.
+
+Then, just instantiate your ``FormPreview`` subclass by passing it a Form class,
+and pass that to your URLconf, like so:
+
+    (r'^post/$', MyFormPreview(MyForm)),
+
+The ``FormPreview`` class has a few other hooks. You can override any of the
+methods in Table 14-1 to change the behavior of the tool.
+
+.. table:: Table 14-1: Methods on ``FormPreview`` that you can subclass
+
+    ======================================= ====================================
+    Method                                  Description
+    ======================================= ====================================
+    ``parse_params(self, *args, **kwargs)`` Given captured args and kwargs from                 
+                                            the URLconf, saves something in
+                                            ``self.state`` and/or raises
+                                            ``Http404`` if necessary.
+
+    ``security_hash(self, request, form)``  Calculates the security hash for the
+                                            given Form instance.
+                                            
+                                            This creates a list of the form
+                                            field names/values in a
+                                            deterministic order, pickles the
+                                            result with the SECRET_KEY setting
+                                            and takes an md5 hash of that.
+                                            
+                                            Subclasses may want to take into
+                                            account request-specific information
+                                            such as the IP address.
+                                            
+    ``failed_hash(self, request)``          Returns an ``HttpResponse`` when 
+                                            the security hash check fails.
+    ======================================= ====================================
+
+
+The framework also uses two templates: 'formtools/preview.html' and
+'formtools/form.html'. You can override these by setting ``preview_template`` and
+``form_template`` attributes on your FormPreview subclass::
+
+    class MyFormPreview(FormPreview):
+    
+        preview_template = "myapp/my_form_preview.html"
+        form_template = "myapp/my_form_template.html"
+        
+        def done(self, request, cleaned_data):
+            # ...
+
+Look in ``django/contrib/formtools/templates`` for the default templates.
 
 Humanizing data
 ===============
 
-This section hasn't been written yet.
+This app holds a set set of Django template filters useful for adding a "human
+touch"" to data. To activate these filters, add ``'django.contrib.humanize'`` to
+your INSTALLED_APPS setting. Once you’ve done that, use ``{% load humanize %}``
+in a template, and you’ll have access to these filters:
+
+apnumber
+--------
+
+For numbers 1-9, returns the number spelled out. Otherwise, returns the number.
+This follows Associated Press style.
+
+Examples:
+
+    * 1 becomes 'one'.
+    * 2 becomes 'two'.
+    * 10 becomes 10.
+
+You can pass in either an integer or a string representation of an integer.
+
+intcomma
+--------
+
+Converts an integer to a string containing commas every three digits.
+
+Examples:
+
+    * 4500 becomes '4,500'.
+    * 45000 becomes '45,000'.
+    * 450000 becomes '450,000'.
+    * 4500000 becomes '4,500,000'.
+
+You can pass in either an integer or a string representation of an integer.
+
+intword
+-------
+
+Converts a large integer to a friendly text representation. Works best for
+numbers over 1 million.
+
+Examples:
+
+    * 1000000 becomes '1.0 million'.
+    * 1200000 becomes '1.2 million'.
+    * 1200000000 becomes '1.2 billion'.
+
+Values up to one quadrillion (1,000,000,000,000,000) are supported.
+
+You can pass in either an integer or a string representation of an integer.
+
+ordinal
+-------
+
+Converts an integer to its ordinal as a string.
+
+Examples:
+
+    * 1 becomes '1st'.
+    * 2 becomes '2nd'.
+    * 3 becomes '3rd'.
+
+You can pass in either an integer or a string representation of an integer.
 
 Markup filters
 ==============
 
-This section hasn't been written yet.
+A collection of template filters that implement common markup languages:
 
-Syndication feeds
-=================
+    * ``textile``: implements Textile
+      (http://en.wikipedia.org/wiki/Textile_%28markup_language%29)
+      
+    * ``markdown``: implements Markdown (http://en.wikipedia.org/wiki/Markdown)
+    
+    * ``restructuredtext``: implements ReStructured Text
+      (http://en.wikipedia.org/wiki/ReStructuredText)
 
-This section hasn't been written yet.
+In each case, the filter expects formatted markup as a string and returns a
+string representing the marked-up text. For example, the textile filter converts
+text that is marked-up in Textile format to HTML::
+
+    {% load markup %}
+    {{ object.content|textile }}
+
+To activate these filters, add ``'django.contrib.markup'`` to your
+``INSTALLED_APPS`` setting. Once you’ve done that, use ``{% load markup %}`` in
+a template, and you’ll have access to these filters. For more documentation,
+read the source code in ``django/contrib/markup/templatetags/markup.py.``
+
+What's Next?
+============
+
+Many of these contributed frameworks (CSRF, the auth system, etc.) do their
+magic by providing a piece of *middleware*. Middleware is essentially code that
+runs before and/or after every single request and can modify each request and
+response at will. 
+
+Next, we'll talk about all the built-in middleware, and explain how you can
+write your own.
