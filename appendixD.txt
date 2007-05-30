@@ -219,6 +219,8 @@ In the example above using ``Author.objects.all()`` as the ``queryset``, the app
 label would be ``bookstore`` and the model name would be ``author``. This means
 the default template would be ``myapp/author_list.html``.
 
+.. XXX WJG Just checking per the above, should "myapp" actually be "bookstore"?
+
 Template context
 ````````````````
 
@@ -392,7 +394,7 @@ typical blog archive.
     published that day.
     
     Thus, you can publish post-dated objects that don't appear publically until
-    after their publication date.
+    their desired publication date.
     
     However, for different types of date-based objects this isn't appropriate
     (for example, a calendar of upcoming events). For these views, setting the
@@ -1019,7 +1021,7 @@ for creating, editing and deleting objects.
 These views all present forms if accessed with a ``GET`` and perform the
 requested action (create/update/delete) if accessed via ``POST``.
 
-These views all have a very course idea of security. Although they take a
+These views all have a very coarse idea of security. Although they take a
 ``login_required`` attribute which if given will restrict access to logged-in
 users, that's as far as it goes. They won't, for example, check that the user
 editing an object is the same user that created it, nor will they validate any
@@ -1040,7 +1042,7 @@ object.
 Example
 ```````
 
-If we wanted to allow users to create new books in our database, we could do
+If we wanted to allow users to create new books in the database, we could do
 something like this::
 
     from bookstore.models import Book    
