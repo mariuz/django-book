@@ -19,6 +19,8 @@ strength of the domain name alone -- but publishing schedules being what they
 are we decided that we'd already be working on Web 3.1 by the time these words
 see the printer.
 
+.. XXX WJG per the above I presume you mean e.pl.urib.us? (too many b's in there)
+
 We even thought about building a [CENSORED] until until a nice gentleman from
 the NSA paid us a visit and [CENSORED] to [CENSORED] our [CENSORED] if we
 [CENSORED].
@@ -27,7 +29,7 @@ In the end, though, we decided to take the path of least resistance and discuss
 a site that already exists: chicagocrime.org.
 
 Chicagocrime.org is a non-profit, freely browseable database of crimes reported
-in Chicago. It maps public data from the Chicago Police Department with the
+in the city of Chicago. It maps public data from the Chicago Police Department with the
 Google Maps API and provides many ways to browse and search the data. You can
 sift through crimes by type, ZIP code, location, or date; you can search for
 crimes by keyword, and you can even plot crimes that occurred along a given
@@ -45,4 +47,6 @@ Django works the way it does.
 
 Shall we get started?
 
-
+.. XXX WJG I'm confused, I presume this appendix needs to be completed?
+.. XXX WJG Also, the last paragraph says "Throughout the rest of this book",
+.. XXX WJG but if this is an appendix, it will be found at the end of the book?
