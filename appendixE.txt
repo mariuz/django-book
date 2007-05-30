@@ -587,7 +587,7 @@ Default: ``'/usr/bin/jing'``
 
 Path to the "Jing" executable. Jing is a RELAX NG validator, and Django uses it
 to validate each ``XMLField`` in your models. See
-http://www.thaiopensource.com/relaxng/jing.html .
+http://www.thaiopensource.com/relaxng/jing.html.
 
 LANGUAGE_CODE
 -------------
@@ -750,6 +750,8 @@ Default: Not defined.
 A dictionary of modules containing additional serializer definitions (provided
 as strings), keyed by a string identifier for that serialization type. For
 example, to define a BEEP serializer (XXX BEEP RFC HERE XXX), use::
+
+.. XXX WJG Don't forget to add the BEEP RFC link above
 
     SERIALIZATION_MODULES = {'beep' : 'path.to.beep_serializer'}
     
