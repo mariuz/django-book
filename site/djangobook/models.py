@@ -73,7 +73,7 @@ class Chapter(models.Model):
         return ("djangobook.views.chapter", (self.version.language, 
                                              self.version.version, 
                                              self.type,
-                                             self.get_number_url_fragment()))))
+                                             self.get_number_url_fragment()))
 
     def get_svn_url(self):
         filename = "%s%s.txt" % (self.get_type_display().lower(), self.get_number_url_fragment())
