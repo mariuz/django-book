@@ -1,3 +1,4 @@
+import string
 import datetime
 
 from django.conf import settings
@@ -22,6 +23,8 @@ def toc(request, lang, version):
     )
 
 def _get_release_or_404(lang, version, type, chapter, show_future_chapters=False):
+    if chapter in string.ascii_uppercase:
+        chapter = ord(chapter) - ord('A') + 1
     lookup = dict(
         version__version=version, 
         version__language=lang,

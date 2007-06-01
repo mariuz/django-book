@@ -49,7 +49,7 @@ class Chapter(models.Model):
 
     class Admin:
         list_filter = ("version",)
-        list_display = ("title", "number", "version", "release_date", "comments_open")
+        list_display = ("title", "get_number_display", "version", "release_date", "comments_open")
 
     def __str__(self):
         return "%s %s: %s" % (self.get_type_display().title(), self.get_number_display(), self.title)
@@ -59,16 +59,24 @@ class Chapter(models.Model):
             return str(self.number)
         else:
             return chr(ord('A') + self.number - 1)
+    get_number_display.verbose_name = "number"
+    get_number_display.admin_sort_field = "number"
+            
+    def get_number_url_fragment(self):
+        if self.type == "C":
+            return "%02i" % self.number
+        else:
+            return chr(ord('A') + self.number - 1)
     
     @models.permalink
     def permalink(self):
         return ("djangobook.views.chapter", (self.version.language, 
                                              self.version.version, 
                                              self.type,
-                                             "%02i" % self.number))
+                                             self.get_number_url_fragment()))))
 
     def get_svn_url(self):
-        filename = "%s%02i.txt" % (self.get_type_display().lower(), self.number)
+        filename = "%s%s.txt" % (self.get_type_display().lower(), self.get_number_url_fragment())
         return urlparse.urljoin(self.version.svn_root, filename)
         
     def get_content(self):
