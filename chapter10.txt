@@ -398,7 +398,8 @@ object::
             # split_contents() knows not to split quoted strings.
             tag_name, format_string = token.split_contents()
         except ValueError:
-            raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents[0])
+            msg = '%r tag requires a single argument' % token.contents[0]
+            raise template.TemplateSyntaxError(msg)
         return CurrentTimeNode(format_string[1:-1])
 
 There's actually a lot going here:
@@ -448,7 +449,8 @@ has a ``render()`` method. Continuing the preceding example, we need to define
             self.format_string = format_string
         
         def render(self, context):
-            return datetime.datetime.now().strftime(self.format_string)
+            now = datetime.datetime.now()
+            return now.strftime(self.format_string)
 
 These two functions (``__init__`` and ``render``) map directly to the two
 steps in template processing (compilation and rendering). Thus, the
@@ -506,7 +508,8 @@ returning it::
             self.format_string = format_string
             
         def render(self, context):
-            context['current_time'] = datetime.datetime.now().strftime(self.format_string)
+            now = datetime.datetime.now()
+            context['current_time'] = now.strftime(self.format_string)
             return ''
 
 Note that ``render()`` returns an empty string. ``render()`` should always
@@ -541,7 +544,8 @@ To do so, you'll need to refactor both the compilation function and the
             self.var_name = var_name
             
         def render(self, context):
-            context[self.var_name] = datetime.datetime.now().strftime(self.format_string)
+            now = datetime.datetime.now()
+            context[self.var_name] = now.strftime(self.format_string)
             return ''
 
     def do_current_time(parser, token):
@@ -550,18 +554,21 @@ To do so, you'll need to refactor both the compilation function and the
             # Splitting by None == splitting by spaces.
             tag_name, arg = token.contents.split(None, 1)
         except ValueError:
-            raise template.TemplateSyntaxError("%r tag requires arguments" % token.contents[0])
+            msg = '%r tag requires arguments' % token.contents[0]
+            raise template.TemplateSyntaxError(msg)
             
         m = re.search(r'(.*?) as (\w+)', arg)
         if m:
-            format_string, var_name = m.groups()
+            fmt, var_name = m.groups()
         else:
-            raise template.TemplateSyntaxError("%r tag had invalid arguments" % tag_name)
+            msg = '%r tag had invalid arguments' % tag_name
+            raise template.TemplateSyntaxError(msg)
         
-        if not (format_string[0] == format_string[-1] and format_string[0] in ('"', "'")):
-            raise template.TemplateSyntaxError("%r tag's argument should be in quotes" % tag_name)
+        if not (fmt[0] == fmt[-1] and fmt[0] in ('"', "'")):
+            msg = "%r tag's argument should be in quotes" % tag_name
+            raise template.TemplateSyntaxError(msg)
             
-        return CurrentTimeNode3(format_string[1:-1], var_name)
+        return CurrentTimeNode3(fmt[1:-1], var_name)
 
 Now ``do_current_time()`` passes the format string and the variable name to
 ``CurrentTimeNode3``.
