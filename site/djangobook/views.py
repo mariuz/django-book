@@ -46,7 +46,7 @@ def chapter(request, lang, version, type, chapter):
         parts = publish_parts(source=content, writer=DjangoBookHTMLWriter(), settings_overrides={'initial_header_level' : 3})
         cache.set("djangobook:rendered_content:%s" % release.id, parts, 5*60)
     return render_to_response(
-        ["book/%s%02i.html" % (release.get_type_display(), release.number), "book/chapter.html"], 
+        ["book/%s%s.html" % (release.get_type_display(), release.get_number_display()), "book/chapter.html"], 
         {"release" : release, "content" : parts},
         RequestContext(request, {})
     )
@@ -56,7 +56,7 @@ def private_toc(request, slug):
     vers = get_object_or_404(PrivateVersion, slug=slug)
     chapters = list(Chapter.objects.all())
     for c in chapters:
-        c.exists_in_branch = bool(vers.get_content("%s%02i" % (c.get_type_display().lower(), c.number)))
+        c.exists_in_branch = bool(vers.get_content("%s%si" % (c.get_type_display().lower(), c.get_number_display())))
     return render_to_response(
         "book/private_toc.html",
         {"contents" : chapters, "version" : vers},
