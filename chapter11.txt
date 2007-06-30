@@ -3,21 +3,20 @@ Chapter 11: Generating non-HTML content
 =======================================
 
 Usually when we talk about developing web sites, we're talking about producing
-some flavor of HTML. Of course, there's a lot more to the web than HTML,
-though; we use the web to distribute all kinds of content, not just HTML.
+HTML. Of course, there's a lot more to the web than HTML; we use the web 
+to distribute data in all sorts of formats -- RSS, PDFs, images, etc.
 
-Until this point, we've focused just on the common case of HTML production,
-but in this chapter we'll take a detour and look at using Django to produce
-other types of content.
+So far we've focused on the common case of HTML production, but in this chapter
+we'll take a detour and look at using Django to produce other types of content.
 
 Django has convenient built-in tools that you can use to produce some common
 non-HTML content:
 
     * RSS/Atom syndication feeds.
-    * Sitemaps -- consumed by Google, Yahoo and Microsoft's search engines.
-    * JSON and XML serialized representations of models (usually used for AJAX
-      functions).
-            
+    
+    * Sitemaps (an XML format originally developed by Google that gives hints to
+      search engines).
+                
 We'll cover each of those tools a little later on, but first, some basics.
 
 The basics
@@ -32,13 +31,14 @@ Remember this from Chapter 3?
     
 More formally, a Django view function *must*:
 
-    * Accept an ``HttpRequest`` instance as its first argument, and
-    * return an ``HttpResponse`` instance.
+    * Accept an ``HttpRequest`` instance as its first argument
+    
+    * Return an ``HttpResponse`` instance.
     
 The key to returning non-HTML content from a view lies in the ``HttpResponse``
-class, and specifically the ``mimetype`` constructor argument. By tweaking the
-Mime type, we can indicate to the browser that we've returned an object of a
-different type.
+class; specifically the ``mimetype`` constructor argument. By tweaking the MIME
+type, we can indicate to the browser that we've returned a response of a
+different format.
 
 For a very simple example, let's look at a view that returns a PNG image. To
 keep things simple, we'll just read the file off the disk::
@@ -51,12 +51,12 @@ keep things simple, we'll just read the file off the disk::
         
 That's it! If you replace the image path in the ``open()`` call with a path to
 a real image, you can use this very simple view to serve an image, and the
-browser will display it correctly.
+browser will display it correctly.    
 
 The other important thing to keep in mind is that ``HttpResponse`` objects
-implement Python's standard file API. This means that you can pass in an
-``HttpResponse`` instance to any place Python (or a third-party library)
-expects a file.
+implement Python's standard file API. This means that you can use an
+``HttpResponse`` instance in any place Python (or a third-party library) expects
+a file.
 
 For an example of how that works, let's take a look at producing CSV with
 Django.
@@ -64,11 +64,10 @@ Django.
 Producing CSV
 =============
 
-CSV is a simple data format usually used by spreadsheet software. It's
-basically a series of table rows, with each cell in the row separated by
-commas (CSV stands for "Comma Separated Values"). For example, here's a list
-of the number of "unruly" airline passengers over the last 10 years, as
-compiled by the FAA::
+CSV is a simple data format usually used by spreadsheet software. It's basically
+a series of table rows, with each cell in the row separated by commas (CSV
+stands for "Comma Separated Values"). For example, here's some data in on "unruly" 
+airline passengers in CSV format::
 
     Year,Unruly Airline Passengers
     1995,146
@@ -85,22 +84,23 @@ compiled by the FAA::
 
 .. note::
 
-    See http://www.faa.gov/data_statistics/passengers_cargo/unruly_passengers/
-    for the source of this data.
+    These are actually real numbers; the come courtesy of the US Federal
+    Aviation Administration. See
+    http://www.faa.gov/data_statistics/passengers_cargo/unruly_passengers/.
 
-Unfortunately, CSV It's not a format that's ever been formally defined;
-different pieces of software produce and consume different variants of CSV,
+Though CSV looks simple, it's not a format that's ever been formally defined.
+Different pieces of software produce and consume different variants of CSV,
 making it a bit tricky to use. Luckily, Python comes with a standard CSV
 library, ``csv``, that is pretty much bulletproof.
 
-The key to using this library with Django is that the ``csv`` module's
-CSV-creation capability acts on file-like objects, and Django's
-``HttpResponse`` objects are file-like objects::
+Because the ``csv`` module operates on file-like objects, it's a snap to use
+an ``HttpResponse`` instead::
 
     import csv
     from django.http import HttpResponse
 
-    # Number of unruly passengers each year 1995 - 2005
+    # Number of unruly passengers each year 1995 - 2005. In a real application
+    # this would likely come from a database or some other backend data store.
     UNRULY_PASSENGERS = [146,184,235,200,226,251,299,273,281,304,203]
 
     def unruly_passengers_csv(request):
@@ -119,8 +119,8 @@ CSV-creation capability acts on file-like objects, and Django's
 The code and comments should be pretty clear, but a few things deserve a
 mention:
 
-    * The response is given the ``text/csv`` mime-type. This tells
-      browsers that the document is a CSV file, rather than an HTML file.
+    * The response is given the ``text/csv`` MIME-type (instead of the default
+      ``text/html``). This tells browsers that the document is a CSV file.
 
     * The response gets an additional ``Content-Disposition`` header, which
       contains the name of the CSV file. This header (well, the "attachment"
@@ -140,9 +140,9 @@ mention:
       about escaping strings with quotes or commas in them. Just pass
       information to ``writerow()``, and it'll do the right thing.
 
-You'll usually repeat this pattern -- create an ``HttpResponse`` response
-object (with a special mime-type), pass it to something expecting a file, then
-return the response -- any time you generate non-HTML content.
+This is the general pattern you'll use any time you need to return non-HTML
+content: create an ``HttpResponse`` response object (with a special mime-type),
+pass it to something expecting a file, and then return the response.
 
 Let's look at a few more examples:
 
@@ -156,16 +156,14 @@ digital equivalent of a printed document; indeed, PDFs are usually used when
 you need to give a document to someone else to print.
 
 You can easily generate PDFs with Python and Django thanks to the excellent
-excellent open-source ReportLab library
-(http://www.reportlab.org/rl_toolkit.html).
+open-source ReportLab library (http://www.reportlab.org/rl_toolkit.html).
 
 The advantage of generating PDF files dynamically is that you can create
 customized PDFs for different purposes -- say, for different users or
 different pieces of content.
 
 For example, we used Django and ReportLab at KUSports.com to generate
-customized, printer-ready NCAA tournament brackets for people participating in
-a March Madness (college basketball) contest.
+customized, printer-ready NCAA tournament brackets.
 
 Installing ReportLab
 --------------------
@@ -174,9 +172,8 @@ Before you do any PDF generation, however, you'll need to install ReportLab.
 It's usually pretty simple: just download and install the library from
 http://www.reportlab.org/downloads.html.
 
-The user guide (not coincidentally, a PDF file) at
-http://www.reportlab.org/rsrc/userguide.pdf has additional help on
-installation.
+The user guide (naturally available only as a PDF file) at
+http://www.reportlab.org/rsrc/userguide.pdf has additional help on installation.
 
 .. note::
 
@@ -185,7 +182,7 @@ installation.
     package repositories have added ReportLab.
     
     For example, if you're using the (excellent) Ubuntu distribution, a simple
-    ``aptitude install python-reportlab`` will do the trick nicely.
+    ``apt-get install python-reportlab`` will do the trick nicely.
 
 Test your installation by importing it in the Python interactive interpreter::
 
@@ -196,9 +193,8 @@ If that command doesn't raise any errors, the installation worked.
 Writing your view
 -----------------
 
-Again, key to generating PDFs dynamically with Django is that the ReportLab
-API acts on file-like objects, and Django's ``HttpResponse`` objects are
-file-like objects.
+Like CSV, generating PDFs dynamically with Django is easy because the ReportLab
+API acts on file-like objects.
 
 Here's a "Hello World" example::
 
@@ -222,7 +218,7 @@ Here's a "Hello World" example::
         p.save()
         return response
 
-Like above, a few notes are in order:
+A few notes are in order:
 
     * Here we use the ``application/pdf`` mime-type. This tells
       browsers that the document is a PDF file, rather than an HTML file. If
@@ -242,11 +238,10 @@ Like above, a few notes are in order:
 Complex PDFs
 ------------
 
-If you're creating a complex PDF document with ReportLab, consider using the
-``cStringIO`` library as a temporary holding place for your PDF file. The
-``cStringIO`` library provides a file-like object interface that is
-particularly efficient (much more so than the naive ``HttpResponse``-as-file
-implementation). 
+If you're creating a complex PDF document -- or any large data blob -- consider
+using the ``cStringIO`` library as a temporary holding place for your PDF file.
+The ``cStringIO`` library provides a file-like object interface that is written
+in C for maximum efficiency.
 
 Here's the above "Hello World" example rewritten to use ``cStringIO``::
 
@@ -283,13 +278,13 @@ There's a whole world of other types of content you can generate in Python.
 Here are a few more ideas, and some pointers to libraries you could use to
 implement them:
 
-    * **Generating ZIP files**: Python's standard library ships with the
+    * **ZIP files**: Python's standard library ships with the
       ``zipfile`` module, which can both read and write compressed ZIP files.
       You could use it to provide on-demand archives of a bunch of files, or
       perhaps compress large documents when requested. You could similarly
       produce TAR files using the standard library ``tarfile`` module.
 
-    * **Dynamic image generation**: the Python Imaging Library
+    * **Dynamic images**: the Python Imaging Library
       (http://www.pythonware.com/products/pil/) is a fantastic toolkit for
       producing images (PNG, JPEG, GIF, and a whole lot more). You could use
       it to automatically scale down images into thumbnails, composite
@@ -335,20 +330,15 @@ makes creating RSS  and Atom feeds easy.
 To create any syndication feed, all you have to do is write a short Python
 class. You can create as many feeds as you want.
 
-Django also comes with a lower-level feed-generating API. Use this if you want
-to generate feeds outside of a Web context, or in some other lower-level way.
-
 The high-level framework
 ------------------------
 
-Overview
-````````
-
-The high-level feed-generating framework is a view that's hooked to
-``/feeds/`` by default. Django uses the remainder of the URL (everything after
+The high-level feed-generating framework is a view that's hooked to ``/feeds/``
+by convention. Django uses the remainder of the URL (everything after
 ``/feeds/``) to determine which feed to return.
 
-To create a feed, just write a ``Feed`` class and point to it in your URLconf (see Chapters 3 and 8 fore more about URLconfs).
+To create a feed, you'll write a ``Feed`` class and point to it in your URLconf
+(see Chapters 3 and 8 for more about URLconfs).
 
 Initialization
 ``````````````
@@ -394,10 +384,7 @@ The above example registers two feeds:
     * The feed represented by ``LatestEntriesByCategory`` will live at
       ``feeds/categories/``.
 
-Once that's set up, you just need to define the ``Feed`` classes themselves.
-
-Feed classes
-````````````
+Once that's set up, you'll need to define the ``Feed`` classes themselves.
 
 A ``Feed`` class is a simple Python class that represents a syndication feed.
 A feed can be simple (e.g., a "site news" feed, or a basic feed displaying the
@@ -407,8 +394,8 @@ blog entries in a particular category, where the category is variable).
 ``Feed`` classes must subclass ``django.contrib.syndication.feeds.Feed``. They
 can live anywhere in your code tree.
 
-A simple example
-````````````````
+A simple Feed
+``````````````
 
 This simple example, taken from chicagocrime.org, describes a feed of the
 latest five news items::
@@ -490,8 +477,8 @@ put into those elements.
             
       It's almost *too* easy...
 
-A complex example
-`````````````````
+A more complex Feed
+````````````````````
 
 The framework also supports more complex feeds, via parameters.
 
@@ -505,9 +492,11 @@ feeds that return items based on information in the feed's URL.
 
 On chicagocrime.org, the police-beat feeds are accessible via URLs like this:
 
-    * ``/rss/beats/0613/`` -- Returns recent crimes for beat 0613.
+    * ``http://www.chicagocrime.org/rss/beats/0613/`` -- Returns recent crimes
+      for beat 0613.
     
-    * ``/rss/beats/1424/`` -- Returns recent crimes for beat 1424.
+    * ``http://www.chicagocrime.org/rss/beats/1424/`` -- Returns recent crimes
+      for beat 1424.
 
 The slug here is ``"beats"``. The syndication framework sees the extra URL
 bits after the slug -- ``0613`` and ``1424`` -- and gives you a hook to tell
@@ -581,10 +570,6 @@ request to the URL ``/rss/beats/0613/``:
        previous step -- first, it tries ``items(obj)``, then ``items()``, then
        finally an ``items`` class attribute (which should be a list).
 
-.. JKM: I'm not sure if this is the right way to go about it, but I think that
-.. this chapter will become unwieldy if we include all the docs... we've not
-.. pointed online anywhere else... it works for me, though.
-
 Full documentation on all the methods and attributes of ``Feed`` classes is
 always available from the official Django documentation; see
 http://www.djangoproject.com/documentation/syndication/.
@@ -592,7 +577,7 @@ http://www.djangoproject.com/documentation/syndication/.
 Specifying the type of feed
 ```````````````````````````
 
-By default, feeds produced in by framework use RSS 2.0.
+By default, the syndication framework produces RSS 2.0.
 
 To change that, add a ``feed_type`` attribute to your ``Feed`` class::
 
@@ -617,9 +602,9 @@ available feed types are:
 Enclosures
 ``````````
 
-To specify enclosures, such as those used in creating podcast feeds, use the
-``item_enclosure_url``, ``item_enclosure_length`` and
-``item_enclosure_mime_type`` hooks. For example::
+To specify enclosures (i.e. media resources associated with a feed item such as
+MP3s podcast feeds), use the ``item_enclosure_url``, ``item_enclosure_length``
+and ``item_enclosure_mime_type`` hooks. For example::
 
     from myproject.models import Song
 
@@ -706,14 +691,28 @@ And the accompanying URLconf::
 The sitemap framework
 =====================
 
-.. This is a cleaned-up version of sitemaps.txt
-
-Django also comes with a high-level Sitemap generating framework that's similar to the syndication framework.
-
 A Sitemap is an XML file on your Web site that tells search-engine indexers
 how frequently your pages change and how "important" certain pages are in
 relation to other pages on your site. This information helps search engines
 index your site.
+
+For example, here's an piece of the Sitemap for Django's website
+(http://www.djangoproject.com/sitemap.xml)::
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>http://www.djangoproject.com/documentation/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+      </url>
+      <url>
+        <loc>http://www.djangoproject.com/documentation/0_90/</loc>
+        <changefreq>never</changefreq>
+        <priority>0.1</priority>
+      </url>
+      ...
+    </urlset>
 
 For more on Sitemaps, see http://www.sitemaps.org/.
 
@@ -797,25 +796,8 @@ entries. Here's how your sitemap class might look::
         def lastmod(self, obj):
             return obj.pub_date
 
-After looking at the syndication framework this should look pretty familiar:
-
-    * ``changefreq`` and ``priority`` are class attributes corresponding to
-      ``<changefreq>`` and ``<priority>`` elements, respectively. They can be
-      made callable as functions, as ``lastmod`` was in the example.
-      
-    * ``items()`` is simply a method that returns a list of objects. The
-      objects returned will get passed to any callable methods corresponding
-      to a sitemap property (``location``, ``lastmod``, ``changefreq``, and
-      ``priority``).
-      
-    * ``lastmod`` should return a Python ``datetime`` object.
-    
-    * There is no ``location`` method in this example, but you can provide it
-      in order to specify the URL for your object. By default, ``location()``
-      calls ``get_absolute_url()`` on each object and returns the result.
-
-``Sitemap`` methods/attributes
-------------------------------
+Declaring a ``Sitemap`` should look very similar to declaring a ``Feed``; that's
+by design.
 
 Like ``Feed`` classes, ``Sitemap`` members can be either methods or
 attributes; see the steps under "A complex example", above, for more about how
@@ -830,7 +812,7 @@ A ``Sitemap`` class can define the following methods/attributes:
         methods.
 
     ``location`` (optional)
-        Gives he absolute URL for a given object,
+        Gives the absolute URL for a given object,
 
         Here, "absolute URL" means a URL that doesn't include the protocol or
         domain. Examples:
@@ -962,7 +944,7 @@ reindex your site. The framework provides a function to do just that:
 ``ping_google()`` takes an optional argument, ``sitemap_url``, which should be
 the absolute URL of your site's sitemap (e.g., ``'/sitemap.xml'``). If this
 argument isn't provided, ``ping_google()`` will attempt to figure out your
-sitemap by performing a reverse looking in your URLconf.
+sitemap by performing a reverse lookup on your URLconf.
 
 ``ping_google()`` raises the exception
 ``django.contrib.sitemaps.SitemapNotFound`` if it cannot determine your
