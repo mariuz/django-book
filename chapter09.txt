@@ -10,30 +10,30 @@ the model and template layers, but web developers also experience this boredom
 at the view level.
 
 Django's **generic views** were to developed to ease that pain. They take
-certain common idioms and patterns in view development and abstract them so
-that you can quickly write common views of onto data without having to write
-too much code.
+certain common idioms and patterns in view development and abstract them so that
+you can quickly write common views of onto data without having to write too much
+code. In fact, nearly every view example in the preceding chapters could be
+re-written with the help of generic views.
 
-In fact, nearly every view example in the preceding chapters could be re-written
-with the help of generic views.
+Chapter 8 touched briefly on how you'd go about making a view "generic." To
+review, we can recognize certain common tasks (like displaying a list of
+objects) and write code that displays a list of *any* object. Then the model in
+question can be passed as an extra argument to the URLconf.
 
-Django contains generic views to do the following:
+Django ships with generic views to do the following:
 
     * Perform common "simple" tasks: redirect to a different page, and
       render a given template.
 
-    * Display list and detail pages for a single object. For example, the
-      Django documentation index
-      (http://www.djangoproject.com/documentation/) and individual
-      document pages are built this way. The crime index and list of
-      crimes by type views from Chapter 5 could easily be re-written to
-      use generic views; we'll do so below.
-
+    * Display list and detail pages for a single object. The ``event_list`` and
+      ``entry_list`` views from Chapter 8 are examples of list views; a single
+      event page is an example of what we call a "detail" view.
+      
     * Present date-based objects in year/month/day archive pages,
-      associated detail and "latest" pages.  The Django weblog's
+      associated detail, and "latest" pages.  The Django weblog's
       (http://www.djangoproject.com/weblog/) year, month, and
-      day archives are built with these, as are ljworld.com's
-      news archives, and a whole host of others.
+      day archives are built with these, as would be a typical
+      newspaper's archives.
 
     * Allow users to create, update, and delete objects -- with or
       without authorization.
@@ -47,6 +47,8 @@ Using generic views
 All of these views are used by creating configuration dictionaries in
 your URLconf files and passing those dictionaries as the third member of the
 URLconf tuple for a given pattern.
+
+
 
 For example, here's the URLconf for the simple weblog app that drives the blog
 on djangoproject.com::
