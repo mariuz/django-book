@@ -2,14 +2,13 @@
 Chapter 20: Deploying Django
 ============================
 
-Throughout this book we've mentioned a number of goals that drive the
+Throughout this book, we've mentioned a number of goals that drive the
 development of Django. Ease of use, friendliness to new programmers,
 abstraction of repetitive tasks -- these all drive Django's developers.
 
-However, since its inception, there's
-always been another incredibly important goal: Django should be easy to
-deploy, and should make serving large amounts of traffic possible with limited
-resources.
+However, since its inception, there's always been another important goal:
+Django should be easy to deploy, and it should make serving large amounts of
+traffic possible with limited resources.
 
 The motivations for this goal are apparent when you look at Django's
 background: a small, family-owned newspaper in Kansas can hardly afford
@@ -19,36 +18,36 @@ resources. Indeed, for years Django's developers acted as their own systems
 administrators -- there simply wasn't enough hardware to *need* dedicated
 admins -- even as their sites handled tens of millions of hits a day.
 
-As Django became an open source project, this focus on performance and ease of
-deployment became important for a different reason: hobbyist developers.
-Individuals who want to use Django are pleased to learn they can host a
-small- to medium-traffic site for as little as $10 a month.
+As Django became an open-source project, this focus on performance and ease of
+deployment became important for a different reason: hobbyist developers have
+the same requirements. Individuals who want to use Django are pleased to learn
+they can host a small- to medium-traffic site for as little as $10 a month.
 
 But being able to scale down is only half the battle. Django also needs to be
 capable of scaling *up* to meet the needs of large companies and corporations.
-Here, Django adopts a philosophy common among LAMP-like web stacks often
+Here, Django adopts a philosophy common among LAMP-like Web stacks often
 called "shared nothing."
 
 .. admonition:: LAMP?
 
-    The acronym LAMP was originally coined to describe a populate set 
-    of open-source software used to drive many web sites:
-    
-        * Linux (the operating system)
-        * Apache (web server)
+    The acronym LAMP was originally coined to describe a popular set
+    of open-source software used to drive many Web sites:
+
+        * Linux (operating system)
+        * Apache (Web server)
         * MySQL (database)
         * PHP (programming language)
 
-    Over time, though, the acronym has come to refer more to the philosphy of
+    Over time, though, the acronym has come to refer more to the philosophy of
     these types of open-source software stacks than to any one particular
     stack. So while Django uses Python and is database-agnostic, the
     philosophies proven by the LAMP stack permeate Django's deployment
     mentality.
 
     There have been a few (mostly humorous) attempts at coining a similar
-    acronym to describe Django's technology stack; your authors are fond 
-    of **PAID** (PostgreSQL, Apache, Internet and Django) or **LAPD** 
-    (Linux, Apache, PostgreSQL, and Django).
+    acronym to describe Django's technology stack. Your authors are fond
+    of **LAPD** (Linux, Apache, PostgreSQL, and Django) or **PAID**
+    (PostgreSQL, Apache, Internet and Django). Use Django and get PAID!
 
 "Shared nothing"
 ================
@@ -56,25 +55,25 @@ called "shared nothing."
 At its core, the philosophy of "shared nothing" is really just the application
 of loose coupling to the entire software stack. This architecture arose in
 direct response to what was at the time the prevailing architecture: a
-monolithic web application server that encapsulates the language, database,
+monolithic Web application server that encapsulates the language, database,
 web server -- even parts of the operating system -- into a single process
-(e.g. Java).
+(e.g., Java).
 
 When it comes time to scale, this can be a major problem; it's nearly
 impossible to split the work of a monolithic process across many different
 physical machines, so monolithic applications require enormously powerful
 servers. These servers, of course, cost tens or even hundreds of thousands of
-dollars, putting large-scale web sites out of the reach of cash-hungry
+dollars, putting large-scale Web sites out of the reach of cash-hungry
 individuals and small companies.
 
 What the LAMP community noticed, however, was that if you broke each piece of
-the web stack up into individual components, you could easily start with an
-inexpensive server, and simply add more inexpensive servers as you grew. If
+the Web stack up into individual components, you could easily start with an
+inexpensive server and simply add more inexpensive servers as you grew. If
 your $3,000 database server couldn't handle the load, you'd simply buy a
 second (or third, or fourth) until it could. If you needed more storage
 capacity, you'd add an NFS server.
 
-For this to work, though, web applications had to stop assuming that the same
+For this to work, though, Web applications had to stop assuming that the same
 server would handle each request -- or even each part of a single request. In
 a large-scale LAMP (and Django) deployment, as many as half a dozen servers
 might be involved in handling a single page! The repercussions of this are
@@ -84,18 +83,18 @@ numerous, but in essence they come down to these points:
       available between multiple requests must be stored in some sort of
       persistent storage like the database or a centralized cache.
 
-    * Software cannot assume that resources are local. For example, the web
+    * Software cannot assume that resources are local. For example, the Web
       platform cannot assume that the database runs on the same server; it
       must be capable of connecting to a remote database server.
-      
+
     * Each piece of the stack must be easily moved or replicated: if Apache
       for some reason doesn't work for a given deployment, you should be
       able to swap it out for another server with a minimum of fuss.
-      
-      Or, on a hardware level: if a web server fails, you should be able to
+
+      Or, on a hardware level: if a Web server fails, you should be able to
       replace it with another physical box with minimum downtime. Remember,
       this whole philosophy is based around deployment on cheap, commodity
-      hardware; failure is to be expected.
+      hardware. Failure is to be expected.
 
 As you've probably come to expect, Django handles this more or less
 transparently -- no part of Django violates these principles -- but knowing
@@ -105,11 +104,11 @@ the philosophy helps when it comes time to scale up.
 
     This philosophy might sound good on paper (or on your screen), but
     does it actually work?
-    
+
     Well, instead of answering directly, let's instead look at a
     by-no-means-complete list of a few companies who've based their business
     on this architecture. You might recognize some names:
-    
+
         * Amazon
         * Blogger
         * Craigslist
@@ -134,7 +133,7 @@ has been spilled arguing over text editors (``emacs`` vs. ``vi``), operating
 systems (Linux vs. Windows vs. MacOS), database engines (MySQL vs.
 PostgreSQL), and -- of course -- programming languages.
 
-We try to stay away from these battles; there just isn't enough time.
+We try to stay away from these battles. There just isn't enough time.
 
 However, there are a number of choices when it comes to deploying Django, and
 we're constantly asked for our preferences. Since stating these preferences
@@ -142,32 +141,28 @@ comes dangerously close to firing a salvo in one of these battles, we've
 mostly refrained. However, for the sake of completeness and full disclosure,
 we'll state them here. We prefer:
 
-    * Linux -- Ubuntu specifically -- as our operating system.
-    
-    * Apache and mod_python for the web server.
-    
+    * Linux -- Ubuntu, specifically -- as our operating system.
+
+    * Apache and mod_python for the Web server.
+
     * PostgreSQL as a database server.
-    
-Of course, we can point to many Django users who have made other choices with great success.
+
+Of course, we can point to many Django users who have made other choices with
+great success.
 
 How to use Django with Apache and mod_python
 ============================================
 
-Apache_ with `mod_python`_ currently is the most robust setup for using Django
+Apache with mod_python currently is the most robust setup for using Django
 on a production server.
 
-mod_python is an Apache plugin which embeds Python within Apache and loads
-Python code into memory when the server starts. Code stays in memory
-throughout the life of an Apache process, which leads to significant
-performance gains over other server arrangements.
+mod_python (http://www.djangoproject.com/r/mod_python/) is an Apache plugin
+that embeds Python within Apache and loads Python code into memory when the
+server starts. Code stays in memory throughout the life of an Apache process,
+which leads to significant performance gains over other server arrangements.
 
 Django requires Apache 2.x and mod_python 3.x, and you should use Apache's
-`prefork MPM`_, as opposed to the `worker MPM`_.
-
-.. _apache: http://www.djangoproject.com/r/apache/
-.. _mod_python: http://www.djangoproject.com/r/mod_python/
-.. _prefork mpm: http://www.djangoproject.com/r/apache/prefork-mpm/
-.. _worker mpm: http://www.djangoproject.com/r/apache/worker-mpm/
+prefork MPM, as opposed to the worker MPM.
 
 .. note::
 
@@ -175,31 +170,27 @@ Django requires Apache 2.x and mod_python 3.x, and you should use Apache's
     we'll simply mention details as needed.  Luckily, there are a
     number of great resources available if you need to learn more
     about Apache.  A few of them we like are:
-    
-        * The free `online apache documentation`_.
-        
-        * `Pro Apache, Third Edition`_ by Peter Wainwright (Apress).
-        
-        * `Apache: The Definitive Guide`_ by Ben Laurie and Peter Laurie
-          (O'Reilly).
-        
-.. _online apache documentation:  http://www.djangoproject.com/r/apache/docs/
-.. _pro apache: http://www.djangoproject.com/r/books/pro-apache/
-.. _`apache: the definitive guide`: http://www.djangoproject.com/r/books/apache-pra/
 
-.. XXX WJG The third link in the above list is broken
+        * The free online Apache documentation, available via
+          http://www.djangoproject.com/r/apache/docs/
+
+        * "Pro Apache, Third Edition" by Peter Wainwright (Apress), available
+          via http://www.djangoproject.com/r/books/pro-apache/
+
+        * "Apache: The Definitive Guide" by Ben Laurie and Peter Laurie
+          (O'Reilly), available via http://www.djangoproject.com/r/books/apache-pra/
 
 Basic configuration
 -------------------
 
 To configure Django with mod_python, first make sure you have Apache installed
 with the mod_python module activated. This usually means having a
-``LoadModule`` directive in your Apache configuration file; it'll usually look something
-like::
+``LoadModule`` directive in your Apache configuration file. It'll look something
+like this::
 
     LoadModule python_module /usr/lib/apache2/modules/mod_python.so
-    
-Then edit your Apache conf and add the following::
+
+Then, edit your Apache configuration file and add the following::
 
     <Location "/">
         SetHandler python-program
@@ -226,7 +217,7 @@ project on it, you'll need to tell mod_python::
     PythonPath "['/path/to/project'] + sys.path"
 
 You can also add directives such as ``PythonAutoReload Off`` for performance.
-See the `mod_python documentation`_ for a full list of options.
+See the mod_python documentation for a full list of options.
 
 Note that you should set ``PythonDebug Off`` on a production server. If you
 leave ``PythonDebug On``, your users would see ugly (and revealing) Python
@@ -238,30 +229,28 @@ this directive inside a ``<VirtualHost>`` block) will be served by Django.
 .. note::
 
     If you deploy Django at a subdirectory -- that is, somewhere deeper that
-    "/" -- Django *won't* trim the URL prefix off of your URLpatterns.  So, 
+    "/" -- Django *won't* trim the URL prefix off of your URLpatterns.  So,
     if your Apache config looks like::
-    
+
         <Location "/mysite/">
             SetHandler python-program
             PythonHandler django.core.handlers.modpython
             SetEnv DJANGO_SETTINGS_MODULE mysite.settings
             PythonDebug On
         </Location>
-        
+
     The *all* your URL patterns will need to start with ``"/mysite/"``. For
     this reason we usually recommend deploying Django at the root of your
     domain or virtual host.
-    
-.. _mod_python documentation: `mod_python`_
 
 Multiple Django installations on the same Apache instance
 ---------------------------------------------------------
 
-.. XXX WJG So why might the reader want to do this? Maybe offer a hypothetical
-.. XXX WJG scenario or two?
-
 It's entirely possible to run multiple Django installations on the same Apache
-instance. Just use ``VirtualHost`` for that, like so::
+instance. You might want to do this if you're an independent Web developer with
+multiple clients but only a single server.
+
+To accomplish this, just use ``VirtualHost``, like so::
 
     NameVirtualHost *
 
@@ -304,21 +293,17 @@ Running a development server with mod_python
 
 Because mod_python caches loaded Python code, when deploying Django sites on
 mod_python you'll need to restart Apache each time you make changes to your
-code.  This can be a hassle, so here's a quick trick to avoid this:
-
-Just add ``MaxRequestsPerChild 1`` to your config file to force Apache to
-reload everything for each request. But don't do that on a production server,
-or we'll revoke your Django privileges.
+code.  This can be a hassle, so here's a quick trick to avoid this: Just add
+``MaxRequestsPerChild 1`` to your config file to force Apache to reload
+everything for each request. But don't do that on a production server, or we'll
+revoke your Django privileges.
 
 If you're the type of programmer who debugs using scattered ``print``
-statements (we are), note that ``print`` statements have no effect in 
-mod_python; they don't appear in the Apache log, as one might expect. If you 
-have the need to print debugging information in a mod_python setup, you'll 
-probably want to use Python's standard logging_ package or add the debugging 
+statements (we are), note that ``print`` statements have no effect in
+mod_python; they don't appear in the Apache log, as one might expect. If you
+have the need to print debugging information in a mod_python setup, you'll
+probably want to use Python's standard logging package or add the debugging
 information to the template of your page.
-
-.. _logging: http://docs.python.org/lib/module-logging.html
-
 
 Serving Django and media files from the same Apache instance
 ------------------------------------------------------------
@@ -336,7 +321,7 @@ particular part of the site::
         SetHandler None
     </Location>
 
-Change ``Location`` to the root URL of your media files. 
+Change ``Location`` to the root URL of your media files.
 
 You can also use ``<LocationMatch>`` to match a regular expression. For
 example, this sets up Django at the site root but explicitly disables Django
@@ -349,13 +334,16 @@ or ``.png``::
         SetEnv DJANGO_SETTINGS_MODULE mysite.settings
     </Location>
 
-    <Location "media">
+    <Location "/media/">
         SetHandler None
     </Location>
 
     <LocationMatch "\.(jpg|gif|png)$">
         SetHandler None
     </LocationMatch>
+
+In all of these cases, you'll need to set the ``DocumentRoot`` directive so
+that Apache knows where to find your static files.
 
 Error handling
 --------------
@@ -378,19 +366,20 @@ almost *always* one of two causes mostly unrelated to Django itself:
 
     * It may be that your Python code is importing the ``pyexpat`` module
       (used for XML parsing), which may conflict with the version embedded in
-      Apache. For full information, see `Expat Causing Apache Crash`_.
-       
+      Apache. For full information, see "Expat Causing Apache Crash" at
+      http://www.djangoproject.com/r/articles/expat-apache-crash/
+
     * It may be because you're running mod_python and mod_php in the same
-      Apache instance, with MySQL as your database backend. 
-      
-      In some cases, this causes a known mod_python issue due to version
-      conflicts in PHP and the Python MySQL backend. There's full information
-      in a `mod_python FAQ entry`_.
+      Apache instance, with MySQL as your database backend. In some cases, this
+      causes a known mod_python issue due to version conflicts in PHP and the
+      Python MySQL backend. There's full information in a mod_python FAQ entry,
+      accessible via http://www.djangoproject.com/r/articles/php-modpython-faq/
 
 If you continue to have problems setting up mod_python, a good thing to do is
 get a barebones mod_python site working, without the Django framework. This is
-an easy way to isolate mod_python-specific problems. `Getting mod_python
-Working`_ details this procedure.
+an easy way to isolate mod_python-specific problems. The article "Getting mod_python
+Working" details this procedure; read it at 
+http://www.djangoproject.com/r/articles/getting-modpython-working/
 
 The next step should be to edit your test code and add an import of any
 Django-specific code you're using -- your views, your models, your URLconf,
@@ -401,20 +390,16 @@ reduce the set of imports until it stops crashing, so as to find the specific
 module that causes the problem. Drop down further into modules and look into
 their imports, as necessary.
 
-.. _Expat Causing Apache Crash: http://www.djangoproject.com/r/articles/expat-apache-crash/
-.. _mod_python FAQ entry: http://www.djangoproject.com/r/articles/php-modpython-faq/
-.. _Getting mod_python Working: http://www.djangoproject.com/r/articles/getting-modpython-working/
-
 How to use Django with FastCGI
 ==============================
 
 Although Django under Apache and mod_python is the most robust deployment
-setup, many people use shared hosting on which FastCGI is the only viable
-option. 
+setup, many people use shared hosting on which FastCGI is the only available
+deployment option.
 
 Additionally, in some situations, FastCGI allows better security and possibly
 better performance than mod_python. For small sites, FastCGI can also be more
-light-weight than Apache.
+lightweight than Apache.
 
 What is FastCGI?
 ----------------
@@ -431,16 +416,16 @@ run inside the Web server process, but in a separate, persistent process.
 .. admonition:: Why run code in a separate process?
 
     The traditional ``mod_*`` arrangements in Apache embed various scripting
-    languages (most notably PHP, Python and Perl) inside the process space of
-    your Web server. Although this lowers startup time -- because code doesn't
-    have to be read off disk for every request -- it comes at the cost of
-    memory use. 
-    
+    languages (most notably PHP, Python/mod_python and Perl/mod_perl) inside
+    the process space of your Web server. Although this lowers startup time --
+    because code doesn't have to be read off disk for every request -- it comes
+    at the cost of memory use.
+
     Each Apache process gets a copy of the Apache engine, complete with all
     the features of Apache that Django simply doesn't take advantage of.
     FastCGI processes, on the other hand, only have the memory overhead of
     Python and Django.
-    
+
     Due to the nature of FastCGI, it's also possible to have processes that
     run under a different user account than the Web server process. That's a
     nice security benefit on shared systems, because it means you can secure
@@ -449,12 +434,10 @@ run inside the Web server process, but in a separate, persistent process.
 Prerequisite: ``flup``
 ----------------------
 
-Before you can start using FastCGI with Django, you'll need to install flup_,
+Before you can start using FastCGI with Django, you'll need to install flup,
 which is a Python library for dealing with FastCGI. Some users have reported
 stalled pages with older ``flup`` versions, so you may want to use the latest
-SVN version.
-
-.. _flup: http://www.djangoproject.com/r/flup/
+SVN version. Get flup at http://www.djangoproject.com/r/flup/
 
 Running your FastCGI server
 ---------------------------
@@ -482,7 +465,7 @@ To start your server, first change into the directory of your project
 
     ./manage.py runfcgi [options]
 
-If you specify ``help`` as the only option after ``runfcgi``, it'll display a
+If you specify ``help`` as the only option after ``runfcgi``, it will display a
 list of all the available options.
 
 You'll need to specify either a ``socket`` or both ``host`` and ``port``.
@@ -499,7 +482,7 @@ A few examples should help explain this.
 
         ./manage.py runfcgi method=prefork socket=/home/user/mysite.sock pidfile=django.pid
 
-    * Run without daemonizing (backgrounding) the process (good for 
+    * Run without daemonizing (backgrounding) the process (good for
       debugging)::
 
         ./manage.py runfcgi daemonize=false socket=/tmp/mysite.sock
@@ -543,8 +526,9 @@ Apache and FastCGI
 ------------------
 
 To use Django with Apache and FastCGI, you'll need Apache installed and
-configured, with `mod_fastcgi`_ installed and enabled. Consult the Apache and
-mod_fastcgi documentation for instructions.
+configured, with mod_fastcgi installed and enabled. Consult the Apache and
+mod_fastcgi documentation for instructions: 
+http://www.djangoproject.com/r/mod_fastcgi/
 
 Once you've got that set up, point Apache at your Django FastCGI instance by
 editing the ``httpd.conf`` (Apache configuration) file. You'll need to do two
@@ -552,17 +536,16 @@ things:
 
     * Use the ``FastCGIExternalServer`` directive to specify the location of
       your FastCGI server.
-      
-    * Use ``mod_rewrite`` to point URLs at FastCGI as appropriate.
 
-.. _mod_fastcgi: http://www.djangoproject.com/r/mod_fastcgi/
+    * Use ``mod_rewrite`` to point URLs at FastCGI as appropriate.
 
 Specifying the location of the FastCGI server
 `````````````````````````````````````````````
 
 The ``FastCGIExternalServer`` directive tells Apache how to find your FastCGI
-server. As the `FastCGIExternalServer docs`_ explain, you can specify either a
-``socket`` or a ``host``. Here are examples of both::
+server. As the FastCGIExternalServer docs (http://www.djangoproject.com/r/mod_fastcgi/FastCGIExternalServer/)
+explain, you can specify either a ``socket`` or a ``host``. Here are examples
+of both::
 
     # Connect to FastCGI via a socket / named pipe.
     FastCGIExternalServer /home/user/public_html/mysite.fcgi -socket /home/user/mysite.sock
@@ -575,13 +558,11 @@ actually have to exist. It's just a URL used by the Web server internally -- a
 hook for signifying which requests at a URL should be handled by FastCGI.
 (More on this in the next section.)
 
-.. _FastCGIExternalServer docs: http://www.djangoproject.com/r/mod_fastcgi/FastCGIExternalServer/
-
 Using mod_rewrite to point URLs at FastCGI
 ``````````````````````````````````````````
 
 The second step is telling Apache to use FastCGI for URLs that match a certain
-pattern. To do this, use the `mod_rewrite`_ module and rewrite URLs to
+pattern. To do this, use the mod_rewrite module and rewrite URLs to
 ``mysite.fcgi`` (or whatever you specified in the ``FastCGIExternalServer``
 directive, as explained in the previous section).
 
@@ -599,16 +580,13 @@ This is probably the most common case, if you're using Django's admin site::
       RewriteRule ^/(.*)$ /mysite.fcgi/$1 [QSA,L]
     </VirtualHost>
 
-.. _mod_rewrite: http://www.djangoproject.com/r/apache/mod_rewrite/
-
 FastCGI and lighttpd
 --------------------
 
-lighttpd_ is a lightweight Web server commonly used for serving static files.
-It supports FastCGI natively and, thus, is also an ideal choice for serving both
-static and dynamic pages, if your site doesn't have any Apache-specific needs.
-
-.. _lighttpd: http://www.djangoproject.com/r/lighttpd/
+lighttpd (http://www.djangoproject.com/r/lighttpd/) is a lightweight Web server
+commonly used for serving static files. It supports FastCGI natively and, thus,
+is also an ideal choice for serving both static and dynamic pages, if your site
+doesn't have any Apache-specific needs.
 
 Make sure ``mod_fastcgi`` is in your modules list, somewhere after
 ``mod_rewrite`` and ``mod_access``, but not after ``mod_accesslog``. You'll
@@ -672,11 +650,11 @@ Running Django on a shared-hosting provider with Apache
 
 Many shared-hosting providers don't allow you to run your own server daemons
 or edit the ``httpd.conf`` file. In these cases, it's still possible to run
-Django using Web server-spawned processes.
+Django using Web-server-spawned processes.
 
 .. admonition:: Note
 
-    If you're using Web server-spawned processes, as explained in this
+    If you're using Web-server-spawned processes, as explained in this
     section, there's no need for you to start the FastCGI server on your own.
     Apache will spawn a number of processes, scaling as it needs to.
 
@@ -711,7 +689,7 @@ Restarting the spawned server
 
 If you change any Python code on your site, you'll need to tell FastCGI the
 code has changed. But there's no need to restart Apache in this case. Rather,
-just re-upload ``mysite.fcgi`` -- or edit the file -- so that the time stamp
+just re-upload ``mysite.fcgi`` -- or edit the file -- so that the timestamp
 on the file will change. When Apache sees the file has been updated, it will
 restart your Django application for you.
 
@@ -735,8 +713,8 @@ try to point out where different choices could me made whenever possible.
 
 First off, we'll make a pretty big assumption and exclusively talk about
 scaling under Apache and mod_python. Though we know of a number of successful
-medium- to large-scale FastCGI deployments, we're simply much more familiar
-with Apache.
+medium- to large-scale FastCGI deployments, we're much more familiar with
+Apache.
 
 A single server
 ---------------
@@ -748,14 +726,14 @@ looks something like this:
    :width: 129
    :height: 227
    :class: center
-   
-This works just fine for small-to-medium sites, and is extremely cheap -- you
+
+This works just fine for small-to-medium sites, and is relatively cheap -- you
 can put together a single-server designed for Django for under $3,000.
 
 However, as traffic increases you'll quickly run into **resource contention**
-between the different pieces of software. Database servers and web servers
+between the different pieces of software. Database servers and Web servers
 *love* to have the entire server to themselves, so when run on the same server
-they often end up "fighting" over the same resources (RAM, CPU) which they'd
+they often end up "fighting" over the same resources (RAM, CPU) that they'd
 prefer to monopolize.
 
 This is solved easily by moving the database server to a second machine.
@@ -766,7 +744,7 @@ Separating out the database server
 As far as Django is concerned, this is extremely easy: you'll simply need to
 change the ``DATABASE_HOST`` setting to the IP or DNS name of your database
 server. It's probably a good idea to use the IP if at all possible; relying on
-DNS for the connection between your web and database server isn't recommended.
+DNS for the connection between your Web and database server isn't recommended.
 
 With a separate database server, our architecture now looks like:
 
@@ -777,20 +755,20 @@ With a separate database server, our architecture now looks like:
 
 Here we're starting to move into what's usually called **N-tier**
 architecture. Don't be scared by the buzzword: it just refers to the fact that
-different "tiers" of the web stack get separated out onto different physical
+different "tiers" of the Web stack get separated out onto different physical
 machines.
 
-At this point if you anticipate ever needing to grow beyond a single database
-server, it's probably a good idea to start thinking now about connection
-pooling and/or database replication. There's unfortunately not nearly enough space to do
-those topics justice in this book, so you'll need to
-consult your database's documentation and/or community for more information.
+At this point, if you anticipate ever needing to grow beyond a single database
+server, it's probably a good idea to start thinking about connection pooling
+and/or database replication. Unfortunately, there's not nearly enough space to do
+those topics justice in this book, so you'll need to consult your database's
+documentation and/or community for more information.
 
 A separate media server
 -----------------------
 
 We've still got a big problem left over from the single server setup:
-the serving of media from the same box that handles dynamic content. 
+the serving of media from the same box that handles dynamic content.
 
 Those two activities perform best under different circumstances, and by
 smashing them together on the same box you end up with neither performing
@@ -802,11 +780,10 @@ anything *not* generated by a Django view -- onto a dedicated server:
    :height: 263
    :class: center
 
-Ideally, this media server should run a stripped-down web server optimized for
-static media delivery. lighttpd_ and tux_ are both excellent choices here, but
-a heavily stripped down Apache could work, too.
-
-.. _tux: http://www.djangoproject.com/r/tux/
+Ideally, this media server should run a stripped-down Web server optimized for
+static media delivery. lighttpd and tux (http://www.djangoproject.com/r/tux/)
+are both excellent choices here, but a heavily stripped down Apache could work,
+too.
 
 For sites heavy in static content -- photos, videos, etc. -- moving to a
 separate media server is doubly important, and should likely be the *first*
@@ -817,16 +794,16 @@ write uploaded media to the media server (the ``MEDIA_ROOT`` setting controls
 where this media is written). If media lives on another server, however,
 you'll need to arrange a way for that write to happen across the network.
 
-The easiest way to do this is to simply use NFS to mount the media server's
-media directories onto the web server(s). If you mount them in the same
-location pointed to by ``MEDIA_ROOT``, media uploading will Just Work™.
+The easiest way to do this is to use NFS to mount the media server's media
+directories onto the Web server(s). If you mount them in the same location
+pointed to by ``MEDIA_ROOT``, media uploading will Just Work™.
 
 Load balancing and redundancy
 -----------------------------
 
-At this point, we've now broken things down as much as possible. This
+At this point, we've broken things down as much as possible. This
 three-server setup should handle a very large amount of traffic -- we served
-around ten million hits a day from an architecture of this sort -- so if you
+around 10 million hits a day from an architecture of this sort -- so if you
 grow further, you'll need to start adding redundancy.
 
 This is a good thing, actually: one glance at the above diagram shows you that
@@ -834,42 +811,40 @@ if even a single one of your three servers fails, you'll bring down your
 entire site. So as you add redundant servers, you not only increase capacity,
 you also increase reliability.
 
-For the sake of this example, let's assume that the web server hits capacity
-first. It's relatively easy to get multiple copies of a Django site running on
-different hardware -- just copy all the code onto multiple machines, and start
-Apache on both of them.
+For the sake of this example, let's assume that the Web server hits capacity
+first. It's easy to get multiple copies of a Django site running on different
+hardware -- just copy all the code onto multiple machines, and start Apache on
+both of them.
 
 However, you'll need another piece of software to distribute traffic over your
 multiple servers: a **load balancer**. You can buy expensive and proprietary
-hardware load balancers, but there are a few incredibly high-quality
-open-source software load balancers out there.
+hardware load balancers, but there are a few high-quality open-source software
+load balancers out there.
 
-Apache's ``mod_proxy`` is one option, but we've found Perlbal_ to be simply
-fantastic. It's a load balancer and reverse proxy written by the same folks
-that wrote ``memcached`` (see Chapter 13).
-
-.. _perlbal: http://www.djangoproject.com/r/perlbal/
+Apache's ``mod_proxy`` is one option, but we've found Perlbal (http://www.djangoproject.com/r/perlbal/)
+to be simply fantastic. It's a load balancer and reverse proxy written by the
+same folks who wrote ``memcached`` (see Chapter 13).
 
 .. note::
 
     If you're using FastCGI, you can accomplish this same distribution/load
-    balancing step by separating your front-end web servers and back-end
+    balancing step by separating your front-end Web servers and back-end
     FastCGI processes onto different machines. The front-end server
     essentially becomes the load balancer and the back-end FastCGI processes
     replace the Apache/mod_python/Django servers.
-    
-With the web servers now clustered, our evolving architecture starts to look
+
+With the Web servers now clustered, our evolving architecture starts to look
 more complex:
 
 .. image:: http://media.djangobook.com/content/chapter21/scaling-4.png
    :width: 362
    :height: 362
    :class: center
-   
-Notice that in the diagram the web servers are referred to as a "cluster" to
-indicate that the number of servers is basically variable; once you have a
-load balancer out front, you can easily add and remove backend web servers
-without a bit of downtime.
+
+Notice that in the diagram the Web servers are referred to as a "cluster" to
+indicate that the number of servers is basically variable. Once you have a
+load balancer out front, you can easily add and remove backend Web servers
+without a second of downtime.
 
 Going big
 ---------
@@ -878,25 +853,23 @@ At this point, the next few steps are pretty much derivatives of the last one:
 
     * As you need more database performance, you'll need to add replicated
       database servers.  MySQL includes built-in replication; PostgreSQL
-      users should look into Slony_ and `pgpool`_ for replication and
+      users should look into Slony (http://www.djangoproject.com/r/slony/)
+      and pgpool (http://www.djangoproject.com/r/pgpool/) for replication and
       connection pooling, respectively.
-      
+
     * If the single load balancer isn't enough, you can add more load
       balancer machines out front and distribute amount them using
       round-robin DNS.
-    
+
     * If a single media server doesn't suffice, you can add more media
       servers and distribute the load with your load balancing cluster.
-      
-    * If you need more cache storage, you can add dedicated cache servers.
-    
-    * At any stage, if a cluster isn't performing well you can add more
-      servers to the cluster.
-      
-.. _slony: http://www.djangoproject.com/r/slony/
-.. _pgpool: http://www.djangoproject.com/r/pgpool/
 
-After a few of these iterations, a large-scale architecture might looks like:
+    * If you need more cache storage, you can add dedicated cache servers.
+
+    * At any stage, if a cluster isn't performing well, you can add more
+      servers to the cluster.
+
+After a few of these iterations, a large-scale architecture might look like:
 
 .. image:: http://media.djangobook.com/content/chapter21/scaling-5.png
    :width: 569
@@ -904,12 +877,12 @@ After a few of these iterations, a large-scale architecture might looks like:
    :class: center
 
 Though we've only shown two or three servers at each level, there's
-fundamentally no limit to how many you can add.
+no fundamental limit to how many you can add.
 
 Performance tuning
 ==================
 
-If you've got a huge amount money, you can just keep throwing hardware at
+If you've got a huge amount of money, you can just keep throwing hardware at
 scaling problems. For the rest of us, though, performance tuning is a must.
 
 .. note::
@@ -917,7 +890,7 @@ scaling problems. For the rest of us, though, performance tuning is a must.
     Incidentally, if anyone with monstrous gobs of cash is actually reading
     this book, please consider a substantial donation to the Django project.
     We accept uncut diamonds and gold ingots, too.
-    
+
 Unfortunately, performance tuning is much more of an art than a science, and
 is even more difficult to write about than scaling. If you're serious about
 deploying a large-scale Django application, you should spend a large amount of
@@ -926,14 +899,14 @@ time learning how to tune each piece of your stack.
 Here, though, are a few Django-specific tuning tips we've discovered over the
 years:
 
-There's no such thing as too much RAM.
---------------------------------------
-  
-Even really expensive RAM costs only about $200 per gigabyte -- pennies
-compared to the time spent tuning elsewhere. Buy as much RAM as you can
-possibly afford, and then buy a little bit more.
+There's no such thing as too much RAM
+-------------------------------------
 
-Faster processors really won't improve performance all that much; most web
+As of this writing, the really expensive RAM costs only about $200 per
+gigabyte -- pennies compared to the time spent tuning elsewhere. Buy as much
+RAM as you can possibly afford, and then buy a little bit more.
+
+Faster processors really won't improve performance all that much; most Web
 servers spend up to 90% of their time waiting on disk IO. As soon as you start
 swapping, performance will just die. Faster disks might help slightly, but
 they're much more expensive than RAM that it doesn't really matter.
@@ -941,10 +914,11 @@ they're much more expensive than RAM that it doesn't really matter.
 If you've got multiple servers, the first place to put your RAM is in the
 database server. If you can afford it, get enough RAM to get fit your entire
 database into memory. This shouldn't be too hard; LJWorld.com's database --
-including over half a million articles dating back to 1989 -- is under 2 GB.
+including over half a million newspaper articles dating back to 1989 -- is
+under 2 GB.
 
-Next max out the RAM on your web server. The ideal situation is one where
-neither swaps -- ever. If you get to that point you should be able to
+Next, max out the RAM on your Web server. The ideal situation is one where
+neither server swaps -- ever. If you get to that point, you should be able to
 withstand most normal traffic.
 
 Turn off ``Keep-Alive``
@@ -953,12 +927,11 @@ Turn off ``Keep-Alive``
 Keep-alive is a feature of HTTP that allows multiple HTTP requests to be
 served over a single TCP connection, avoiding the TCP setup/teardown overhead.
 
-This sounds good at first glance, but can actually kill performance of a
-Django site. If you're properly serving media from a separate server, each
-user browsing your site will actually only a page from your Django server
-every 10 seconds at best. This leaves HTTP servers waiting around for the next
-keep-alive request, and a idle HTTP server just consumes RAM that an active
-one should be using.
+This sounds good at first glance, but it can kill performance of a Django site.
+If you're properly serving media from a separate server, each user browsing
+your site will actually only a page from your Django server every 10 seconds at
+best. This leaves HTTP servers waiting around for the next keep-alive request,
+and a idle HTTP server just consumes RAM that an active one should be using.
 
 Use memcached
 -------------
@@ -973,7 +946,7 @@ Use memcached often
 Of course, selecting memcached does you no good if you don't actually use it.
 Chapter 13 is your best friend here: learn how to use Django's cache
 framework, and use it everywhere possible. Aggressive, preemptive caching is
-usually the only think that will keep a site up under major traffic.
+usually the only thing that will keep a site up under major traffic.
 
 Join the conversation
 ---------------------
@@ -981,11 +954,14 @@ Join the conversation
 Each piece of the Django stack -- from Linux to Apache to PostgreSQL or MySQL
 -- has an awesome community behind it. If you really want to get that last 1%
 out of your servers, join the open-source communities behind your software and
-ask for help. Most free software community members will be thrilled to help.
+ask for help. Most free-software community members will be happy to help.
 
-And also be sure to join the Django community.  Your humble authors are only two members of an incredible active, growing group of Django developers; our community has a huge amount of collective experience to offer.
+And also be sure to join the Django community.Your humble authors are only two
+members of an incredibly active, growing group of Django developers. Our
+community has a huge amount of collective experience to offer.
 
 Good luck!
 ==========
 
-We wish you the best of luck in running your Django site, whether it's a little toy for you and a few friends, or the next Google.  
+We wish you the best of luck in running your Django site, whether it's a little
+toy for you and a few friends, or the next Google.
