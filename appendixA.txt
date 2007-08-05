@@ -12,6 +12,17 @@ Cast of characters
 
 Let's meet our cast, and their projects:
 
+    * **Ned Batchelder** is Lead Engineer at Tabblo.com. Tabblo started life as a
+      story-telling tool built around photo sharing, but was recently bought by
+      Hewlett-Packard for more wide-reaching purposes:
+      
+        HP saw real value in our style of web development, and in the way we
+        bridged the virtual and physical worlds. They acquired us so that we
+        could bring that technology to other sites on the web. Tabblo.com is
+        still a great story-telling site, but now we are also working to
+        componentize and re-host the most interesting pieces of our
+        technology.
+
     * **Johannes Beigel** is a lead developer at Brainbot Technologies AG. Brainbot's
       major public-facing Django site is http://pediapress.com/, where you can order
       printed versions of Wikipedia articles.  Johannes' team is currently working
@@ -87,6 +98,16 @@ Why Django?
 We asked each developer why they'd decided to use Django, what other options
 they'd considered, and how the decision to use Django was ultimately made:
 
+**Ned Batchelder**:
+    
+    Before I joined Tabblo, Antonio Rodriguez (founder/CTO) did an evaluation
+    of Rails and Django, and found that both provided a great
+    quick-out-of-the-blocks rapid development environment. In comparing the
+    two, he found that Django had a greater technical depth that would make it
+    easier to build a robust scalable site. Also, Django's Python foundation
+    meant that we'd have all the richness of the Python ecosystem to support
+    our work. This has definitely been proven out as we've built Tabblo.
+    
 **Johannes Beigel**:
 
     As we have been coding in Python for many years now, and quickly started
@@ -145,7 +166,7 @@ developers:
 
 **David Cramer**:
 
-    The on the website documentation is great. Stick with it.
+    The website documentation is great. Stick with it.
 
 **Christian Hammond**:
 
@@ -159,8 +180,9 @@ We didn't have to bribe Christian to get that quote, promise!
 Porting existing code
 =====================
 
-Though Review Board was ground-up development, the other sites were ported
-from existing code. We were interested in hearing how that process went:
+Though Review Board and Tabblo were ground-up development, the other sites
+were ported from existing code. We were interested in hearing how that process
+went:
 
 **Johannes Beigel**:
 
@@ -183,6 +205,38 @@ The million dollar question: how'd Django treat you? We were especially
 interested in hearing where Django fell down; it's important to know where
 your tools are weak *before* you run into roadblocks:
 
+**Ned Batchelder**:
+
+    Django has really enabled us to experiment with our web site's
+    functionality. Both as a startup heat-seeking customers and businesses,
+    and now as a part of HP working with a number of partners, we've had to be
+    very nimble when it comes to adapting the software to new demands. The
+    separation of functionality into models, views, and controllers has given
+    us modularity so we can appropriately choose where to extend and modify.
+    The underlying Python environment gives us the opportunity to make use of
+    existing libraries to solve problems with re-inventing wheel. PIL, PDFlib,
+    ZSI, JSmin, and BeautifulSoup are just a handful of the libraries we've
+    pulled in to do some heavy lifting for us.
+    
+    The most difficult part of our Django use has been the relationship of
+    memory objects to database objects, in a few ways. First, Django's ORM
+    does not ensure that two references to the same database record are the
+    same Python object, so you can get into situations where two parts of the
+    code are both trying to modify the same record, and one of the copies is
+    stale. Second, the Django development model encourages you to base your
+    data objects on database objects. We've found over time more and more uses
+    for data objects that are not tied to the database, and we've had to
+    migrate away from assuming that data is stored in the database.
+    
+    For a large long-lived code base, it definitely make sense to spend time
+    up front anticipating the ways your data will be stored and accessed, and
+    building some infrastructure to support those ways.
+    
+    We've also added our own database migration facility so that developers
+    don't have to apply SQL patches to keep their database schemas current.
+    Developers who change the schema write a Python function to update the
+    database, and these are applied automatically when the server is started.
+
 **Johannes Beigel**:
 
     We consider Django as a very successful platform that perfectly fits
@@ -202,7 +256,7 @@ your tools are weak *before* you run into roadblocks:
     would have taken 1-2 weeks to do on the previous website, in PHP. Django
     has shined exactly where we wanted it to.
 
-    Now while Django is a great platform, it can't go without saying that
+    Now, while Django is a great platform, it can't go without saying that
     it's not built specific to everyones needs. Upon the initial launch of the
     Django website we had our highest traffic month of the year, and we
     weren't able to keep up. Over the next few months we tweaked bits and
@@ -249,6 +303,14 @@ Often successful projects are made so by their teams, not their choice of
 technology. We asked our panel how their team works, and what tools and
 techniques they use to stay on track:
 
+**Ned Batchelder**:
+
+    We're a pretty standard web startup environment: Trac/SVN, five
+    developers. We have a staging server, production server, an ad-hoc deploy
+    script, and so on.
+
+    Memcached rocks.
+
 **Johannes Beigel**:
 
     We use Trac as bug tracker and wiki and have recently switched from using
@@ -264,9 +326,9 @@ techniques they use to stay on track:
 
 **David Cramer**:
 
-    We currently consist of 4 web developers. We all work at the same location
-    so it's quite easy to communicate. Currently we rely on common tools such
-    as SVN and Trac.
+    Our team consists of 4 web developers, all working in the same office
+    space, so it's quite easy to communicate. We rely on common tools such as
+    SVN and Trac.
 
 **Christian Hammond**:
 
@@ -284,6 +346,14 @@ Deployment
 The Django developers take ease of deployment and scaling very seriously, so
 we're always interested in hearing about real-world trials and tribulations:
 
+**Ned Batchelder**:
+
+    We've used caching both at the query and response layers to speed response
+    time. We have a classic configuration: a multiplexer, many app servers,
+    one database server. This has worked well for us, because we can use
+    caching at the app server to avoid database access, and then add app
+    servers as needed to handle the volume.
+
 **Johannes Beigel**:
 
     Linux servers, preferably Debian, with many gigs of RAM. Lighttpd as web
@@ -297,15 +367,15 @@ we're always interested in hearing about real-world trials and tribulations:
     Our structure is still up for debate... [but this is what's current]:
 
     When a user requests the site they are sent to a cluster of Squid servers
-    using lighttpd. These servers then checked if they are logged in, if not,
-    they serve a cached page. A logged in user is forwarded to a cluster of
-    web servers running apache2 + mod_python (each with a large amount of
+    using lighttpd. There servers then check if the user is logged in. If not,
+    they're served a cached page.. A logged in user is forwarded to a cluster
+    of web servers running apache2 + mod_python (each with a large amount of
     memory), which then each rely on a distributed memcached system and a
     beastly MySQL database server. Static content is hosted on a cluster of
     lighttpd servers. Media, such as large files and videos, are hosted
     (currently) on a server using a minimal Django install using lighttpd +
     fastcgi. As of right now we're moving towards pushing all media to
-    Amazon's new [S3] service.
+    a service similar to Amazon's S3.
 
 **Christian Hammond**:
 
@@ -319,4 +389,3 @@ we're always interested in hearing about real-world trials and tribulations:
     The second production server is the one for Review Board itself. The
     setup is nearly identical to the one at VMware, except the virtual machine
     is being hosted on VMware Server.
-
