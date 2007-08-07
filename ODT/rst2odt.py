@@ -9,14 +9,10 @@ A hacked rst2odt that'll produce the type of ODT *I* want :)
 """
 
 import sys
-try:
-    import locale
-    locale.setlocale(locale.LC_ALL, '')
-except:
-    pass
-
-from docutils.core import publish_cmdline, default_description, \
-    Publisher, default_usage
+import urllib2
+import zipfile
+import locale; locale.setlocale(locale.LC_ALL, '')
+from docutils.core import default_description, Publisher, default_usage
 from docutils import io, nodes
 from docutils.writers.odtwriter import Writer, ODFTranslator
 
@@ -26,6 +22,25 @@ class DjangoBookODTWriter(Writer):
     def __init__(self):
         Writer.__init__(self)
         self.translator_class = DjangoBookOFTTranslator
+    
+    # Handle HTTP files
+    # See the second part of the nasty hack below...
+    def store_embedded_files(self, zfile):
+        embedded_files = self.visitor.get_embedded_file_list()
+        for source, destination in embedded_files:
+            destination1 = destination.decode('latin-1').encode('utf-8')
+            if source is None:
+                continue
+            elif source.startswith("http://"):
+                try:
+                    zfile.writestr(destination1, urllib2.urlopen(source).read())
+                except urllib2.HTTPError, e:
+                    print "Cannot read URL %s: %s" % (source, e)
+            else:
+                try:
+                    zfile.write(source, destination1, zipfile.ZIP_STORED)
+                except OSError, e:
+                    print "Error: Can't open file!!! %s." % (source, )    
     
 class DjangoBookOFTTranslator(ODFTranslator):
     
@@ -46,6 +61,11 @@ class DjangoBookOFTTranslator(ODFTranslator):
     def depart_block_quote(self, node):
         if len(node.children) != 1 or not isinstance(node.children[0], self._suppress_blockquote_child_nodes):
             ODFTranslator.depart_block_quote(self, node)
+        
+    # Handle files over HTTP    
+    # Nasty hack, but it works.
+    def check_file_exists(self, path):
+        return ODFTranslator.check_file_exists(self, path) or path.startswith("http://")
 
 class BinaryFileOutput(io.FileOutput):
     """
