@@ -41,6 +41,6 @@ OO="/Applications/NeoOffice.app/Contents/MacOS/soffice"
 MACRO="Standard.Conversions.SaveAsDoc"
 PWD=`pwd`
 
-for doc in *.odt; do
+for doc in $*; do
     $OO -invisible "macro:///$MACRO($PWD/$doc)"
 done
