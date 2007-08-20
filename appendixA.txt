@@ -12,31 +12,31 @@ Cast of characters
 
 Let's meet our cast, and their projects:
 
-    * **Ned Batchelder** is Lead Engineer at Tabblo.com. Tabblo started life as a
-      story-telling tool built around photo sharing, but was recently bought by
-      Hewlett-Packard for more wide-reaching purposes:
+    * **Ned Batchelder** is Lead Engineer at Tabblo.com. Tabblo started life as
+      a story-telling tool built around photo sharing, but was recently bought
+      by Hewlett-Packard for more wide-reaching purposes:
       
         HP saw real value in our style of web development, and in the way we
         bridged the virtual and physical worlds. They acquired us so that we
         could bring that technology to other sites on the web. Tabblo.com is
         still a great story-telling site, but now we are also working to
-        componentize and re-host the most interesting pieces of our
-        technology.
+        componentize and re-host the most interesting pieces of our technology.
 
-    * **Johannes Beigel** is a lead developer at Brainbot Technologies AG. Brainbot's
-      major public-facing Django site is http://pediapress.com/, where you can order
-      printed versions of Wikipedia articles.  Johannes' team is currently working
-      on an enterprise-class knowledge management program knows as "Brainfiler."
+    * **Johannes Beigel** is a lead developer at Brainbot Technologies AG.
+      Brainbot's major public-facing Django site is http://pediapress.com/,
+      where you can order printed versions of Wikipedia articles. Johannes' team
+      is currently working on an enterprise-class knowledge management program
+      knows as "Brainfiler."
       
       Johannes tells us that Brainfiler 
       
-        [...] is a software solution to manage, search for, categorize and
-        share information from distributed information sources. It's built for
+        [...] is a software solution to manage, search for, categorize and share
+        information from distributed information sources. It's built for
         enterprise usage for both the intranet and the Internet and is highly
         scalable and customizable. The development of the core concepts and
         components started in 2001. Just recently we have
-        redesigned/re-implemented the application server and Web front-end
-        which is [now] based on Django.
+        redesigned/re-implemented the application server and Web front-end which
+        is [now] based on Django.
       
     * **David Cramer** is the lead developer at Curse, Inc. He develops
       Curse.com, a gaming site devoted to massively-multiplayer online games
@@ -45,26 +45,24 @@ Let's meet our cast, and their projects:
       Curse.com is one of the largest deployed Django sites on the Internet:
       
         We do roughly 60-90 million pageviews on an average month, and we have
-        peaked at over 130 million pageviews [in a month] using Django. We are
-        a very dynamic and user-centric website for online gamers,
-        specifically massively multiplayer games, and are one of the largest
-        websites globally for World of Warcraft. Our website was established
-        in early 2005 and since late-2006 we have been expanding our reach
-        into games beyond World of Warcraft.
+        peaked at over 130 million pageviews [in a month] using Django. We are a
+        very dynamic and user-centric website for online gamers, specifically
+        massively multiplayer games, and are one of the largest websites
+        globally for World of Warcraft. Our website was established in early
+        2005 and since late-2006 we have been expanding our reach into games
+        beyond World of Warcraft.
       
-    * **Christian Hammond** is a senior engineer at VMware (a leading
-      developer of virtualization software). He's also the lead developer of
-      Review Board (http://www.review-board.org/), a web-based code review
-      system. Review Board began life as an internal VMware project, but is
-      now Open Source:
+    * **Christian Hammond** is a senior engineer at VMware (a leading developer
+      of virtualization software). He's also the lead developer of Review Board
+      (http://www.review-board.org/), a web-based code review system. Review
+      Board began life as an internal VMware project, but is now Open Source:
       
-        In late 2006, David Trowbridge and I were discussing the process we
-        used at VMware for handling code reviews. Before people committed code
-        to the source repository, they were supposed to send out a diff of the
-        change to a mailing list and get it reviewed. It was all handled over
-        e-mail, and as such, it became hard to keep track of reviews requiring
-        your attention. We began to discuss potential solutions for this
-        problem.
+        In late 2006, David Trowbridge and I were discussing the process we used
+        at VMware for handling code reviews. Before people committed code to the
+        source repository, they were supposed to send out a diff of the change
+        to a mailing list and get it reviewed. It was all handled over e-mail,
+        and as such, it became hard to keep track of reviews requiring your
+        attention. We began to discuss potential solutions for this problem.
         
         Rather than writing down my ideas, I put them into code. Before long,
         Review Board was born. Review Board helps developers, contributors and
@@ -72,25 +70,25 @@ Let's meet our cast, and their projects:
         communicate with each other. Rather than vaguely referencing some part
         of the code in an e-mail, the reviewer is able to comment directly on
         the code. The code, along with the comments, will then appear in the
-        review, giving the developer enough context to work with to quickly
-        make the necessary changes.
+        review, giving the developer enough context to work with to quickly make
+        the necessary changes.
         
         Review Board grew quickly at VMware. Much faster than expected,
-        actually. Within a few short weeks, we had 10 teams using Review
-        Board. However, this project is not internal to VMware. It was decided
-        day one that this should be open source and be made available for any
-        company or project to use.
+        actually. Within a few short weeks, we had 10 teams using Review Board.
+        However, this project is not internal to VMware. It was decided day one
+        that this should be open source and be made available for any company or
+        project to use.
         
         We made an open source announcement and put a site together, which is
         available at http://www.review-board.org/. The response to our public
         announcement was as impressive as our internal VMware announcement.
-        Before long, our demo server reached over 600 users, and people began
-        to contribute back to the project.
+        Before long, our demo server reached over 600 users, and people began to
+        contribute back to the project.
         
         Review Board isn't the only code review tool in the market, but it is
-        the first we have seen that is open source and has the extensive
-        feature set we've worked to build into it. We hope this will in time
-        benefit many open source and commercial projects.
+        the first we have seen that is open source and has the extensive feature
+        set we've worked to build into it. We hope this will in time benefit
+        many open source and commercial projects.
         
 Why Django?
 ===========
