@@ -106,8 +106,6 @@ model as needed.
 
 .. admonition:: Why the acronym?
 
-    MVC? MTV? What's the point of these terms?
-
     The goal of explicitly defining patterns such as MVC is mostly to
     streamline communication among developers. Instead of having to tell your
     coworkers, "Let's make an abstraction of the data-access, then have a
@@ -198,7 +196,6 @@ Here's a rundown of each setting.
           ``mysql``                MySQL                 ``MySQLdb``,
                                                          http://www.djangoproject.com/r/python-mysql/
 
-
           ``sqlite3``              SQLite                No adapter needed if using Python 2.5+.
                                                          Otherwise, ``pysqlite``,
                                                          http://www.djangoproject.com/r/python-sqlite/
@@ -212,7 +209,8 @@ Here's a rundown of each setting.
 
       Note that for whichever database backend you use, you'll need to download
       and install the appropriate database adapter. Each one is available for
-      free on the Web.
+      free on the Web; just follow the links in the "Required adapter" column
+      in the above table.
 
     * ``DATABASE_NAME`` tells Django what the name of your database is. If
       you're using SQLite, specify the full filesystem path to the database
@@ -259,8 +257,8 @@ file to use in order to get your database connection information.
 
 Behind the scenes, ``python manage.py shell`` sets the environment variable
 ``DJANGO_SETTINGS_MODULE``. We'll cover the subtleties of this later, but for
-now, just know that you should use ``python manage.py shell`` whenever you need
-to drop into the Python interpreter to do Django-specific tinkering.
+now, use ``python manage.py shell`` whenever you need to drop into the Python
+interpreter to do Django-specific tinkering.
 
 Once you've entered the shell, type these commands to test your database
 configuration::
@@ -326,10 +324,10 @@ configuration vs. code:
 
 There are very few hard-and-fast rules about how you fit your Django code into
 this scheme; it's flexible. If you're building a simple Web site, you may only
-use a single app. If you're building a complex Web site with several rather
-unrelated pieces such as an e-commerce system and a message board, you'll
-probably want to split those into separate apps so that you'll be able to reuse
-them individually in the future.
+use a single app. If you're building a complex Web site with several unrelated
+pieces such as an e-commerce system and a message board, you'll probably want
+to split those into separate apps so that you'll be able to reuse them
+individually in the future.
 
 Indeed, you don't necessarily need to create apps at all, as evidenced by the
 example view functions we've created so far in this book. In those cases, we
@@ -369,7 +367,7 @@ Defining models in Python
 As we discussed above, the "M" in "MTV" stands for "Model." A Django model is a
 description of the data in your database, represented as Python code. It's your
 data layout -- the equivalent of your SQL ``CREATE TABLE`` statements -- except
-it's in Python instead of SQL, and it includes more than just database
+it's in Python instead of SQL, and it includes more than just database column
 definitions. Django uses a model to execute SQL code behind the scenes and
 return convenient Python data structures representing the rows in your database
 tables. Django also uses models to represent higher-level concepts that SQL
@@ -447,8 +445,8 @@ We'll suppose the following concepts, fields and relationships:
       country and a Web site.
 
     * A book has a title and a publication date. It also has one or more
-      authors (a many-to-many relationship to author) and a single publisher
-      (a one-to-many relationship, aka foreign key, to publisher).
+      authors (a many-to-many relationship with authors) and a single publisher
+      (a one-to-many relationship, aka foreign key, to publishers).
 
 The first step in using this database layout with Django is to express it as
 Python code. In the ``models.py`` file that was created by the ``startapp``
@@ -477,9 +475,8 @@ command, enter the following::
         publisher = models.ForeignKey(Publisher)
         publication_date = models.DateField()
 
-We will cover model syntax and options throughout this chapter, but let's
-quickly examine this code to cover the basics. The first thing to notice is
-that each model is represented by a Python class that is a subclass of
+Let's quickly examine this code to cover the basics. The first thing to notice
+is that each model is represented by a Python class that is a subclass of
 ``django.db.models.Model``. The parent class, ``Model``, contains all the
 machinery necessary to make these objects capable of interacting with a
 database -- and that leaves our models responsible solely for defining their
@@ -503,8 +500,8 @@ PostgreSQL ``CREATE TABLE`` syntax)::
         "website" varchar(200) NOT NULL
     );
 
-Indeed, Django can generate that ``CREATE TABLE`` statement itself, as we'll
-see in a moment.
+Indeed, Django can generate that ``CREATE TABLE`` statement automatically, as
+we'll see in a moment.
 
 The exception to the one-class-per-database-table rule is the case of
 many-to-many relationships. In our example models, ``Book`` has a
@@ -512,6 +509,8 @@ many-to-many relationships. In our example models, ``Book`` has a
 many authors, but the ``Book`` database table doesn't get an ``authors``
 column. Rather, Django creates an additional table -- a many-to-many "join
 table" -- that handles the mapping of books to authors.
+
+For a full list of field types and model syntax options, see Appendix B.
 
 Finally, note we haven't explicitly defined a primary key in any of these
 models. Unless you instruct it otherwise, Django automatically gives every
@@ -539,7 +538,7 @@ project. By default, it looks something like this::
 
 Temporarily comment out all four of those strings by putting a hash character
 (``#``) in front of them. (They're included by default as a common-case
-convenience, but we'll activate them and discuss them later.) Then, add
+convenience, but we'll activate and discuss them later.) Then, add
 ``'mysite.books'`` to the ``INSTALLED_APPS`` list, so the setting ends up
 looking like this::
 
@@ -685,7 +684,7 @@ API for working with those models. Try it out by running
 ``python manage.py shell`` and typing the following::
 
     >>> from books.models import Publisher
-    >>> p = Publisher(name='Apress', address='2560 Ninth St.',
+    >>> p = Publisher(name='Apress', address='2855 Telegraph Ave.',
     ...     city='Berkeley', state_province='CA', country='U.S.A.',
     ...     website='http://www.apress.com/')
     >>> p.save()
@@ -790,7 +789,257 @@ object; it also describes any functionality that object knows how to do.
 ``__str__()`` is one example of such functionality -- a model knows how to
 display itself.
 
-Creating and modifying objects
-==============================
+Inserting and updating data
+===========================
 
-This chapter is not yet finished.
+To insert a row into your database, first create an instance of your model
+using keyword arguments, like so::
+
+    >>> p = Publisher(name='Apress',
+    ...         address='2855 Telegraph Ave.',
+    ...         city='Berkeley',
+    ...         state_province='CA',
+    ...         country='U.S.A.',
+    ...         website='http://www.apress.com/')
+
+This act of instantiating a model class does *not* touch the database.
+
+To save the record into the database (i.e., to perform the SQL ``INSERT``
+statement), call the object's save method::
+
+    >>> p.save()
+
+In SQL, this can roughly be translated into::
+
+    INSERT INTO book_publisher
+        (name, address, city, state_province, country, website)
+    VALUES
+        ('Apress', '2855 Telegraph Ave.', 'Berkeley', 'CA',
+         'U.S.A.', 'http://www.apress.com/');
+
+Because the ``Publisher`` model uses an auto-incrementing primary key ``id``,
+the initial call to ``save()`` does one more thing: it calculates the primary
+key value for the record and sets it to the ``id`` attribute on the instance::
+
+    >>> p.id
+    52    # this will differ based on your own data
+
+Subsequent calls to ``save()`` will save the record in place, without creating
+a new record (i.e., performing an SQL ``UPDATE`` statement instead of an
+``INSERT``). For example::
+
+    >>> p.name = 'Apress Publishing'
+    >>> p.save()
+
+The above ``save()`` statement will result in roughly the following SQL::
+
+    UPDATE book_publisher SET
+        name = 'Apress Publishing',
+        address = '2855 Telegraph Ave.',
+        city = 'Berkeley',
+        state_province = 'CA',
+        country = 'U.S.A.',
+        website = 'http://www.apress.com'
+    WHERE id = 52;
+
+Selecting objects
+=================
+
+Deleting objects
+================
+
+Making changes to a database schema
+===================================
+
+When we introduced the ``syncdb`` command earlier in this chapter, we noted
+that ``syncdb`` merely creates tables that don't yet exist in your database --
+it does *not* sync changes in models or perform deletions of models. If you
+add or change a model's field, or if you delete a model, you'll need to make
+the change in your database manually. This section explains how to do that.
+
+When dealing with schema changes, it's important to keep a few things in mind
+about how Django's database layer works:
+
+    * Django will complain loudly if a model contains a field that has not yet
+      been created in the database table. This will cause an error the first
+      time you use the Django database API to query the given table (i.e., it
+      will happen at code-execution time, not at compilation time).
+
+    * Django does *not* care if a database table contains columns that are not
+      defined in the model.
+
+    * Django does *not* care if a database contains a table that is not
+      represented by a model.
+
+Making schema changes is a matter of changing the various pieces -- the Python
+code and the database itself -- in the right order.
+
+Adding fields
+-------------
+
+When adding a field to a table/model in a production setting, the trick is to
+take advantage of the fact that Django doesn't care if a table contains columns
+that aren't defined in the model. The strategy is to add the column in the
+database, then update the Django model to include the new field.
+
+However, there's a bit of a chicken-and-egg problem here, because in order to
+know how the new database column should be expressed in SQL, you need to look
+at the output of Django's ``manage.py sqlall`` command, which requires that the
+field exist in the model. (Note that you're not *required* to create your
+column with exactly the same SQL that Django would, but it's a good idea to do
+so, just to be sure everything's in sync.)
+
+The solution to the chicken-and-egg problem is to use a development environment
+instead of making the changes on a production server. (You *are* using a
+testing/development environment, right?) Here are the detailed steps to take.
+
+First, in the development environment (i.e., not on the production server):
+
+    1. Add the field to your model.
+
+    2. Run ``manage.py sqlall [yourapp]`` to see the new ``CREATE TABLE``
+       statement for the model. Note the column definition for the new field.
+
+    3. Start your database's interactive shell (e.g., ``psql`` or ``mysql``, or
+       you can use ``manage.py dbshell``). Execute an ``ALTER TABLE`` statement
+       that adds your new column.
+
+    4. (Optional.) Launch the Python interactive shell with ``manage.py shell``
+       and verify that the new field was added properly by importing the model
+       and selecting from the table -- e.g., ``MyModel.objects.all()[:5]``
+
+Then, on the production server:
+
+    1. Start your database's interactive shell.
+    
+    2. Execute the ``ALTER TABLE`` statement you used in
+       development-environment step 3 above.
+
+    3. Add the field to your model. If you're using source-code revision
+       control and had checked in your change in development-environment step
+       1 above, now is the time to update the code (e.g., ``svn update``, with
+       Subversion) on the production server.
+
+    4. Restart the Web server for the code changes to take effect.
+
+For example, let's walk through what we'd do if we added a ``num_pages`` field
+to the ``Book`` model described earlier in this chapter. First, we'd alter the
+model in our development environment to look like this:
+
+.. parsed-literal::
+
+    class Book(models.Model):
+        title = models.CharField(maxlength=100)
+        authors = models.ManyToManyField(Author)
+        publisher = models.ForeignKey(Publisher)
+        publication_date = models.DateField()
+        **num_pages = models.IntegerField(blank=True, null=True)**
+
+        def __str__(self):
+            return self.title
+
+(Note: Read the "Adding NOT NULL columns" section below for important details
+on why we included ``blank=True`` and ``null=True``.)
+
+Then, we'd run the command ``manage.py sqlall books`` to see the
+``CREATE TABLE`` statement. It would look something like this::
+
+    CREATE TABLE "books_book" (
+        "id" serial NOT NULL PRIMARY KEY,
+        "title" varchar(100) NOT NULL,
+        "publisher_id" integer NOT NULL REFERENCES "books_publisher" ("id"),
+        "publication_date" date NOT NULL,
+        "num_pages" integer NULL
+    );
+
+The new column is represented like this::
+
+    "num_pages" integer NULL
+
+Next, we'd start the database's interactive shell for our development database
+by typing ``psql`` (for PostgreSQL), and we'd execute the following statements::
+
+    ALTER TABLE books_book ADD COLUMN num_pages integer;
+
+.. admonition:: Adding NOT NULL columns
+
+    There's a subtlety here that deserves mention. When we added the
+    ``num_pages`` field to our model, we included the ``blank=True`` and
+    ``null=True`` options. We did this because a database column will contain
+    NULL values when you first create it.
+
+    However, it's also possible to add columns that cannot contain NULL values.
+    To do this, you have to create the column as ``NULL``, then populate the
+    column's values using some default(s), then alter the column to set the
+    ``NOT NULL`` modifier. For example::
+
+        BEGIN;
+        ALTER TABLE books_book ADD COLUMN num_pages integer;
+        UPDATE books_book SET num_pages=0;
+        ALTER TABLE books_book ALTER COLUMN num_pages SET NOT NULL;
+        COMMIT;
+
+    If you go down this path, remember that you should leave off the
+    ``blank=True`` and ``null=True`` in your model.
+
+After the ``ALTER TABLE`` statement, we'd verify that the change worked
+properly by starting the Python shell and running this code::
+
+    >>> from mysite.books.models import Book
+    >>> Book.objects.all()[:5]
+
+If that code didn't cause errors, we'd switch to our production server and
+execute the ``ALTER TABLE`` statement on the production database. Then, we'd
+update the model in the production environment and restart the Web server.
+
+Removing fields
+---------------
+
+Removing a field from a model is a lot easier than adding one. To remove a
+field, just follow these steps:
+
+    1. Remove the field from your model and restart the Web server.
+
+    2. Remove the column from your database, using a command like this::
+
+           ALTER TABLE books_book DROP COLUMN num_pages;
+
+Removing many-to-many fields
+----------------------------
+
+Because many-to-many fields are different than normal fields, the removal
+process is different:
+
+    1. Remove the ``ManyToManyField`` from your model and restart the Web
+       server.
+
+    2. Remove the many-to-many table from your database, using a command like
+       this::
+       
+           DROP TABLE books_books_publishers;
+
+Removing models
+---------------
+
+Removing a model entirely is as easy as removing a field. To remove a model,
+just follow these steps:
+
+    1. Remove the model from your ``models.py`` file and restart the Web server.
+    
+    2. Remove the table from your database, using a command like this::
+    
+           DROP TABLE books_book;
+
+What's next?
+============
+
+Once you've defined your models, the next step is to populate your database
+with data. You might have legacy data, in which case Chapter 16 will give you
+advice about integrating with legacy databases. You might rely on site users
+to supply your data, in which case Chapter 7 will teach you how to process
+user-submitted form data.
+
+But in some cases, you or your team might need to enter data manually, in which
+case it would be helpful to have a Web-based interface for entering and
+managing data. The next chapter covers Django's admin interface, which exists
+precisely for that reason.
