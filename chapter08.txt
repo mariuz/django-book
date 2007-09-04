@@ -9,6 +9,9 @@ pieces of the framework.
 URLconf tricks
 ==============
 
+There's nothing "special" about URLconfs -- like pretty much anything else in
+Django, it's just Python code. You can take advantage of this in several ways.
+
 Streamlining function imports
 -----------------------------
 
@@ -61,6 +64,10 @@ example::
         (r'^now/in_chicago/$', 'mysite.views.now_in_chicago'),
         (r'^now/in_london/$', 'mysite.views.now_in_london'),
     )
+
+(Note the quotes around the view names! E.g., we're using
+``'mysite.views.current_datetime'`` -- with quotes -- instead of
+``mysite.views.current_datetime``.)
 
 Using this technique, it's no longer necessary to import the view functions;
 Django automatically imports the appropriate view function the first time it's
@@ -133,7 +140,7 @@ New::
 
     urlpatterns = patterns('mysite.views',
         (r'^/?$', 'archive_index'),
-        (r'^(\d{4})/([a-z]{3})/$','archive_month'),
+        (r'^(\d{4})/([a-z]{3})/$', 'archive_month'),
     )
 
     urlpatterns += patterns('weblog.views',
@@ -143,6 +150,30 @@ New::
 All the framework cares about is that there's a module-level variable called
 ``urlpatterns``. This variable can be constructed dynamically, as we do in this
 example.
+
+Special-casing URLs in debug mode
+---------------------------------
+
+Speaking of constructing ``urlpatterns`` dynamically, you might want to take
+advantage of this technique to alter your URLconf's behavior while in Django's
+debug mode. To do this, just check the value of the ``DEBUG`` setting at
+runtime, like so::
+
+    from django.conf.urls.defaults import*
+    from django.conf import settings
+
+    urlpatterns = patterns('',
+        (r'^$', 'mysite.views.homepage'),
+        (r'^(\d{4})/([a-z]{3})/$', 'mysite.views.archive_month'),
+    )
+
+    if settings.DEBUG:
+        urlpatterns += patterns('',
+            (r'^debuginfo$', 'mysite.views.debug'),
+        )
+
+In this example, the URL ``/debuginfo/`` will only be available if your
+``DEBUG`` setting is set to ``True``.
 
 Named groups
 ------------
@@ -182,6 +213,14 @@ function as a positional argument. In more advanced usage, it's possible to use
         sell(price='$2.50', quantity=6, item='Socks')
         sell(quantity=6, item='Socks', price='$2.50')
         sell(quantity=6, price='$2.50', item='Socks')
+
+    Finally, you can mix keyword and positional arguments, as long as all
+    positional arguments are listed before keyword arguments. The following
+    statements are equivalent to the previous examples::
+
+        sell('Socks', '$2.50', quantity=6)
+        sell('Socks', price='$2.50', quantity=6)
+        sell('Socks', quantity=6, price='$2.50')
 
 In Python regular expressions, the syntax for named regular-expression groups
 is ``(?P<name>pattern)``, where ``name`` is the name of the group and
@@ -231,21 +270,27 @@ the captured parameters in the URL would have no effect on the view.
 Of course, the benefits of named groups come at the cost of brevity; some
 developers find the named-group syntax ugly and too verbose.
 
+Still, another advantage of named groups is readability, especially by those
+who aren't intimately familiar with regular expressions or your particular
+Django application. It's easier to see what's happening, at a glance, in a
+URLconf that uses named groups.
+
 The matching/grouping algorithm
 -------------------------------
 
-If you use both named and non-named groups in the same pattern in your URLconf,
-you should be aware of how Django treats this special case. Here's the
-algorithm the URLconf parser follows, with respect to named groups vs.
-non-named groups in a regular expression:
+A caveat with using named groups in a URLconf is that a single URLconf pattern
+cannot contain both named and non-named groups. If you do this, Django won't
+throw any errors, but you'll probably find that your URLs aren't matching as
+you expect. Specifically, here's the algorithm the URLconf parser follows, with
+respect to named groups vs. non-named groups in a regular expression:
 
     * If there are any named arguments, it will use those, ignoring non-named
       arguments.
 
     * Otherwise, it will pass all non-named arguments as positional arguments.
 
-    * In both cases, it will pass any extra keyword arguments as keyword
-      arguments. See "Passing extra options to view functions" below.
+    * In both cases, it will pass any extra options as keyword arguments. See
+      "Passing extra options to view functions" below.
 
 Passing extra options to view functions
 ---------------------------------------
@@ -309,9 +354,9 @@ The problem with that solution, though, is that it couples your URLs to your
 code. If you decide to rename ``/foo/`` to ``/fooey/``, you'll have to remember
 to change the view code.
 
-The elegant solution involves a feature called extra URLconf options. Each
-pattern in a URLconf may include a third item -- a dictionary of keyword
-arguments to pass to the view function.
+The elegant solution involves an optional URLconf parameter. Each pattern in a
+URLconf may include a third item -- a dictionary of keyword arguments to pass
+to the view function.
 
 With this in mind, we can rewrite our ongoing example like this::
 
@@ -535,8 +580,8 @@ to ``3``, regardless of the value captured in the URL.
 
 Astute readers will note that in this case, it's a waste of time and typing to
 capture the ``id`` in the regular expression, because its value will always be
-overridden by the dictionary's value. Those astute readers would be correct. We
-bring this up only to help you avoid making the mistake.
+overridden by the dictionary's value. That's correct; we bring this up only to
+help you avoid making the mistake.
 
 Using default view arguments
 ----------------------------
@@ -570,7 +615,7 @@ value was captured by the regex.
 
 It's common to use this technique in conjunction with configuration options,
 as explained above. This example makes a slight improvement to the example in
-the `Giving a view configuration options`_ section by providing a default
+the "Giving a view configuration options" section by providing a default
 value for ``template_name``::
 
     def my_view(request, template_name='mysite/my_view.html'):
@@ -694,6 +739,9 @@ view function to perform branching based on request method.
 Including other URLconfs
 ========================
 
+If you intend your code to be used on multiple Django-based sites, you should
+consider arranging your URLconfs in such a way that allows for "including."
+
 At any point, your URLconf can "include" other URLconf modules. This
 essentially "roots" a set of URLs below other ones.
 
@@ -769,7 +817,7 @@ included URLconf and, hence, to *every* view function within that URLconf.
 Note that the captured parameters will *always* be passed to *every* line in
 the included URLconf, regardless of whether the line's view actually accepts
 those parameters as valid. For this reason, this technique is only useful if
-you're certain that every view in the the included URLconf accepts the
+you're certain that every view in the included URLconf accepts the
 parameters you're passing.
 
 How extra URLconf options work with ``include()``
@@ -821,13 +869,18 @@ Set two::
         (r'^rss/$', 'mysite.views.rss', {'blogid': 3}),
     )
 
-Note that extra options will *always* be passed to *every* line in the included
+As is the case with captured parameters (explained in the previous section),
+extra options will *always* be passed to *every* line in the included
 URLconf, regardless of whether the line's view actually accepts those options
 as valid. For this reason, this technique is only useful if you're certain that
 every view in the the included URLconf accepts the extra options you're passing.
 
-View tricks
-===========
+What's next?
+============
 
-This chapter is not yet finished. What else would you like to see? Leave a
-comment on this paragraph and let us know! Interaction is cool.
+One of Django's main goals is to cut down on the amount of code developers need
+to write -- and in this chapter, we suggested how to cut down on the code of
+your views and URLconfs.
+
+The next logical step in code elimination is removing the need to write views
+entirely! That's what we'll cover in the next chapter, "Generic views."
