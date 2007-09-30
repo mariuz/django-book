@@ -8,7 +8,7 @@ piece of the puzzle: building views that take input from readers.
 
 We'll start by making a simple search form "by hand" and looking at how to
 handle data submitted from the browser, and move from there to using Django's
-form and "manipulator" frameworks.
+forms framework.
 
 Search
 ======
@@ -19,28 +19,32 @@ Nearly every site sees a large percentage of traffic coming to and from its
 search pages. Often the difference between the success or failure of a site is
 the quality of its search.
 
-So it looks like we'd better add some searching to our fledgling crime site,
+So it looks like we'd better add some searching to our fledgling books site,
 no?
 
 We'll start with by adding the search view to our URLconf
-(``mysite.crimes.urls``). Recall that this means adding something like ``
+(``mysite.books.urls``). Recall that this means adding something like ``
 (r'^search/$', 'search')`` to the set of URL patterns.
 
 Next, we'll write this ``search`` view into our view module
-(``mysite.crimes.views``)::
+(``mysite.books.views``)::
 
     from django.db.models import Q
 
     def search(request):
         query = request.GET.get('q', '')
         if query:
-            qset = Q(location__icontains=query) | Q(type__name__icontains=query)
-            results = Crime.objects.filter(qset)
+            qset = (
+                Q(title__icontains=query) |
+                Q(authors__first_name__icontains=query) |
+                Q(authors__last_name__icontains=query)
+            )
+            results = Book.objects.filter(qset).distinct()
         else:
             results = []
-        return render_to_response("crimes/search.html", {
+        return render_to_response("books/search.html", {
             "results": results,
-            "query": q
+            "query": query
         })
 
 There's a couple of things going on here you've not seen yet.
@@ -61,8 +65,8 @@ features covered in Appendix H.
     ``/crimes/search/`` using the GET method.
 
     There are important differences between the semantics of GET and POST that
-    we won't get into right now, but see XXX SOME REFERENCE XXX if you want
-    to know more.
+    we won't get into right now, but see 
+    http://www.w3.org/2001/tag/doc/whenToUseGet.html if you want to know more.
 
 So the line::
 
@@ -72,13 +76,17 @@ looks for a GET parameter named ``q`` and returns an empty string if that
 parameter wasn't submitted.
 
 Second, what about this ``Q`` business? ``Q`` objects are used to build up
-complex queries -- in this case, we're searching for any crimes with a
-location that matches the query or a type that matches. This lets someone
-search for either a street name or a crime type and "does the right thing" in
-each circumstance.
+complex queries -- in this case, we're searching for any books where either the 
+title or the name of one of the authors matches the search query.
 
 Technically, these ``Q`` objects comprise a **QuerySet**, and you can read
-more about them in Appendix C.
+more about them in Appendix C. ``icontains`` is a case-insensitive search which
+uses the SQL ``LIKE`` operator in the underlying database.
+
+Since we are searching against a many to many field, it's possible for the same 
+book to be returned more than once by the query (for example, a book with two 
+authors who both match the search query). Adding ``.distinct()`` to the filter 
+lookup eliminates any duplicate results.
 
 There's still no template for this search view, however. This should do the
 trick::
@@ -86,13 +94,14 @@ trick::
     {% extends "base.html" %}
 
     {% block title %}
-      Search {% if query %}Results{% endif %}
+      Search{% if query %} Results{% endif %}
     {% endblock %}
 
     {% block content %}
       <form action="." method="GET">
         <label for="q">Search: </label>
         <input type="text" name="q" value="{{ query|escape }}">
+        <input type="submit" value="Search">
       </form>
 
       {% if query %}
@@ -100,12 +109,12 @@ trick::
 
         {% if results %}
           <ul>
-          {% for crime in results %}
-            <li>{{ crime }}</l1>
+          {% for book in results %}
+            <li>{{ book }}</l1>
           {% endfor %}
           </ul>
         {% else %}
-          <p>No crimes found</p>
+          <p>No books found</p>
         {% endif %}
       {% endif %}
     {% endblock %}
@@ -137,420 +146,458 @@ Now we've got working search. A further improvement would be putting a search
 form on every page (i.e. in the base template); we'll let you handle that one
 yourself.
 
-User-submitted content
-======================
+Next, we'll look at a more complex example. But before we do, let's discuss
+a more abstract topic: the Perfect Form.
 
-Search is great all, but what about letting users submit crimes themselves?
-After all, the great innovation of the so-called "Web 2.0" movement is the
-realization of the read-write Web.
+The Perfect Form
+================
 
-.. admonition:: Dear O'Reilly:
+Forms can often be a major cause of frustration for the users of your site.
+Let's consider the behaviour of a hypothetical perfect form.
 
-    Please don't sue us. we mean the "other" Web 2.0, not the one you
-    trademarked.
+    1. It should ask the user for some information, obviously. Accessibility
+       and usability matter here, so smart use of the HTML ``<label>`` element 
+       and useful contextual help are important.
 
-So why not build a form that lets readers submit their own data? Since this is
-just a tutorial, we'll pretend there aren't any problems with this idea and
-forge ahead with a submission view.
+    2. The submitted data should be subjected to extensive validation. The 
+       golden rule of web application security is "never trust incoming data",
+       so validation is essential.
 
-To do that, we'll need to dive into the wild and wooly world of
-manipulators...
+    3. If the user has made any mistakes, the form should be redisplayed with
+       detailed, informative error messages. Their original data should be 
+       pre-filled, to save them from having to re-enter everything.
 
-.. admonition:: A note to the lazy
+    4. The form should continue to redisplay until all of the fields have 
+       been correctly filled.
 
-    If all you want to do is present forms for a user to create and/or
-    update a given object, you can probably use generic views (see
-    Chapter 8).  As with the last chapter, this information is here
-    so that you can understand how this stuff works before moving onto
-    more complex topics.
+Constructing the perfect form seems like a lot of work! Thankfully, Django's 
+forms framework is designed to do most of the work for you. You provide a 
+description of the form's fields, validation rules and a simple template; 
+Django does the rest. The result is "perfect" forms with very little effort.
 
-Manipulators
-============
+Creating a feedback form
+========================
 
-.. The content from here on down comes from Django's forms.txt doc
+The best way to build a site that people love is to listen to their feedback. 
+Many sites appear to have forgotten this; they hide their contact details 
+behind layers of FAQs, and seem to make it as difficult as possible to get in
+touch with an actual human being.
 
-The highest-level interface for object creation and modification is the
-**Manipulator** framework. A manipulator is a utility class tied to a given
-model that "knows" how to create or modify instances of that model and how to
-validate data for the object.
+When your site has millions of users, this may be a reasonable strategy. When 
+you're trying to build up an audience though you should actively encourage 
+feedback at every opportunity. Let's build a simple feedback form, and use it 
+to illustrate Django's forms framework in action.
 
-Manipulators come in two flavors: ``AddManipulators`` and
-``ChangeManipulators``. Functionally they are quite similar, but the former
-knows how to create new instances of the model, while the later modifies
-existing instances. Both types of classes are automatically created when you
-define a new class::
+We'll start by defining our Form. Forms in Django are created in a similar way 
+to models: declaratively, using a Python class. Here's the class for our simple
+form; by convention, we'll insert it in to a new ``forms.py`` file within our 
+application directory::
 
-    >>> from mysite.crrimes.models import Crime
-    >>> Crime.AddManipulator
-    <class 'django.models.manipulators.AddManipulator'>
-    >>> Crime.ChangeManipulator
-    <class 'django.models.manipulators.ChangeManipulator'>
+    from django import newforms as forms
+    
+    TOPIC_CHOICES = (
+        ('general', 'General enquiry'),
+        ('bug', 'Bug report'),
+        ('suggestion', 'Suggestion'),
+    )
+    
+    class ContactForm(forms.Form):
+        topic = forms.ChoiceField(choices=TOPIC_CHOICES)
+        message = forms.CharField()
+        sender = forms.EmailField(required=False)
 
-Using the ``AddManipulator``
-----------------------------
+A Django form is a subclass of ``django.forms.Form``, just like a Django model 
+is a subclass of ``django.db.models.Model``. The ``django.forms`` module also 
+contains a number of Field classes; a full list is available in Django's 
+documentation.
 
-We'll start with the ``AddManipulator``.  Here's a very simple view that takes
-POSTed data from the browser and creates a new ``Crime`` object::
+Our ``ContactForm`` consists of three fields: a topic, which is a choice from 
+three options; a message, which is a character field, and a sender, which is an 
+e-mail field and is optional (even anonymous feedback can be useful). There are
+a number of other field types available, and you can write your own if they
+don't cover your needs.
 
-    from django import forms
-    from django.http import HttpResponse
+TODO: We probably need an appendix that details the available form fields and
+widgets. We should reference that appendix here.
+
+The form object itself knows how to do a number of useful things. It can 
+validate a collection of data, it can generate its own HTML "widgets", it can 
+construct a set of useful error messages and, if we're feeling lazy, it can 
+even draw the entire form for us. Let's hook it in to a view and see it in 
+action. In ``views.py``::
+
     from django.shortcuts import render_to_response
-    from mysite.crrimes.models import Crime
+    from forms import ContactForm
+    
+    def contact(request):
+        form = ContactForm()
+        return render_to_response('contact.html', {'form': form})
 
-    def naive_create_crime(request):
-        """
-        A naive approach to creating crimes; don't actually use this!
-        """
+And in ``contact.html``::
 
-        # Create the AddManipulator.
-        manipulator = Crime.AddManipulator()
+    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+    <html lang="en">
+    <head>
+        <title>Contact us</title>
+    </head>
+    <body>
+        <h1>Contact us</h1>
+        <form action="." method="POST">
+            <table>
+                {{ form.as_table }}
+            </table>
+            <p><input type="submit" value="Submit"></p>
+        </form>
+    </body>
+    </html>
 
-        # Make a copy of the POSTed data so that do_html2python can
-        # modify it in place (request.POST is immutable).
-        new_data = request.POST.copy()
+The most interesting line here is ``{{ form.as_table }}``. ``form`` is our
+ContactForm instance, as passed to ``render_to_response``. ``as_table`` is a
+method on that object which renders the form as a sequence of table rows
+(``as_ul`` and ``as_p`` can also be used). The generated HTML looks like this::
 
-        # Convert the request data (which will all be strings) into the
-        # appropriate Python types for those fields.
-        manipulator.do_html2python(new_data)
+    <tr>
+        <th><label for="id_topic">Topic:</label></th>
+        <td>
+            <select name="topic" id="id_topic">
+                <option value="general">General enquiry</option>
+                <option value="bug">Bug report</option>
+                <option value="suggestion">Suggestion</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="id_message">Message:</label></th>
+        <td><input type="text" name="message" id="id_message" /></td>
+    </tr>
+    <tr>
+        <th><label for="id_sender">Sender:</label></th>
+        <td><input type="text" name="sender" id="id_sender" /></td>
+    </tr>
 
-        # Save the new object.
-        new_crime = manipulator.save(new_data)
+Note that the ``<table>`` and ``<form>`` tags are not included; you need to 
+define those yourself in the template, which gives control over how the form 
+behaves when it is submitted. Label elements *are* included, making forms
+accessible out of the box.
 
-        # It worked!
-        return HttpResponse("Crime created: %s" % new_crime)
+Our form is currently using a ``<input type="text">`` widget for the message
+field. We don't want to restrict our users to a single line of text, so we'll
+swap in a textarea widget instead:
 
-The ``naive_create_crime`` example works, but as you probably can tell, this
-view has a number of problems:
+.. parsed-literal::
+    
+    class ContactForm(forms.Form):
+        topic = forms.ChoiceField(choices=TOPIC_CHOICES)
+        message = forms.CharField(**widget=forms.Textarea()**)
+        sender = forms.EmailField(required=False)
 
-    * No validation of any sort is performed. If, for example, the ``name``
-      field isn't given in ``request.POST``, the save step will cause a
-      database error because that field is required. Ugly.
+The forms framework separates out the presentation logic for each field in to a
+set of widgets; each field type has a default widget but you can easily override
+the default, or provide a custom widget of your own.
 
-    * Even if you *do* perform validation, there's still no way to give that
-      information to the user in any sort of useful way.
+At the moment, submitting the form doesn't actually do anything. Let's hook in
+our validation rules::
 
-    * You'll have to separately create a form (and view) that submits to this
-      page, which is a pain and is redundant.
-
-Let's dodge these problems momentarily to take a look at how you could create
-a view with a form that submits to this flawed creation view::
-
-    def naive_create_crime_form(request):
-        """
-        Simplistic place form view; don't actually use anything like this!
-        """
-
-        # Create a FormWrapper object that the template can use. Ignore
-        # the last two arguments to FormWrapper for now.
-        form = forms.FormWrapper(Crime.AddManipulator(), {}, {})
-        return render_to_response('crimes/naive_create_form.html', {
-            'form': form}
-        )
-
-(This view, as well as all the following ones, has the same imports as in the
-first example above.)
-
-The ``forms.FormWrapper`` object is a wrapper that templates can easily deal
-with to create forms. Here's the ``naive_create_form.html`` template::
-
-    {% extends "base.html" %}
-
-    {% block content %}
-    <h1>Create a crime:</h1>
-
-    <form method="post" action="../do_new/">
-    <p><label for="id_type">Type:</label> {{ form.type }}</p>
-    <p><label for="id_location">Address:</label> {{ form.location }}</p>
-    <p><label for="id_when_date">Crime date:</label> {{ form.when_date }}</p>
-    <p><label for="id_when_time">Crime time:</label> {{ form.when_time }}</p>
-    <input type="submit" />
-    </form>
-    {% endblock %}
-
-Before we get back to the problems with these naive set of views, let's go
-over some salient points of the above template::
-
-    * Field "widgets" are handled for you: ``{{ form.field }}`` automatically
-      creates the "right" type of widget for the form, as you can see with the
-      ``place_type`` field above.
-
-    * Django automatically notices that the ``type`` field is a relation, and
-      uses a ``<select>`` form with all the available crime types.
-
-    * DateTime widgets use two fields -- ``field_date`` and ``field_time``.
-
-    * There isn't a way just to spit out the form. You'll still need to define
-      how the form gets laid out.
-
-      *This is a feature*; Every form should be designed differently. Django
-      doesn't force you into any type of mold. If you must use tables, use
-      tables. If you're a semantic purist, you can probably find better HTML
-      than in the above template.
-
-    * To avoid name conflicts, the ``id``s of form elements take the form
-      "id_*fieldname*".
-
-By creating a creation form we've solved problem number 3 above, but we still
-don't have any validation. Let's revisit the validation issue by writing a new
-creation view that takes validation into account::
-
-    def create_crime_with_validation(request):
-        manipulator = Crime.AddManipulator()
-        new_data = request.POST.copy()
-
-        # Check for validation errors
-        errors = manipulator.get_validation_errors(new_data)
-        if errors:
-            return render_to_response('places/errors.html', {
-                'errors': errors
-            })
+    def contact(request):
+        if request.method == 'POST':
+            form = ContactForm(request.POST)
         else:
-            manipulator.do_html2python(new_data)
-            new_crime = manipulator.save(new_data)
-            return HttpResponse("Crime created: %s" % new_crime)
+            form = ContactForm()
+        return render_to_response('contact.html', {'form': form})
 
-In this new version, errors will be found --
-``manipulator.get_validation_errors`` handles all the validation for you --
-and those errors can be nicely presented on an error page (templated, of
-course)::
+A form instance can be in one of two states: *bound* or *unbound*. A bound
+instance is attached to a dictionary (or dictionary-like object), and knows how
+to validate and redisplay the data from it. An unbound form has no data
+associated with it and simply knows how to display itself.
 
-    {% extends "base.html" %}
+Try hitting "submit" on the blank form; the page should redisplay showing a
+validation error, informing us that our message field is required:
 
-    {% block content %}
-    <h1>Please go back and correct your error{{ errors|pluralize }}:</h1>
-    <ul>
-        {% for e in errors.items %}
-        <li>Field "{{ e.0 }}": {{ e.1|join:", " }}</li>
-        {% endfor %}
-    </ul>
-    {% endblock %}
+[screenshot of validation error]
 
-This still has problems:
+Try entering an invalid e-mail address as well; the EmailField knows how to
+validate e-mail addresses, at least to a reasonable level of doubt.
 
-    * There's still the issue of creating a separate (redundant) view for the
-      submission form.
+.. admonition:: Setting initial data
 
-    * Errors, though nicely presented, are on a separate page, so the user
-      will have to use the "back" button to fix errors. That's so unusable
-      it's ridiculous..
+    Passing data directly to the form constructor binds that data and indicates 
+    that validation should be performed. Often though we need to display an 
+    initial form with some of the fields pre-filled; for example, an "edit"
+    form. We can do this with the ``initial`` keyword argument::
+    
+        form = CommentForm(initial={'sender': 'user@example.com'})
+    
+    If our form will *always* use the same default values, we can configure 
+    them in the form definition itself::
+    
+        message = forms.CharField(initial="Replace with your feedback")
 
-The best way to deal with these issues is to collapse the two views -- the
-form and the submission -- into a single view. This view will be responsible
-for creating the form, validating POSTed data, and creating the new object (if
-the data is valid). An added bonus of this approach is that errors and the
-form will both be available on the same page, so errors with fields can be
-presented in context.
+Processing the submission
+=========================
 
-.. admonition:: Philosophy:
+Once the user has filled the form to the point that it passes our validation 
+rules, we need to do something useful with the data. In this case, we want to 
+construct and send an e-mail containing their feedback. We'll use Django's 
+mail package to do this.
 
-    Finally, for the HTTP purists in the audience (and authorship), this
-    nicely matches the "true" meanings of HTTP GET and HTTP POST: GET fetches
-    the form, and POST creates the new object.
+First though, we need to tell if the data is indeed valid, and if it is we need
+access to the validated data. The forms framework does more than just validate
+the data; it also converts it in to Python types. Our contact form only deals
+with strings, but if we were to use an ``IntegerField`` or ``DateTimeField`` the
+forms framework would ensure that we got back a Python integer or ``datetime``
+object respectively.
 
-Here's the collapsed and combined view::
+To tell if a form is bound to valid data, call the ``is_valid()`` method::
 
-    def create_place(request):
-        """
-        Create a new crime object.
-        """
+    form = ContactForm(request.POST)
+    if form.is_valid():
+        # Process form data
 
-        manipulator = Crime.AddManipulator()
+Now we need access to the data. We could pull it straight out of
+``request.POST``, but if we did we'd miss out on the type conversions performed
+by the forms framework. Instead, we use ``form.cleaned_data``::
 
-        if request.POST:
-            # If data was POSTed, we're trying to create a new Place.
-            new_data = request.POST.copy()
+    if form.is_valid():
+        topic = form.cleaned_data['topic']
+        message = form.cleaned_data['message']
+        sender = form.cleaned_data['sender']
+        # ...
 
-            # Check for errors.
-            errors = manipulator.get_validation_errors(new_data)
+Finally, we need to record the user's feedback. The easiest way to do this is to
+e-mail it to a site administrator; we can do that using the ``send_mail``
+function::
 
-            if not errors:
-                # No errors. This means we can save the data!
-                manipulator.do_html2python(new_data)
-                new_place = manipulator.save(new_data)
-
-                # Redirect to the object's "edit" page. Always use a redirect
-                # after POST data, so that reloads don't accidently create
-                # duplicate entires, and so users don't see the confusing
-                # "Repost POST data?" alert box in their browsers.
-                #
-                # This assumes that the creation page is at <prefix>/create/
-                # and the edit page is at <prefix>/edit/<id>/
-                return HttpResponseRedirect("../edit/%s/" % new_crime.id)
-        else:
-            # No POST, so we want a brand new form without any data or errors.
-            errors = new_data = {}
-
-        # Create the FormWrapper, template, context, response.
-        form = forms.FormWrapper(manipulator, new_data, errors)
-        return render_to_response('crimes/create_form.html', {
-            'form': form
-        })
-
-and here's the ``create_form.html`` template::
-
-    {% extends "base.html" %}
-
-    {% block content %}
-    <h1>Create a crime:</h1>
-
-    {% if form.has_errors %}
-      <h2>Please correct your error{{ form.error_dict|pluralize }}:</h2>
-    {% endif %}
-
-    <form method="post" action=".">
-    <p>
-      <label for="id_type">Type:</label> {{ form.name }}
-      {% if form.type.errors %}*** {{ form.type.errors|join:", " }}{% endif %}
-    </p>
-    <p>
-      <label for="id_location">Location:</label> {{ form.location }}
-      {% if form.location.errors %}*** {{ form.location.errors|join:", " }}{% endif %}
-    </p>
-    <p>
-      <label for="id_when_date">Date:</label> {{ form.when_date }}
-      <label for="id_when_time">Time:</label> {{ form.when_time }}
-      {% if form.when.errors %}*** {{ form.when.errors|join:", " }}{% endif %}
-    </p>
-    <input type="submit" />
-    </form>
-    {% endblock %}
-
-The second two arguments to ``FormWrapper`` (``new_data`` and ``errors``)
-deserve some mention.
-
-The first is any "default" data to be used as values for the fields. Pulling
-the data from ``request.POST``, as is done above, makes sure that if there are
-errors, the values the user put in aren't lost. If you try the above example,
-you'll see this in action.
-
-The second argument is the error list retrieved from
-``manipulator.get_validation_errors``. When passed into the ``FormWrapper``,
-this gives each field an ``errors`` item (which is a list of error messages
-associated with the field) as well as a ``html_error_list`` item, which is a
-``<ul>`` of error messages. The above template uses these error items to
-display a simple error message next to each field. The error list is saved as
-an ``error_dict`` attribute of the ``FormWrapper`` object.
-
-Using the ``ChangeManipulator``
--------------------------------
-
-The above has covered using the ``AddManipulator`` to create a new object.
-What about editing an existing one? It's shockingly similar to creating a new
-one::
-
-    def edit_crime(request, crime_id):
-        # Get the place in question from the database and create a
-        # ChangeManipulator at the same time.
-        try:
-            manipulator = Crime.ChangeManipulator(crime_id)
-        except Crime.DoesNotExist:
-            raise Http404
-
-        # Grab the Crime object in question for future use.
-        crime = manipulator.original_object
-
-        if request.POST:
-            new_data = request.POST.copy()
-            errors = manipulator.get_validation_errors(new_data)
-            if not errors:
-                manipulator.do_html2python(new_data)
-                manipulator.save(new_data)
-
-                # Do a post-after-redirect to this edit page so
-                # that reload works, etc.
-                return HttpResponseRedirect(".")
-        else:
-            errors = {}
-            # This makes sure the form accurate represents the
-            # fields of the place.
-            new_data = place.__dict__
-
-        form = forms.FormWrapper(manipulator, new_data, errors)
-        return render_to_response('crimes/edit_form.html', {
-            'form': form,
-            'crime': crime
-        })
-
-The only real differences are:
-
-    * We create a ``ChangeManipulator`` instead of an ``AddManipulator``. The
-      argument to a ``ChangeManipulator`` is the ID of the object to be
-      changed. As you can see, the initializer will raise an
-      ``ObjectDoesNotExist`` exception if the ID is invalid.
-
-    * ``ChangeManipulator.original_object`` stores the instance of the object
-      being edited.
-
-    * We set ``new_data`` to the original object's ``__dict__``. This makes
-      sure the form fields contain the current values of the object.
-      ``FormWrapper`` does not modify ``new_data`` in any way, and templates
-      cannot, so this is perfectly safe.
-
-    * The above example uses a different template, so create and edit can be
-      "skinned" differently if needed, but the form chunk itself is completely
-      identical to the one in the create form above.
-
-The astute programmer will notice the add and create functions are nearly
-identical and could in fact be collapsed into a single view. This is left as
-an exercise for said programmer.
-
-(However, the even-more-astute programmer will take heed of the note to the
-lazy above and check out the generic views documentation in the next chapter
-if all she wishes to do is this type of simple create/update.)
-
-Custom forms and manipulators
-=============================
-
-All the above is fine and dandy if you just want to use the automatically
-created manipulators. But the coolness doesn't end there: You can easily
-create your own custom manipulators for handling custom forms.
-
-Custom manipulators are pretty simple. Here's a manipulator that you might use
-for a "contact" form for this website::
-
-    from django import forms
-
-    urgency_choices = (
-        (1, "Extremely urgent"),
-        (2, "Urgent"),
-        (3, "Normal"),
-        (4, "Unimportant"),
+    from django.core.mail import send_mail
+    
+    if not sender:
+        sender = 'noreply@example.com'
+    send_mail(
+        'Feedback from your site, topic: %s' % topic,
+        message, sender,
+        ['administrator@example.com']
     )
 
-    class ContactManipulator(forms.Manipulator):
-        def __init__(self):
-            self.fields = (
-                forms.EmailField(field_name="from", is_required=True),
-                forms.TextField(field_name="subject", length=30,
-                                maxlength=200, is_required=True),
-                forms.SelectField(field_name="urgency",
-                                  choices=urgency_choices),
-                forms.LargeTextField(field_name="contents", is_required=True),
-            )
+The ``send_mail`` function has four required arguments: the e-mail subject, the
+e-mail body, the "from" address and a list of recipient addresses. ``send_mail``
+is a convenient wrapper around Django's ``EmailMessage`` class, which provides
+advanced features such as attachments, multi-part e-mails and full control over
+e-mail headers.
 
-A certain similarity to Django's models should be apparent. The only required
-method of a custom manipulator is ``__init__`` which must define the fields
-present in the manipulator. See the ``django.forms`` module for all the form
-fields provided by Django.
+Having sent the feedback e-mail, we'll redirect our user to a static
+confirmation page. The finished view function looks like this::
 
-You use this custom manipulator exactly as you would use an auto-generated
-one. Here's a simple function that might drive the above form::
-
-    def contact_form(request):
-        manipulator = ContactManipulator()
-        if request.POST:
-            new_data = request.POST.copy()
-            errors = manipulator.get_validation_errors(new_data)
-            if not errors:
-                manipulator.do_html2python(new_data)
-
-                # Send e-mail using new_data here...
-
-                return HttpResponseRedirect("/contact/thankyou/")
+    from django.http import HttpResponseRedirect
+    from django.shortcuts import render_to_response
+    from django.core.mail import send_mail
+    from forms import ContactForm
+    
+    def contact(request):
+        if request.method == 'POST':
+            form = ContactForm(request.POST)
+            if form.is_valid():
+                topic = form.cleaned_data['topic']
+                message = form.cleaned_data['message']
+                sender = form.cleaned_data['sender']
+                if not sender:
+                    sender = 'noreply@example.com'
+                send_mail(
+                    'Feedback from your site, topic: %s' % topic,
+                    message, sender,
+                    ['administrator@example.com']
+                )
+                return HttpResponseRedirect('/contact/thanks/')
         else:
-            errors = new_data = {}
-        form = forms.FormWrapper(manipulator, new_data, errors)
-        return render_to_response('contact_form.html', {'form': form})
+            form = ContactForm()
+        return render_to_response('contact.html', {'form': form})
+
+.. admonition:: Redirect after POST
+
+    If a user hits "refresh" on a page that was displayed by a POST request, 
+    that request will be repeated. This can often lead to undesired behaviour, 
+    such as a duplicate record being added to the database. Redirect after 
+    POST is a useful pattern that can help avoid this scenario; after a 
+    successful POST has been processed, redirect the user to another page 
+    rather than returning HTML directly. In Django, this is achieved using 
+    the HttpResponseRedirect class.
+
+Custom validation rules
+=======================
+
+Imagine we've launched our feedback form, and the e-mails have started tumbling
+in. There's just one problem: some of the e-mails are just one or two words;
+hardly enough for a detailed missive. We decide to adopt a new validation
+policy: four words or more, please!
+
+(Sure, this is a contrived example - but custom validation is an important
+subject!)
+
+There are a number of ways to hook custom validation in to a Django form. If our
+rule is something we will reuse again and again, we can create a custom field
+type. Most custom validations are one-off affairs though, and can be directly to
+the form class.
+
+We want additional validation on the ``message`` field, so we need to add a
+``clean_message`` method to our form::
+
+    class ContactForm(forms.Form):
+        topic = forms.ChoiceField(choices=TOPIC_CHOICES)
+        message = forms.CharField(widget=forms.Textarea())
+        sender = forms.EmailField(required=False)
+
+        def clean_message(self):
+            message = self.cleaned_data.get('message', '')
+            num_words = len(message.split())
+            if num_words < 4:
+                raise forms.ValidationError, "Not enough words!"
+            return message
+
+This new method will be called after the default field validator (in this case
+the validator for a required CharField). Since the field data has already been
+partially processed, we need to pull it out of the form's ``cleaned_data``
+dictionary.
+
+We use a combination of ``len()`` and ``split()`` to count the number of words.
+If the user has entered too few words, we raise a ``ValidationError``. The
+string attached to this exception will be displayed to the user as an item in
+the error list.
+
+It is important that we explicitly return the value for the field at the end of
+the method. This allows us to modify the value (or convert it to a different
+Python type) within our custom validation method; if we forget the return
+statement then ``None`` will be returned and the original value will be lost.
+
+A custom look and feel
+======================
+
+The quickest way to customize the form's presentation is with CSS. The list of
+errors in particular could do with some visual enhancement, and the ``<ul>`` has
+a class attribute of ``errorlist`` for that exact purpose. The following CSS
+really makes our errors stand out::
+
+    <style type="text/css">
+    ul.errorlist {
+        margin: 0;
+        padding: 0;
+    }
+    .errorlist li {
+        background-color: red;
+        color: white;
+        display: block;
+        font-size: 10px;
+        margin: 0 0 3px;
+        padding: 4px 5px;
+    }
+    </style>
+
+While it's very convenient to have our form's HTML generated for us, in many
+cases the default rendering won't be right for our application. ``{{
+form.as_table }}`` and friends are useful shortcuts while we develop our
+application but everything about the way a form is displayed can be over-ridden,
+mostly within the template itself.
+
+Each field widget (``<input type="text">``, ``<select>``, ``<textarea>`` or
+similar) can be rendered individually by accessing ``{{ form.fieldname }}``. Any
+errors associated with a field are available as ``{{ form.fieldname.errors }}``.
+We can use these form variables to construct a custom template for our contact
+form::
+
+    <form action="." method="POST">
+        <div class="fieldWrapper">
+            {{ form.topic.errors }}
+            <label for="id_topic">Kind of feedback:</label>
+            {{ form.topic }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.message.errors }}
+            <label for="id_message">Your message:</label>
+            {{ form.message }}
+        </div>
+        <div class="fieldWrapper">
+            {{ form.sender.errors }}
+            <label for="id_sender">Your e-mail (optional):</label>
+            {{ form.sender }}
+        </div>
+        <p><input type="submit" value="Submit"></p>
+    </form>
+
+``{{ form.message.errors }}`` will display as a ``<ul class="errorlist">`` if
+errors are present, and a blank string if the field is valid (or the form is
+unbound). We can also treat ``form.message.errors`` as a boolean or even iterate
+over it as a list, for example::
+
+    <div class="fieldWrapper{% if form.message.errors %} errors{% endif %}">
+        {% if form.message.errors %}
+            <ol>
+            {% for error in form.message.errors %}
+                <li><strong>{{ error|escape }}</strong></li>
+            {% endfor %}
+            </ol>
+        {% endif %}
+        {{ form.message }}
+    </div>
+
+In the case of validation errors, this will add an "errors" class to the
+containing ``<div>`` and display the list of errors in an ordered list.
+
+Creating forms from models
+==========================
+
+Let's build something a little more interesting: a form that submits a new
+Publisher to our book application from chapter 5.
+
+An important rule of thumb in software development that Django tries to adhere
+to is **Don't Repeat Yourself**, abbreviated to **DRY**. Andy Hunt and Dave
+Thomas in *The Pragmatic Programmer* define this as follows:
+
+    Every piece of knowledge must have a single, unambiguous, authoritative 
+    representation within a system.
+
+Our Publisher model class says that a publisher has a name, address, city,
+state_province, country and website. Duplicating this information in a form
+definition would break the DRY rule.
+
+Instead, we can use a useful shortcut: ``form_for_model()``::
+
+    from models import Publisher
+    from django.forms import form_for_model
+    
+    PublisherForm = form_for_model(Publisher)
+
+``PublisherForm`` is a ``Form`` sub-class, just like the ``ContactForm`` class
+we created manually earlier on. We can use it in much the same way::
+
+    def add_publisher(request):
+        if request.method == 'POST':
+            form = PublisherForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect('/')
+        else:
+            form = PublisherForm()
+        return render_to_response('add_publisher.html', {'form': form})
+
+The ``add_publisher.html`` file is almost identical to our original
+``contact.html`` template, so has been omitted.
+
+There's one more shortcut being demonstrated here. Since forms derived from
+models are often used to save new instances of the model to the database, the
+form class created by ``form_for_model`` includes a convenient ``save()``
+method. This deals with the common case; you're welcome to ignore it if you want
+to do something a bit more involved with the submitted data.
+
+``form_for_instance()`` is a related method which can create a pre-initialised
+form from an instance of a model class. This is useful for creating "edit"
+forms.
+
+.. admonition:: A subset of fields
+
+    You may not want all of a model's fields to be exposed in a form: for 
+    example, if some of the fields deal with bookkeeping information such as 
+    the creation time and author of the record. You can use the optional 
+    ``fields`` argument to ``form_for_model`` to limit the fields included in 
+    the form to a subset::
+    
+        PublisherForm = form_for_model(Publisher, fields=('name', 'address'))
 
 What's next?
 ============
@@ -572,7 +619,7 @@ Some possible directions you might travel in:
       be replaced with code 90% shorter, read the next chapter about
       generic views.
 
-    * If you want to learn about how to send email, generate RSS, PDFs,
+    * If you want to learn more about how to send e-mail, generate RSS, PDFs,
       images, and other non-HTML content, skip to Chapter 10.
 
     * If you'd like to find out about all the other "goodies" that Django
