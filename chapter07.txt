@@ -2,9 +2,9 @@
 Chapter 7: Form processing
 ==========================
 
-If you did your "homework" from last chapter, you should now have a fully
-functioning if somewhat simple site. In this chapter, we'll deal with the last
-piece of the puzzle: building views that take input from readers.
+After the work last chapter, you should now have a fully functioning if somewhat
+simple site. In this chapter, we'll deal with the last piece of the puzzle:
+building views that take input from readers.
 
 We'll start by making a simple search form "by hand" and looking at how to
 handle data submitted from the browser, and move from there to using Django's
@@ -13,18 +13,17 @@ forms framework.
 Search
 ======
 
-The web is all about search. Two of the 'net's biggest success stories --
-Google and Yahoo -- built their multi-billion dollar businesses around search.
-Nearly every site sees a large percentage of traffic coming to and from its
-search pages. Often the difference between the success or failure of a site is
-the quality of its search.
+The web is all about search. Two of the 'net's biggest success stories -- Google
+and Yahoo -- built their multi-billion dollar businesses around search. Nearly
+every site sees a large percentage of traffic coming to and from its search
+pages. Often the difference between the success or failure of a site is the
+quality of its search.
 
-So it looks like we'd better add some searching to our fledgling books site,
-no?
+So it looks like we'd better add some searching to our fledgling books site, no?
 
 We'll start with by adding the search view to our URLconf
-(``mysite.books.urls``). Recall that this means adding something like ``
-(r'^search/$', 'search')`` to the set of URL patterns.
+(``mysite.books.urls``). Recall that this means adding something like
+``(r'^search/$', 'search')`` to the set of URL patterns.
 
 Next, we'll write this ``search`` view into our view module
 (``mysite.books.views``)::
@@ -56,17 +55,17 @@ features covered in Appendix H.
 
 .. admonition:: What's GET and POST data?
 
-    GET and POST are the two methods that browsers use to send data to a
-    server. Most of the time, you'll see them in HTML form tags::
+    GET and POST are the two methods that browsers use to send data to a server.
+    Most of the time, you'll see them in HTML form tags::
 
-        <form action="/crimes/search/" method="GET">
+        <form action="/books/search/" method="GET">
 
     This instructs the browser to submit the form data to the URL
-    ``/crimes/search/`` using the GET method.
+    ``/books/search/`` using the GET method.
 
     There are important differences between the semantics of GET and POST that
-    we won't get into right now, but see 
-    http://www.w3.org/2001/tag/doc/whenToUseGet.html if you want to know more.
+    we won't get into right now, but see
+    http://www.w3.org/2001/tag/doc/whenToUseGet.html if you want to learn more.
 
 So the line::
 
@@ -76,12 +75,13 @@ looks for a GET parameter named ``q`` and returns an empty string if that
 parameter wasn't submitted.
 
 Second, what about this ``Q`` business? ``Q`` objects are used to build up
-complex queries -- in this case, we're searching for any books where either the 
-title or the name of one of the authors matches the search query.
+complex queries -- in this case, we're searching for any books where either the
+title or the name of one of the authors matches the search query. Technically,
+these ``Q`` objects comprise a *QuerySet*, and you can read more about them in
+Appendix C.
 
-Technically, these ``Q`` objects comprise a **QuerySet**, and you can read
-more about them in Appendix C. ``icontains`` is a case-insensitive search which
-uses the SQL ``LIKE`` operator in the underlying database.
+In these queries, ``icontains`` is a case-insensitive search which uses the SQL
+``LIKE`` operator in the underlying database.
 
 Since we are searching against a many to many field, it's possible for the same 
 book to be returned more than once by the query (for example, a book with two 
@@ -120,7 +120,7 @@ trick::
     {% endblock %}
 
 Hopefully by now what this does is fairly obvious. However, there are a few
-subtleties worth pointing out::
+subtleties worth pointing out:
 
     * The form's action is ``.``, which means "the current URL".  This is a
       standard best practice: don't have separate views for the form page and
@@ -135,8 +135,9 @@ subtleties worth pointing out::
       to make sure that any potentially malicious search text is filtered out
       before being inserted into the page.
 
-      It's **vital** that you do this with any user-submitted content!
-      Otherwise you open your site up to cross-site scripting (XSS) attacks.
+      It's **vital** that you do this with any user-submitted content! Otherwise
+      you open your site up to cross-site scripting (XSS) attacks. Chapter 19
+      discusses XSS and security in more detail.
 
     * However, we don't need to worry about harmful content in your database
       lookups, we can simply pass the query into the lookup as-is.  This is
@@ -147,28 +148,28 @@ form on every page (i.e. in the base template); we'll let you handle that one
 yourself.
 
 Next, we'll look at a more complex example. But before we do, let's discuss
-a more abstract topic: the Perfect Form.
+a more abstract topic: the "perfect form."
 
-The Perfect Form
-================
+The "perfect form"
+==================
 
 Forms can often be a major cause of frustration for the users of your site.
-Let's consider the behaviour of a hypothetical perfect form.
+Let's consider the behavior of a hypothetical perfect form:
 
-    1. It should ask the user for some information, obviously. Accessibility
-       and usability matter here, so smart use of the HTML ``<label>`` element 
-       and useful contextual help are important.
+    * It should ask the user for some information, obviously. Accessibility and
+      usability matter here, so smart use of the HTML ``<label>`` element and
+      useful contextual help are important.
 
-    2. The submitted data should be subjected to extensive validation. The 
-       golden rule of web application security is "never trust incoming data",
-       so validation is essential.
+    * The submitted data should be subjected to extensive validation. The golden
+      rule of web application security is "never trust incoming data", so
+      validation is essential.
 
-    3. If the user has made any mistakes, the form should be redisplayed with
-       detailed, informative error messages. Their original data should be 
-       pre-filled, to save them from having to re-enter everything.
+    * If the user has made any mistakes, the form should be redisplayed with
+      detailed, informative error messages. Their original data should be
+      pre-filled, to save them from having to re-enter everything.
 
-    4. The form should continue to redisplay until all of the fields have 
-       been correctly filled.
+    * The form should continue to redisplay until all of the fields have been
+      correctly filled.
 
 Constructing the perfect form seems like a lot of work! Thankfully, Django's 
 forms framework is designed to do most of the work for you. You provide a 
@@ -188,7 +189,7 @@ you're trying to build up an audience though you should actively encourage
 feedback at every opportunity. Let's build a simple feedback form, and use it 
 to illustrate Django's forms framework in action.
 
-We'll start by defining our Form. Forms in Django are created in a similar way 
+We'll start by defining our form. Forms in Django are created in a similar way 
 to models: declaratively, using a Python class. Here's the class for our simple
 form; by convention, we'll insert it in to a new ``forms.py`` file within our 
 application directory::
@@ -206,19 +207,30 @@ application directory::
         message = forms.CharField()
         sender = forms.EmailField(required=False)
 
-A Django form is a subclass of ``django.forms.Form``, just like a Django model 
-is a subclass of ``django.db.models.Model``. The ``django.forms`` module also 
-contains a number of Field classes; a full list is available in Django's 
-documentation.
+.. admonition:: "New" forms? What?
+
+    When Django was first open-sourced, it had a complicated, confusing forms
+    system. It made producing forms far too difficult, so it was complete
+    rewritten, and called "newforms". However, there's still a fair amount of
+    code that depends on the "old" form system, so for the time being Django
+    ships with two form packages.
+    
+    As we write this book, Django's old form system is still available as
+    ``django.forms``, and the new form package as ``django.newforms``. At some
+    point that will change and ``django.forms`` will point to the new form
+    package. However, to make sure the examples in this book work as widely as
+    possible, all the examples will refer to ``django.newforms``.
+    
+A Django form is a subclass of ``django.newforms.Form``, just like a Django model 
+is a subclass of ``django.db.models.Model``. The ``django.newforms`` module also 
+contains a number of ``Field`` classes; a full list is available in Django's 
+documentation at http://www.djangoproject.com/documentation/newforms/.
 
 Our ``ContactForm`` consists of three fields: a topic, which is a choice from 
 three options; a message, which is a character field, and a sender, which is an 
 e-mail field and is optional (even anonymous feedback can be useful). There are
 a number of other field types available, and you can write your own if they
 don't cover your needs.
-
-TODO: We probably need an appendix that details the available form fields and
-widgets. We should reference that appendix here.
 
 The form object itself knows how to do a number of useful things. It can 
 validate a collection of data, it can generate its own HTML "widgets", it can 
@@ -311,11 +323,9 @@ to validate and redisplay the data from it. An unbound form has no data
 associated with it and simply knows how to display itself.
 
 Try hitting "submit" on the blank form; the page should redisplay showing a
-validation error, informing us that our message field is required:
+validation error, informing us that our message field is required.
 
-[screenshot of validation error]
-
-Try entering an invalid e-mail address as well; the EmailField knows how to
+Try entering an invalid e-mail address as well; the ``EmailField`` knows how to
 validate e-mail addresses, at least to a reasonable level of doubt.
 
 .. admonition:: Setting initial data
@@ -338,7 +348,7 @@ Processing the submission
 Once the user has filled the form to the point that it passes our validation 
 rules, we need to do something useful with the data. In this case, we want to 
 construct and send an e-mail containing their feedback. We'll use Django's 
-mail package to do this.
+email package to do this.
 
 First though, we need to tell if the data is indeed valid, and if it is we need
 access to the validated data. The forms framework does more than just validate
@@ -369,8 +379,8 @@ function::
 
     from django.core.mail import send_mail
     
-    if not sender:
-        sender = 'noreply@example.com'
+    # ...
+            
     send_mail(
         'Feedback from your site, topic: %s' % topic,
         message, sender,
@@ -397,9 +407,7 @@ confirmation page. The finished view function looks like this::
             if form.is_valid():
                 topic = form.cleaned_data['topic']
                 message = form.cleaned_data['message']
-                sender = form.cleaned_data['sender']
-                if not sender:
-                    sender = 'noreply@example.com'
+                sender = form.cleaned_data.get('sender', 'noreply@example.com')
                 send_mail(
                     'Feedback from your site, topic: %s' % topic,
                     message, sender,
@@ -417,8 +425,7 @@ confirmation page. The finished view function looks like this::
     such as a duplicate record being added to the database. Redirect after 
     POST is a useful pattern that can help avoid this scenario; after a 
     successful POST has been processed, redirect the user to another page 
-    rather than returning HTML directly. In Django, this is achieved using 
-    the HttpResponseRedirect class.
+    rather than returning HTML directly.
 
 Custom validation rules
 =======================
@@ -426,10 +433,8 @@ Custom validation rules
 Imagine we've launched our feedback form, and the e-mails have started tumbling
 in. There's just one problem: some of the e-mails are just one or two words;
 hardly enough for a detailed missive. We decide to adopt a new validation
-policy: four words or more, please!
-
-(Sure, this is a contrived example - but custom validation is an important
-subject!)
+policy: four words or more, please. Sure, this is a contrived example, but we'll
+run with it nonetheless.
 
 There are a number of ways to hook custom validation in to a Django form. If our
 rule is something we will reuse again and again, we can create a custom field
@@ -448,11 +453,11 @@ We want additional validation on the ``message`` field, so we need to add a
             message = self.cleaned_data.get('message', '')
             num_words = len(message.split())
             if num_words < 4:
-                raise forms.ValidationError, "Not enough words!"
+                raise forms.ValidationError("Not enough words!")
             return message
 
 This new method will be called after the default field validator (in this case
-the validator for a required CharField). Since the field data has already been
+the validator for a required ``CharField``). Since the field data has already been
 partially processed, we need to pull it out of the form's ``cleaned_data``
 dictionary.
 
@@ -475,18 +480,18 @@ a class attribute of ``errorlist`` for that exact purpose. The following CSS
 really makes our errors stand out::
 
     <style type="text/css">
-    ul.errorlist {
-        margin: 0;
-        padding: 0;
-    }
-    .errorlist li {
-        background-color: red;
-        color: white;
-        display: block;
-        font-size: 10px;
-        margin: 0 0 3px;
-        padding: 4px 5px;
-    }
+        ul.errorlist {
+            margin: 0;
+            padding: 0;
+        }
+        .errorlist li {
+            background-color: red;
+            color: white;
+            display: block;
+            font-size: 10px;
+            margin: 0 0 3px;
+            padding: 4px 5px;
+        }
     </style>
 
 While it's very convenient to have our form's HTML generated for us, in many
@@ -543,16 +548,16 @@ Creating forms from models
 ==========================
 
 Let's build something a little more interesting: a form that submits a new
-Publisher to our book application from chapter 5.
+publisher to our book application from chapter 5.
 
 An important rule of thumb in software development that Django tries to adhere
-to is **Don't Repeat Yourself**, abbreviated to **DRY**. Andy Hunt and Dave
-Thomas in *The Pragmatic Programmer* define this as follows:
+to is "Don't Repeat Yourself" (DRY). Andy Hunt and Dave Thomas in *The Pragmatic
+Programmer* define this as follows:
 
     Every piece of knowledge must have a single, unambiguous, authoritative 
     representation within a system.
 
-Our Publisher model class says that a publisher has a name, address, city,
+Our ``Publisher`` model class says that a publisher has a name, address, city,
 state_province, country and website. Duplicating this information in a form
 definition would break the DRY rule.
 
@@ -585,7 +590,7 @@ form class created by ``form_for_model`` includes a convenient ``save()``
 method. This deals with the common case; you're welcome to ignore it if you want
 to do something a bit more involved with the submitted data.
 
-``form_for_instance()`` is a related method which can create a pre-initialised
+``form_for_instance()`` is a related method which can create a pre-initialized
 form from an instance of a model class. This is useful for creating "edit"
 forms.
 
@@ -602,42 +607,15 @@ forms.
 What's next?
 ============
 
-.. JKM: I don't really like this ending; I think the generic views stuff is probably considered part of the "introductory" material.  The below should probably be replaced with a lead-in to generic views.
+This concludes the "introductory" material in this book. The next thirteen
+chapters deal with various "advanced" topics including generating content other
+than HTML (Chapter 11), security (Chapter 19) and deployment (Chapter 20).
 
-Congratulations -- you've finished the introductory section of this book!
-You'll probably want to wire the functions we've written above up to some URLs
-and play with modifying them. Where you go from there is up to you; thus
-endith ye olde guided toure.
+After these first seven chapters you should know enough to start writing your
+own Django projects. The rest of the material in this book will help fill in the
+missing pieces as you need them. 
 
-Some possible directions you might travel in:
+We'll start in Chapter 8 by doubling back and taking a closer look at views and
+URLconfs (introduced first in Chapter 3).
 
-    * If you are the thorough type, you can read the rest of the book in
-      order.  We've tried to organize material in a way that makes some
-      sense, so have at it.
-
-    * If you want to discover that all the code you've written so far can
-      be replaced with code 90% shorter, read the next chapter about
-      generic views.
-
-    * If you want to learn more about how to send e-mail, generate RSS, PDFs,
-      images, and other non-HTML content, skip to Chapter 10.
-
-    * If you'd like to find out about all the other "goodies" that Django
-      includes, those are covered in Chapters 11 through 15.
-
-    * Chapters 16 through 18 cover some relatively esoteric tasks: integrating
-      with existing databases, extending and customizing the admin interface,
-      and Django's internationalization/localization framework.
-
-    * Once you've finished an application and are ready to launch it, Chapter
-      20 has all the details about how to deploy and scale Django
-      applications.
-
-    * Finally, the appendixes exhaustive reference material on
-      the model API, database API, and others.
-
-Whatever you do, we hope you'll join the Django community. Visit
-http://www.djangoproject.com/ and get involved; you'll find that Django's
-managed to attract one of the best open source communities around.
-
-We'll see you there!
+Onwards!
