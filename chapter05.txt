@@ -792,8 +792,8 @@ display itself.
 Inserting and updating data
 ===========================
 
-To insert a row into your database, first create an instance of your model
-using keyword arguments, like so::
+We've already seen this done: to insert a row into your database, first create
+an instance of your model using keyword arguments, like so::
 
     >>> p = Publisher(name='Apress',
     ...         address='2855 Telegraph Ave.',
@@ -845,8 +845,268 @@ The above ``save()`` statement will result in roughly the following SQL::
 Selecting objects
 =================
 
+Creating and updating data sure is fun, but is also useless without a way to
+sift through that data. We've already seen a way to look up all the data
+for a certain model::
+
+    >>> Publisher.objects.all()
+    [<Publisher: Apress>, <Publisher: O'Reilly>]
+
+This roughly translates to this SQL::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher;
+    
+.. note::
+
+    Notice that Django doesn't use ``SELECT *`` when looking up data and instead
+    lists all fields explicitly. This is by design: in certain circumstances
+    ``SELECT *`` can be slower, and (more importantly) listing fields more closely
+    follows one tennant of the Zen of Python: "explicit is better than implicit."
+    
+    For more on the Zen of Python, try typing ``import this`` at a Python
+    prompt.
+
+Let's take a close look at each part of this ``Publisher.objects.all()`` line:
+
+    * First, we've got the model we defined, ``Publisher``. No surprise here: when
+      you want to look up data, you use the model for that data.
+      
+    * Next, we've got this ``objects`` business. Technically, this is a
+      *manager*. Managers are discussed in detail in Appendix B; for now, all
+      you need to know is that managers take care of all "table-level"
+      operations on data including, most importantly, data lookup.
+      
+      All objects automatically get this ``objects`` manager; you'll use it
+      any time you want to look up data.
+      
+    * Finally, we've got ``all()``. This is a method on the ``objects`` manager
+      which returns all the rows in the database. Though this object *looks*
+      like a list, it's actually a *queryset* -- an object that represents some
+      set of rows from the database. Appendix C deals with querysets in detail;
+      for the rest of this chapter we'll just treat them like the lists they
+      emulate.
+
+Any database lookup is going to follow this general pattern -- we'll call methods on
+the manager attached to the model we want to query against.
+
+Filtering data
+--------------
+
+While fetching all objects certainly has its uses, most of the time we're going
+to want to deal with a subset of the data. We'll do this with the ``filter()``
+method::
+
+    >>> Publisher.objects.filter(name="Apress")
+    [<Publisher: Apress>]
+    
+``filter()`` takes keyword arguments that get translated into the appropriate SQL; the above
+example would get translated into something like::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher
+    WHERE name = 'Apress';
+    
+You can pass multiple arguments into ``filter()`` to further narrow things down::
+
+    >>> Publisher.objects.filter(country="U.S.A.", state_province="CA")
+    [<Publisher: Apress>]
+    
+Those multiple arguments get translated into SQL ``AND`` clauses. Thus, the example
+in the code snippet above translates into::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher
+    WHERE country = 'U.S.A.' AND state_province = 'CA';
+
+Notice that by default, the lookups use the SQL ``=`` operator to do exact match
+lookups. Other lookup types are available::
+
+    >>> Publisher.objects.filter(name__contains="press")
+    [<Publisher: Apress>]
+    
+That's a double underscore there between ``name`` and ``contains``. Like Python itself,
+Django uses the double underscore to signal that something "magic" is happening; here,
+the ``__contains`` part gets translated by Django into a SQL ``LIKE`` statement::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher
+    WHERE name LIKE '%press%';
+    
+Many other types of lookups are available, including ``icontains``
+(case-insensitive ``LIKE``), ``startswith`` and ``endswith``, and ``range`` (SQL
+``BETWEEN`` queries). Appendix C describes all of these lookup types in detail.
+
+Retrieving single objects
+-------------------------
+
+Sometimes you want to fetch only a single object. That's what the ``get()`` method is for::
+
+    >>> Publisher.objects.get(name="Apress")
+    <Publisher: Apress>
+    
+Instead of a list (or, rather, queryset), only a single object is returned. Because of
+that, a query resulting in multiple objects will cause an exception::
+
+    >>> Publisher.objects.get(country="U.S.A.")
+    Traceback (most recent call last):
+        ...
+    AssertionError: get() returned more than one Publisher -- it returned 2!
+
+A query that returns no objects also causes an exception::
+
+    >>> Publisher.objects.get(name="Penguin")
+    Traceback (most recent call last):
+        ...
+    DoesNotExist: Publisher matching query does not exist.
+
+Ordering data
+-------------
+
+As you play around with the examples above, you might discover that the objects
+are being returned in a seemingly random order. You aren't imaging things: so
+far we haven't told the database how to order its results, so we're simply
+getting back data in some arbitrary order chosen by the database.
+
+That's obviously a bit silly; we wouldn't want a web page listing publishers to
+be ordered randomly. So, in practice we'll probably want to use ``order_by()``
+to reorder our data into a useful list::
+
+    >>> Publisher.objects.order_by("name")
+    [<Publisher: Apress>, <Publisher: O'Reilly>]
+    
+This doesn't look much different from the ``all()`` example above, but looking at the actual SQL
+reveals that it's now ordered::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher
+    ORDER BY name;
+    
+We can order by any field we like::
+
+    >>> Publisher.objects.order_by("address")
+    [<Publisher: O'Reilly>, <Publisher: Apress>]
+
+    >>> Publisher.objects.order_by("state")
+    [<Publisher: O'Reilly>, <Publisher: Apress>]
+
+and by multiple fields::
+
+    >>> Publisher.objects.order_by("country", "address")
+     [<Publisher: O'Reilly>, <Publisher: Apress>]
+     
+We can also specify reverse ordering by prefixing the field name with a "-"
+(that's a minus character)::
+
+    >>> Publisher.objects.order_by("-name")
+    [<Publisher: O'Reilly>, <Publisher: Apress>]
+    
+While this flexibility is useful, using ``order_by()`` all the time can be quite 
+repetitive; most of the time you'll have a particular field you usually want
+to order by. In these cases, Django lets you attach a default ordering to the model:
+
+.. parsed-literal::
+
+    class Publisher(models.Model):
+        name = models.CharField(maxlength=30)
+        address = models.CharField(maxlength=50)
+        city = models.CharField(maxlength=60)
+        state_province = models.CharField(maxlength=30)
+        country = models.CharField(maxlength=50)
+        website = models.URLField()
+    
+        **class Meta:**
+            **ordering = ["name"]**
+            
+This ``ordering = ["name"]`` bit tells Django that unless an ordering is given
+explicitly with ``order_by()``, all publishers should be ordered by name.
+
+.. admonition:: What's this Meta thing?
+
+    Django uses this internal ``class Meta`` as a place to specify additional
+    metadata about an object. It's completely optional, but it can do some very
+    useful things; see Appendix B for the options you can put under ``Meta``.
+
+Chaining lookups
+----------------
+
+We've seen how you can filter data, and we've seen how you can order it. At times, of course, 
+you're going to want to do both. In these cases, you simply "chain" the lookups together::
+
+    >>> Publisher.objects.filter(country="U.S.A.").order_by("-name")
+    [<Publisher: O'Reilly>, <Publisher: Apress>]
+    
+As you might expect, this translates to a SQL query with both a ``WHERE`` and an
+``ORDER BY``::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher
+    WHERE country = 'U.S.A'
+    ORDER BY name DESC;
+
+You can keep chaining queries as long as you like; there's no limit. 
+    
+Slicing data
+------------
+
+Another common need is to look up only a fixed number of rows. Imagine you've got thousands
+of publishers in your database, but only want to display the first one. You can do this
+using Python's standard list slicing syntax::
+
+    >>> Publisher.objects.order_by("name")[0]
+    <Publisher: Apress>
+    
+This translates roughly to::
+
+    SELECT 
+        id, name, address, city, state_province, country, website 
+    FROM book_publisher
+    ORDER BY name
+    LIMIT 1;
+
+And more...
+-----------
+
+We've only just scratched the surface of dealing with models, but you should now
+know enough to understand all the examples in the rest of the book. When you're
+ready to learn the complete details behind object lookups, turn to Appendix C.
+
 Deleting objects
 ================
+
+To delete objects, simply call the ``delete()`` method on your object::
+
+    >>> apress = Publisher.objects.get(name="Apress")
+    >>> apress.delete()
+    >>> Publisher.objects.all()
+    [<Publisher: O'Reilly>]
+    
+You can also delete objects in bulk by calling ``delete()`` on the result of
+some lookup::
+
+    >>> publishers = Publisher.objects.all()
+    >>> publishers.delete()
+    >>> Publisher.objects.all()
+    []
+
+.. note::
+
+    Deletions are **permanent**, so be careful!
+    
+    In fact, it's usually a good idea to avoid deleting objects unless you
+    absolutely have to -- relational databases don't do "undo" so well,
+    and restoring from backups is painful.
+    
+    It's often a good idea to add "active" flags to your data models. You can
+    look up only "active" objects, and simply set the active field to ``False``
+    instead of deleting the object. Then, if you realize you've made a mistake,
+    you can simply flip the flag back.
 
 Making changes to a database schema
 ===================================
