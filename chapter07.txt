@@ -2,8 +2,8 @@
 Chapter 7: Form processing
 ==========================
 
-After the work last chapter, you should now have a fully functioning if somewhat
-simple site. In this chapter, we'll deal with the last piece of the puzzle:
+After following along with the last chapter, you should now have a fully functioning if somewhat
+simple site. In this chapter, we'll deal with the next piece of the puzzle:
 building views that take input from readers.
 
 We'll start by making a simple search form "by hand" and looking at how to
@@ -13,7 +13,7 @@ forms framework.
 Search
 ======
 
-The web is all about search. Two of the 'net's biggest success stories -- Google
+The Web is all about search. Two of the 'net's biggest success stories -- Google
 and Yahoo -- built their multi-billion dollar businesses around search. Nearly
 every site sees a large percentage of traffic coming to and from its search
 pages. Often the difference between the success or failure of a site is the
@@ -123,7 +123,7 @@ Hopefully by now what this does is fairly obvious. However, there are a few
 subtleties worth pointing out:
 
     * The form's action is ``.``, which means "the current URL".  This is a
-      standard best practice: don't have separate views for the form page and
+      standard best practice: don't use separate views for the form page and
       the result page; use a single one which serves the form and possibly the
       results if they've been searched for.
 
@@ -209,8 +209,8 @@ application directory::
 
 .. admonition:: "New" forms? What?
 
-    When Django was first open-sourced, it had a complicated, confusing forms
-    system. It made producing forms far too difficult, so it was complete
+    When Django was first released to the public, it had a complicated, confusing forms
+    system. It made producing forms far too difficult, so it was completely
     rewritten, and called "newforms". However, there's still a fair amount of
     code that depends on the "old" form system, so for the time being Django
     ships with two form packages.
@@ -421,7 +421,7 @@ confirmation page. The finished view function looks like this::
 .. admonition:: Redirect after POST
 
     If a user hits "refresh" on a page that was displayed by a POST request, 
-    that request will be repeated. This can often lead to undesired behaviour, 
+    that request will be repeated. This can often lead to undesired behavior, 
     such as a duplicate record being added to the database. Redirect after 
     POST is a useful pattern that can help avoid this scenario; after a 
     successful POST has been processed, redirect the user to another page 
@@ -433,10 +433,9 @@ Custom validation rules
 Imagine we've launched our feedback form, and the e-mails have started tumbling
 in. There's just one problem: some of the e-mails are just one or two words;
 hardly enough for a detailed missive. We decide to adopt a new validation
-policy: four words or more, please. Sure, this is a contrived example, but we'll
-run with it nonetheless.
+policy: four words or more, please.
 
-There are a number of ways to hook custom validation in to a Django form. If our
+There are a number of ways to hook custom validation into a Django form. If our
 rule is something we will reuse again and again, we can create a custom field
 type. Most custom validations are one-off affairs though, and can be directly to
 the form class.
