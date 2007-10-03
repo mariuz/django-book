@@ -9,8 +9,8 @@ So far we've covered how Django tries to take away some of that monotony at
 the model and template layers, but web developers also experience this boredom
 at the view level.
 
-Django's **generic views** were to developed to ease that pain. They take
-certain common idioms and patterns in view development and abstract them so that
+Django's **generic views** were developed to ease that pain. They take
+certain common idioms and patterns found in view development and abstract them so that
 you can quickly write common views of onto data without having to write too much
 code. In fact, nearly every view example in the preceding chapters could be
 re-written with the help of generic views.
