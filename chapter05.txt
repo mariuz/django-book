@@ -91,7 +91,7 @@ design of a database-driven Django Web application.
 As we've mentioned in previous chapters, Django is designed to encourage loose
 coupling and strict separation between pieces of an application. If you follow
 this philosophy, it's easy to make changes to one particular piece of the
-application without affecting other pieces of the application. In view
+application without affecting the other pieces. In view
 functions, for instance, we discussed the importance of separating the business
 logic from the presentation logic by using a template system. With the database
 layer, we're applying that same philosophy to data-access logic.
@@ -340,11 +340,9 @@ live within apps. Thus, in order to start writing our models, we'll need to
 create a new app.
 
 Within the ``mysite`` project directory you created in Chapter 2, type this
-command to create a new app::
+command to create a new app named books::
 
     python manage.py startapp books
-
-(Why ``books``? That's the sample book app we'll be building together.)
 
 This command does not produce any output, but it does create a
 ``books`` directory within the ``mysite`` directory. Let's look at the contents
@@ -364,7 +362,7 @@ slate for your Django app.
 Defining models in Python
 =========================
 
-As we discussed above, the "M" in "MTV" stands for "Model." A Django model is a
+As we discussed earlier in this chapter, the "M" in "MTV" stands for "Model." A Django model is a
 description of the data in your database, represented as Python code. It's your
 data layout -- the equivalent of your SQL ``CREATE TABLE`` statements -- except
 it's in Python instead of SQL, and it includes more than just database column
