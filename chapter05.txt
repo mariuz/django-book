@@ -15,7 +15,7 @@ that lets site visitors populate the database on their own.
 
 Many complex Web sites provide some combination of the two. Amazon.com, for
 instance, is a great example of a database-driven site. Each product page is
-essentially an extract of Amazon's product database formatted as HTML, and when
+essentially a query into Amazon's product database formatted as HTML, and when
 you post a customer review, it gets inserted into the database of reviews.
 
 Django is very well-suited for making database-driven Web sites, as it comes
@@ -861,7 +861,7 @@ This roughly translates to this SQL::
     Notice that Django doesn't use ``SELECT *`` when looking up data and instead
     lists all fields explicitly. This is by design: in certain circumstances
     ``SELECT *`` can be slower, and (more importantly) listing fields more closely
-    follows one tennant of the Zen of Python: "explicit is better than implicit."
+    follows one tenant of the Zen of Python: "explicit is better than implicit."
     
     For more on the Zen of Python, try typing ``import this`` at a Python
     prompt.
@@ -881,9 +881,9 @@ Let's take a close look at each part of this ``Publisher.objects.all()`` line:
       
     * Finally, we've got ``all()``. This is a method on the ``objects`` manager
       which returns all the rows in the database. Though this object *looks*
-      like a list, it's actually a *queryset* -- an object that represents some
-      set of rows from the database. Appendix C deals with querysets in detail;
-      for the rest of this chapter we'll just treat them like the lists they
+      like a list, it's actually a *QuerySet* -- an object that represents some
+      set of rows from the database. Appendix C deals with QuerySets in detail;
+      for the rest of this chapter, we'll just treat them like the lists they
       emulate.
 
 Any database lookup is going to follow this general pattern -- we'll call methods on
@@ -899,15 +899,15 @@ method::
     >>> Publisher.objects.filter(name="Apress")
     [<Publisher: Apress>]
     
-``filter()`` takes keyword arguments that get translated into the appropriate SQL; the above
-example would get translated into something like::
+``filter()`` takes keyword arguments that get translated into the appropriate
+SQL WHERE clauses. The above example would get translated into something like::
 
     SELECT 
         id, name, address, city, state_province, country, website 
     FROM book_publisher
     WHERE name = 'Apress';
     
-You can pass multiple arguments into ``filter()`` to further narrow things down::
+You can pass multiple arguments into ``filter()`` to narrow things down further::
 
     >>> Publisher.objects.filter(country="U.S.A.", state_province="CA")
     [<Publisher: Apress>]
@@ -947,7 +947,7 @@ Sometimes you want to fetch only a single object. That's what the ``get()`` meth
     >>> Publisher.objects.get(name="Apress")
     <Publisher: Apress>
     
-Instead of a list (or, rather, queryset), only a single object is returned. Because of
+Instead of a list (or, rather, QuerySet), only a single object is returned. Because of
 that, a query resulting in multiple objects will cause an exception::
 
     >>> Publisher.objects.get(country="U.S.A.")
@@ -970,7 +970,7 @@ are being returned in a seemingly random order. You aren't imaging things: so
 far we haven't told the database how to order its results, so we're simply
 getting back data in some arbitrary order chosen by the database.
 
-That's obviously a bit silly; we wouldn't want a web page listing publishers to
+That's obviously a bit silly; we wouldn't want a Web page listing publishers to
 be ordered randomly. So, in practice we'll probably want to use ``order_by()``
 to reorder our data into a useful list::
 
@@ -1028,7 +1028,7 @@ explicitly with ``order_by()``, all publishers should be ordered by name.
 
     Django uses this internal ``class Meta`` as a place to specify additional
     metadata about an object. It's completely optional, but it can do some very
-    useful things; see Appendix B for the options you can put under ``Meta``.
+    useful things .See Appendix B for the options you can put under ``Meta``.
 
 Chaining lookups
 ----------------
@@ -1048,7 +1048,7 @@ As you might expect, this translates to a SQL query with both a ``WHERE`` and an
     WHERE country = 'U.S.A'
     ORDER BY name DESC;
 
-You can keep chaining queries as long as you like; there's no limit. 
+You can keep chaining queries as long as you like. There's no limit. 
     
 Slicing data
 ------------

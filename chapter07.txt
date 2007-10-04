@@ -46,9 +46,9 @@ Next, we'll write this ``search`` view into our view module
             "query": query
         })
 
-There's a couple of things going on here you've not seen yet.
+There are a couple of things going on here that you haven't yet seen.
 
-First, there's this ``request.GET`` business. This is how you access GET data
+First, there's `request.GET``. This is how you access GET data
 from Django; POST data is accessed through a similar ``request.POST`` object.
 These objects behave exactly like standard Python dictionaries with some extra
 features covered in Appendix H.
@@ -58,7 +58,7 @@ features covered in Appendix H.
     GET and POST are the two methods that browsers use to send data to a server.
     Most of the time, you'll see them in HTML form tags::
 
-        <form action="/books/search/" method="GET">
+        <form action="/books/search/" method="get">
 
     This instructs the browser to submit the form data to the URL
     ``/books/search/`` using the GET method.
@@ -74,18 +74,26 @@ So the line::
 looks for a GET parameter named ``q`` and returns an empty string if that
 parameter wasn't submitted.
 
+Note that we're using the ``get()`` method on ``request.GET``, which is
+potentially confusing. The ``get()`` method here is the one that every Python
+dictionary has. We're using it here to be careful: it is *not* safe to assume
+that ``request.GET`` contains a ``'q'`` key, so we use ``get('q', '')`` to
+provide a default fallback value of ``''`` (the empty string). If we merely
+accessed the variable using ``request.GET['q']``, that code would raise a
+``KeyError`` if ``q`` wasn't available in the GET data.
+
 Second, what about this ``Q`` business? ``Q`` objects are used to build up
 complex queries -- in this case, we're searching for any books where either the
 title or the name of one of the authors matches the search query. Technically,
-these ``Q`` objects comprise a *QuerySet*, and you can read more about them in
+these ``Q`` objects comprise a QuerySet, and you can read more about them in
 Appendix C.
 
 In these queries, ``icontains`` is a case-insensitive search which uses the SQL
 ``LIKE`` operator in the underlying database.
 
-Since we are searching against a many to many field, it's possible for the same 
-book to be returned more than once by the query (for example, a book with two 
-authors who both match the search query). Adding ``.distinct()`` to the filter 
+Since we're searching against a many to many field, it's possible for the same
+book to be returned more than once by the query (for example, a book with two
+authors who both match the search query). Adding ``.distinct()`` to the filter
 lookup eliminates any duplicate results.
 
 There's still no template for this search view, however. This should do the
@@ -122,10 +130,10 @@ trick::
 Hopefully by now what this does is fairly obvious. However, there are a few
 subtleties worth pointing out:
 
-    * The form's action is ``.``, which means "the current URL".  This is a
+    * The form's action is ``.``, which means "the current URL". This is a
       standard best practice: don't use separate views for the form page and
-      the result page; use a single one which serves the form and possibly the
-      results if they've been searched for.
+      the result page; use a single one that serves the form and search
+      results.
 
     * We reinsert the value of the query back into the ``<input>``.  This lets
       readers easily refine their searches without having to retype what they
@@ -140,7 +148,7 @@ subtleties worth pointing out:
       discusses XSS and security in more detail.
 
     * However, we don't need to worry about harmful content in your database
-      lookups, we can simply pass the query into the lookup as-is.  This is
+      lookups -- we can simply pass the query into the lookup as-is. This is
       because Django's database layer handles this aspect of security for you.
 
 Now we've got working search. A further improvement would be putting a search
@@ -161,47 +169,47 @@ Let's consider the behavior of a hypothetical perfect form:
       useful contextual help are important.
 
     * The submitted data should be subjected to extensive validation. The golden
-      rule of web application security is "never trust incoming data", so
+      rule of Web application security is "never trust incoming data", so
       validation is essential.
 
     * If the user has made any mistakes, the form should be redisplayed with
-      detailed, informative error messages. Their original data should be
-      pre-filled, to save them from having to re-enter everything.
+      detailed, informative error messages. The original data should be
+      pre-filled, to save the user from having to re-enter everything.
 
     * The form should continue to redisplay until all of the fields have been
       correctly filled.
 
-Constructing the perfect form seems like a lot of work! Thankfully, Django's 
-forms framework is designed to do most of the work for you. You provide a 
-description of the form's fields, validation rules and a simple template; 
+Constructing the perfect form seems like a lot of work! Thankfully, Django's
+forms framework is designed to do most of the work for you. You provide a
+description of the form's fields, validation rules and a simple template;
 Django does the rest. The result is "perfect" forms with very little effort.
 
 Creating a feedback form
 ========================
 
-The best way to build a site that people love is to listen to their feedback. 
-Many sites appear to have forgotten this; they hide their contact details 
+The best way to build a site that people love is to listen to their feedback.
+Many sites appear to have forgotten this; they hide their contact details
 behind layers of FAQs, and seem to make it as difficult as possible to get in
 touch with an actual human being.
 
-When your site has millions of users, this may be a reasonable strategy. When 
-you're trying to build up an audience though you should actively encourage 
-feedback at every opportunity. Let's build a simple feedback form, and use it 
+When your site has millions of users, this may be a reasonable strategy. When
+you're trying to build up an audience, though, you should actively encourage
+feedback at every opportunity. Let's build a simple feedback form and use it
 to illustrate Django's forms framework in action.
 
-We'll start by defining our form. Forms in Django are created in a similar way 
+We'll start by defining our form. Forms in Django are created in a similar way
 to models: declaratively, using a Python class. Here's the class for our simple
-form; by convention, we'll insert it in to a new ``forms.py`` file within our 
+form; by convention, we'll insert it in to a new ``forms.py`` file within our
 application directory::
 
     from django import newforms as forms
-    
+
     TOPIC_CHOICES = (
         ('general', 'General enquiry'),
         ('bug', 'Bug report'),
         ('suggestion', 'Suggestion'),
     )
-    
+
     class ContactForm(forms.Form):
         topic = forms.ChoiceField(choices=TOPIC_CHOICES)
         message = forms.CharField()
@@ -214,33 +222,33 @@ application directory::
     rewritten, and called "newforms". However, there's still a fair amount of
     code that depends on the "old" form system, so for the time being Django
     ships with two form packages.
-    
+
     As we write this book, Django's old form system is still available as
     ``django.forms``, and the new form package as ``django.newforms``. At some
     point that will change and ``django.forms`` will point to the new form
     package. However, to make sure the examples in this book work as widely as
     possible, all the examples will refer to ``django.newforms``.
-    
-A Django form is a subclass of ``django.newforms.Form``, just like a Django model 
-is a subclass of ``django.db.models.Model``. The ``django.newforms`` module also 
-contains a number of ``Field`` classes; a full list is available in Django's 
+
+A Django form is a subclass of ``django.newforms.Form``, just as a Django model
+is a subclass of ``django.db.models.Model``. The ``django.newforms`` module also
+contains a number of ``Field`` classes; a full list is available in Django's
 documentation at http://www.djangoproject.com/documentation/newforms/.
 
-Our ``ContactForm`` consists of three fields: a topic, which is a choice from 
-three options; a message, which is a character field, and a sender, which is an 
-e-mail field and is optional (even anonymous feedback can be useful). There are
-a number of other field types available, and you can write your own if they
-don't cover your needs.
+Our ``ContactForm`` consists of three fields: a topic, which is a choice from
+three options; a message, which is a character field; and a sender, which is an
+e-mail field and is optional (because even anonymous feedback can be useful).
+There are a number of other field types available, and you can write your own
+if they don't cover your needs.
 
-The form object itself knows how to do a number of useful things. It can 
-validate a collection of data, it can generate its own HTML "widgets", it can 
-construct a set of useful error messages and, if we're feeling lazy, it can 
-even draw the entire form for us. Let's hook it in to a view and see it in 
+The form object itself knows how to do a number of useful things. It can
+validate a collection of data, it can generate its own HTML "widgets", it can
+construct a set of useful error messages and, if we're feeling lazy, it can
+even draw the entire form for us. Let's hook it in to a view and see it in
 action. In ``views.py``::
 
     from django.shortcuts import render_to_response
     from forms import ContactForm
-    
+
     def contact(request):
         form = ContactForm()
         return render_to_response('contact.html', {'form': form})
@@ -287,24 +295,24 @@ method on that object which renders the form as a sequence of table rows
         <td><input type="text" name="sender" id="id_sender" /></td>
     </tr>
 
-Note that the ``<table>`` and ``<form>`` tags are not included; you need to 
-define those yourself in the template, which gives control over how the form 
+Note that the ``<table>`` and ``<form>`` tags are not included; you need to
+define those yourself in the template, which gives control over how the form
 behaves when it is submitted. Label elements *are* included, making forms
 accessible out of the box.
 
 Our form is currently using a ``<input type="text">`` widget for the message
 field. We don't want to restrict our users to a single line of text, so we'll
-swap in a textarea widget instead:
+swap in a ``<textarea>`` widget instead:
 
 .. parsed-literal::
-    
+
     class ContactForm(forms.Form):
         topic = forms.ChoiceField(choices=TOPIC_CHOICES)
         message = forms.CharField(**widget=forms.Textarea()**)
         sender = forms.EmailField(required=False)
 
-The forms framework separates out the presentation logic for each field in to a
-set of widgets; each field type has a default widget but you can easily override
+The forms framework separates out the presentation logic for each field into a
+set of widgets. Each field type has a default widget, but you can easily override
 the default, or provide a custom widget of your own.
 
 At the moment, submitting the form doesn't actually do anything. Let's hook in
@@ -325,46 +333,46 @@ associated with it and simply knows how to display itself.
 Try hitting "submit" on the blank form; the page should redisplay showing a
 validation error, informing us that our message field is required.
 
-Try entering an invalid e-mail address as well; the ``EmailField`` knows how to
+Try entering an invalid e-mail address, as well. The ``EmailField`` knows how to
 validate e-mail addresses, at least to a reasonable level of doubt.
 
 .. admonition:: Setting initial data
 
-    Passing data directly to the form constructor binds that data and indicates 
-    that validation should be performed. Often though we need to display an 
+    Passing data directly to the form constructor binds that data and indicates
+    that validation should be performed. Often though we need to display an
     initial form with some of the fields pre-filled; for example, an "edit"
     form. We can do this with the ``initial`` keyword argument::
-    
+
         form = CommentForm(initial={'sender': 'user@example.com'})
-    
-    If our form will *always* use the same default values, we can configure 
+
+    If our form will *always* use the same default values, we can configure
     them in the form definition itself::
-    
+
         message = forms.CharField(initial="Replace with your feedback")
 
 Processing the submission
 =========================
 
-Once the user has filled the form to the point that it passes our validation 
-rules, we need to do something useful with the data. In this case, we want to 
-construct and send an e-mail containing their feedback. We'll use Django's 
-email package to do this.
+Once the user has filled the form to the point that it passes our validation
+rules, we need to do something useful with the data. In this case, we want to
+construct and send an e-mail containing their feedback. We'll use Django's
+e-mail package to do this.
 
 First though, we need to tell if the data is indeed valid, and if it is we need
 access to the validated data. The forms framework does more than just validate
-the data; it also converts it in to Python types. Our contact form only deals
-with strings, but if we were to use an ``IntegerField`` or ``DateTimeField`` the
+the data; it also converts it into Python types. Our contact form only deals
+with strings, but if we were to use an ``IntegerField`` or ``DateTimeField``, the
 forms framework would ensure that we got back a Python integer or ``datetime``
-object respectively.
+object, respectively.
 
-To tell if a form is bound to valid data, call the ``is_valid()`` method::
+To tell whether a form is bound to valid data, call the ``is_valid()`` method::
 
     form = ContactForm(request.POST)
     if form.is_valid():
         # Process form data
 
 Now we need access to the data. We could pull it straight out of
-``request.POST``, but if we did we'd miss out on the type conversions performed
+``request.POST``, but if we did, we'd miss out on the type conversions performed
 by the forms framework. Instead, we use ``form.cleaned_data``::
 
     if form.is_valid():
@@ -378,9 +386,9 @@ e-mail it to a site administrator; we can do that using the ``send_mail``
 function::
 
     from django.core.mail import send_mail
-    
+
     # ...
-            
+
     send_mail(
         'Feedback from your site, topic: %s' % topic,
         message, sender,
@@ -400,7 +408,7 @@ confirmation page. The finished view function looks like this::
     from django.shortcuts import render_to_response
     from django.core.mail import send_mail
     from forms import ContactForm
-    
+
     def contact(request):
         if request.method == 'POST':
             form = ContactForm(request.POST)
@@ -420,11 +428,11 @@ confirmation page. The finished view function looks like this::
 
 .. admonition:: Redirect after POST
 
-    If a user hits "refresh" on a page that was displayed by a POST request, 
-    that request will be repeated. This can often lead to undesired behavior, 
-    such as a duplicate record being added to the database. Redirect after 
-    POST is a useful pattern that can help avoid this scenario; after a 
-    successful POST has been processed, redirect the user to another page 
+    If a user hits "refresh" on a page that was displayed by a POST request,
+    that request will be repeated. This can often lead to undesired behavior,
+    such as a duplicate record being added to the database. Redirect after
+    POST is a useful pattern that can help avoid this scenario; after a
+    successful POST has been processed, redirect the user to another page
     rather than returning HTML directly.
 
 Custom validation rules
@@ -437,7 +445,7 @@ policy: four words or more, please.
 
 There are a number of ways to hook custom validation into a Django form. If our
 rule is something we will reuse again and again, we can create a custom field
-type. Most custom validations are one-off affairs though, and can be directly to
+type. Most custom validations are one-off affairs ,though, and can be tied directly to
 the form class.
 
 We want additional validation on the ``message`` field, so we need to add a
@@ -456,11 +464,11 @@ We want additional validation on the ``message`` field, so we need to add a
             return message
 
 This new method will be called after the default field validator (in this case
-the validator for a required ``CharField``). Since the field data has already been
+the validator for a required ``CharField``). Because the field data has already been
 partially processed, we need to pull it out of the form's ``cleaned_data``
 dictionary.
 
-We use a combination of ``len()`` and ``split()`` to count the number of words.
+We naively use a combination of ``len()`` and ``split()`` to count the number of words.
 If the user has entered too few words, we raise a ``ValidationError``. The
 string attached to this exception will be displayed to the user as an item in
 the error list.
@@ -496,7 +504,7 @@ really makes our errors stand out::
 While it's very convenient to have our form's HTML generated for us, in many
 cases the default rendering won't be right for our application. ``{{
 form.as_table }}`` and friends are useful shortcuts while we develop our
-application but everything about the way a form is displayed can be over-ridden,
+application, but everything about the way a form is displayed can be overridden,
 mostly within the template itself.
 
 Each field widget (``<input type="text">``, ``<select>``, ``<textarea>`` or
@@ -553,7 +561,7 @@ An important rule of thumb in software development that Django tries to adhere
 to is "Don't Repeat Yourself" (DRY). Andy Hunt and Dave Thomas in *The Pragmatic
 Programmer* define this as follows:
 
-    Every piece of knowledge must have a single, unambiguous, authoritative 
+    Every piece of knowledge must have a single, unambiguous, authoritative
     representation within a system.
 
 Our ``Publisher`` model class says that a publisher has a name, address, city,
@@ -564,7 +572,7 @@ Instead, we can use a useful shortcut: ``form_for_model()``::
 
     from models import Publisher
     from django.forms import form_for_model
-    
+
     PublisherForm = form_for_model(Publisher)
 
 ``PublisherForm`` is a ``Form`` sub-class, just like the ``ContactForm`` class
@@ -595,12 +603,12 @@ forms.
 
 .. admonition:: A subset of fields
 
-    You may not want all of a model's fields to be exposed in a form: for 
-    example, if some of the fields deal with bookkeeping information such as 
-    the creation time and author of the record. You can use the optional 
-    ``fields`` argument to ``form_for_model`` to limit the fields included in 
+    You may not want all of a model's fields to be exposed in a form. For
+    example, some of the fields might deal with bookkeeping information such as
+    the creation time and author of the record. You can use the optional
+    ``fields`` argument to ``form_for_model`` to limit the fields included in
     the form to a subset::
-    
+
         PublisherForm = form_for_model(Publisher, fields=('name', 'address'))
 
 What's next?
@@ -610,11 +618,9 @@ This concludes the "introductory" material in this book. The next thirteen
 chapters deal with various "advanced" topics including generating content other
 than HTML (Chapter 11), security (Chapter 19) and deployment (Chapter 20).
 
-After these first seven chapters you should know enough to start writing your
+After these first seven chapters, you should know enough to start writing your
 own Django projects. The rest of the material in this book will help fill in the
-missing pieces as you need them. 
+missing pieces as you need them.
 
 We'll start in Chapter 8 by doubling back and taking a closer look at views and
 URLconfs (introduced first in Chapter 3).
-
-Onwards!
