@@ -68,6 +68,13 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
             html4css1.HTMLTranslator.depart_block_quote(self, node)
 
     #
+    # Avoid using reserved words in section titles
+    #
+    def visit_section(self, node):
+        node['ids'] = ['s-' + i for i in node.get('ids', [])]
+        html4css1.HTMLTranslator.visit_section(self, node)
+
+    #
     # Code for auto-ID generation.
     #
     
