@@ -2,6 +2,14 @@ import smartypants
 from docutils import nodes
 from docutils.writers import html4css1
 
+def publish_html(content):
+    return publish_parts(
+        source = content, 
+        writer = DjangoBookHTMLWriter(), 
+        settings_overrides = {'initial_header_level' : 3}
+)
+    
+
 class DjangoBookHTMLWriter(html4css1.Writer):
     def __init__(self):
         html4css1.Writer.__init__(self)

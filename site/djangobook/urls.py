@@ -28,19 +28,23 @@ urlpatterns = patterns('',
         private_chapter
     ),
     (
-        r'^(?P<lang>[\w-]+)/(?P<version>[\w-]+)/$',
+        r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/$',
         toc
     ),
+    # (
+    #     r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/frontmatter/$',
+    #     frontmatter,
+    # ),
     (
-        r'^(?P<lang>[\w-]+)/(?P<version>[\w-]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/$', 
+        r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/$', 
         chapter
     ),
     (
-        r'^(?P<lang>[\w-]+)/(?P<version>[\w-]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/comments/(?:(?P<nodenum>\d+)/)?$', 
+        r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/comments/(?:(?P<nodenum>\d+)/)?$', 
         comments,
     ),
     (
-        r'^(?P<lang>[\w-]+)/(?P<version>[\w-]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/comments/counts/$', 
+        r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/comments/counts/$', 
         comment_counts,
     ),
     (
