@@ -205,11 +205,8 @@ template and adding information to one of the blocks defined in that template.
 For example, say we want to add a little bit of help text to the top
 of that book page. Maybe something like the form shown in Figure 17-1.
 
-.. figure:: http://media.djangobook.com/content/chapter18/book_extra.png
-   :class: full
+.. figure:: book_extra.png
    :alt: Screenshot of a customized book edit form.
-   :width: 827
-   :height: 624
 
    Figure 17-1. A customized admin edit form
 
@@ -370,11 +367,8 @@ templates to make this view visually appear to be part of the admin interface::
 By extending ``admin/base_site.html``, we get the look and feel of the Django
 admin "for free." Figure 17-2 shows what the end result looks like.
 
-.. figure:: http://media.djangobook.com/content/chapter18/books_by_publisher.png
-   :class: full
+.. figure:: books_by_publisher.png
    :alt: Screenshot of the custom "books by publisher" view.
-   :width: 827
-   :height: 624
 
    Figure 17-2. A custom "books by publisher" admin view
 

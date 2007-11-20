@@ -124,11 +124,8 @@ features of the admin interface are in order.
 
 The first thing you'll see is a login screen, as shown in Figure 6-1.
 
-.. figure:: http://media.djangobook.com/content/chapter06/login.png
-   :class: full
+.. figure:: login.png
    :alt: Screenshot of Django's login page.
-   :width: 828
-   :height: 625
    
    Figure 6-1. Django's login screen
 
@@ -139,11 +136,8 @@ permissions (more on that shortly).
 Each object given an ``Admin`` declaration shows up on the main index page, as
 shown in Figure 6-2.
 
-.. figure:: http://media.djangobook.com/content/chapter06/admin_index.png
-   :class: full
+.. figure:: admin_index.png
    :alt: Screenshot of the main Django admin index.
-   :width: 828
-   :height: 625
  
    Figure 6-2. The main Django admin index
 
@@ -151,11 +145,8 @@ Links to add and change objects lead to two pages we refer to as object
 *change lists* and *edit forms*. Change lists are essentially index pages 
 of objects in the system, as shown in Figure 6-3.
 
-.. figure:: http://media.djangobook.com/content/chapter06/changelist.png
-   :class: full
+.. figure:: changelist.png
    :alt: Screenshot of a typical change list view.
-   :width: 828
-   :height: 625
    
    Figure 6-3. A typical change list view
 
@@ -168,11 +159,8 @@ Edit forms are used to modify existing objects and create new ones (see Figure
 fields of different types get different widgets (e.g., date/time fields have
 calendar controls, foreign keys use a select box, etc.).
 
-.. figure:: http://media.djangobook.com/content/chapter06/editform.png
-   :class: full
+.. figure:: editform.png
    :alt: Screenshot of a typical edit form.
-   :width: 828
-   :height: 625
    
    Figure 6-4. A typical edit form
 
@@ -180,11 +168,8 @@ You'll notice that the admin interface also handles input validation for you.
 Try leaving a required field blank or putting an invalid time into a time field,
 and you'll see those errors when you try to save, as shown in Figure 6-5.
 
-.. figure:: http://media.djangobook.com/content/chapter06/editform_errors.png
-   :class: full
+.. figure:: editform_errors.png
    :alt: Screenshot of an edit form displaying errors.
-   :width: 828
-   :height: 625
    
    Figure 6-5. An edit form displaying errors
 
@@ -193,11 +178,8 @@ upper-right corner of the window. Every change made through the admin interface
 is logged, and you can examine this log by clicking the History button (see
 Figure 6-6).
 
-.. figure:: http://media.djangobook.com/content/chapter06/history.png
-   :class: full
+.. figure:: history.png
    :alt: Screenshot of Django's object history page.
-   :width: 828
-   :height: 625
 
    Figure 6-6. Django's object history page
 
@@ -206,11 +188,8 @@ delete action to avoid costly mistakes. Deletions also *cascade*; the deletion
 confirmation page shows you all the related objects that will be deleted as well
 (see Figure 6-7).
 
-.. figure:: http://media.djangobook.com/content/chapter06/delete_confirm.png
-   :class: full
+.. figure:: delete_confirm.png
    :alt: Screenshot of Django's delete confirmation page.
-   :width: 828
-   :height: 625
    
    Figure 6-7. Django's delete confirmation page
 
@@ -290,11 +269,8 @@ display, searching, and filtering functions to this interface. Change the
 These four lines of code dramatically change our list interface, as shown in
 Figure 6-8.
 
-.. figure:: http://media.djangobook.com/content/chapter06/changelist2.png
-   :class: full
+.. figure:: changelist2.png
    :alt: Screenshot of the modified change list page.
-   :width: 828
-   :height: 625
    
    Figure 6-8. Modified change list page
 

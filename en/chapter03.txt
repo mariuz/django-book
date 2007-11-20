@@ -298,10 +298,7 @@ The typical flow--URLconf resolution to a view function which returns an
 secrets of middleware will be fully covered in Chapter 15, but a quick sketch
 (see Figure 3-1) should aid you in conceptually fitting the pieces together.
 
-.. figure:: http://media.djangobook.com/content/chapter03/get_response.png
-   :width: 440
-   :height: 481
-   :class: center
+.. figure:: get_response.png
    :alt: The complete flow of a Django request and response.
    
    Figure 3-1: The complete flow of a Django request and response.
@@ -378,11 +375,8 @@ as ``http://127.0.0.1:8000/hello/`` or
 displays this message because you requested a URL that's not defined in your
 URLconf.
 
-.. figure:: http://media.djangobook.com/content/chapter03/404.png
-   :class: full
+.. figure:: 404.png
    :alt: Screenshot of Django's 404 page.
-   :width: 857
-   :height: 609
    
    Figure 3-2. Django's 404 page
 
