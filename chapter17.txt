@@ -89,7 +89,7 @@ per-object basis as of this writing. If you trust someone to edit his or her own
 stories, you trust that user not to edit anyone else's stories without permission.
 
 "... editing ..."
-----------------
+-----------------
 
 The primary purpose of Django's admin interface is to let people edit data. This seems
 obvious at first, but again it has some subtle and powerful repercussions.

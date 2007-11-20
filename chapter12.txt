@@ -608,74 +608,74 @@ object. Tables 12-3 and 12-4 list the fields and methods, respectively, on ``Use
 
 ..table:: Table 12-4. Methods on ``User`` Objects
 
-    ==============================  ==========================================    
-    Method                          Description
-    ==============================  ==========================================
-    ``is_authenticated()``          Always returns ``True`` for "real" 
-                                    ``User`` objects. This is a way to tell if
-                                    the user has been authenticated. This does
-                                    not imply any permissions, and it doesn't
-                                    check if the user is active. It only
-                                    indicates that the user has sucessfully
-                                    authenticated.
-
-    ``is_anonymous()``              Returns ``True`` only for 
-                                    ``AnonymousUser`` objects (and ``False``
-                                    for "real" ``User`` objects). Generally,
-                                    you should prefer using
-                                    ``is_authenticated()`` to this method.
-
-    ``get_full_name()``             Returns the ``first_name`` plus the 
-                                    ``last_name``, with a space in between.
-
-    ``set_password(passwd)``        Sets the user's password to the given
-                                    raw string, taking care of the password
-                                    hashing. This doesn't actually save the
-                                    ``User`` object.
-
-    ``check_password(passwd)``      Returns ``True`` if the given raw
-                                    string is the correct password for the
-                                    user. This takes care of the password
-                                    hashing in making the comparison.
-
-    ``get_group_permissions()``     Returns a list of permission strings that
-                                    the user has through the groups he or she
-                                    belongs to.
-
-    ``get_all_permissions()``       Returns a list of permission strings that
-                                    the user has, both through group and user
-                                    permissions.
-
-    ``has_perm(perm)``              Returns ``True`` if the user has the 
-                                    specified permission, where ``perm`` is in
-                                    the format ``"package.codename"``. If the
-                                    user is inactive, this method will always
-                                    return ``False``.
-
-    ``has_perms(perm_list)``        Returns ``True`` if the user has *all* of 
-                                    the specified permissions. If the user is
-                                    inactive, this method will always return
-                                    ``False``.
-
-    ``has_module_perms(app_label)`` Returns ``True`` if the user has
-                                    any permissions in the given ``app_label``.                
-                                    If the user is inactive, this method will
-                                    always return ``False``.
-
-    ``get_and_delete_messages()``   Returns a list of ``Message`` objects in
-                                    the user's queue and deletes the messages
-                                    from the queue.
-
-    ``email_user(subj, msg)``       Sends an email to the user. This email
-                                    is sent from the ``DEFAULT_FROM_EMAIL`` 
-                                    setting.  You can also pass a third
-                                    argument, ``from_email``, to override the
-                                    From address on the email.
-        
-    ``get_profile()``               Returns a site-specific profile for this 
-                                    user. See the "Profiles" section 
-                                    for more on this method.
-    ==============================  ==========================================
+    ================================  ==========================================
+    Method                            Description
+    ================================  ==========================================
+    ``is_authenticated()``            Always returns ``True`` for "real" 
+                                      ``User`` objects. This is a way to tell if
+                                      the user has been authenticated. This does
+                                      not imply any permissions, and it doesn't
+                                      check if the user is active. It only
+                                      indicates that the user has sucessfully
+                                      authenticated.
+                                      
+    ``is_anonymous()``                Returns ``True`` only for 
+                                      ``AnonymousUser`` objects (and ``False``
+                                      for "real" ``User`` objects). Generally,
+                                      you should prefer using
+                                      ``is_authenticated()`` to this method.
+                                      
+    ``get_full_name()``               Returns the ``first_name`` plus the 
+                                      ``last_name``, with a space in between.
+                                      
+    ``set_password(passwd)``          Sets the user's password to the given
+                                      raw string, taking care of the password
+                                      hashing. This doesn't actually save the
+                                      ``User`` object.
+                                      
+    ``check_password(passwd)``        Returns ``True`` if the given raw
+                                      string is the correct password for the
+                                      user. This takes care of the password
+                                      hashing in making the comparison.
+                                      
+    ``get_group_permissions()``       Returns a list of permission strings that
+                                      the user has through the groups he or she
+                                      belongs to.
+                                      
+    ``get_all_permissions()``         Returns a list of permission strings that
+                                      the user has, both through group and user
+                                      permissions.
+                                      
+    ``has_perm(perm)``                Returns ``True`` if the user has the 
+                                      specified permission, where ``perm`` is in
+                                      the format ``"package.codename"``. If the
+                                      user is inactive, this method will always
+                                      return ``False``.
+                                      
+    ``has_perms(perm_list)``          Returns ``True`` if the user has *all* of 
+                                      the specified permissions. If the user is
+                                      inactive, this method will always return
+                                      ``False``.
+                                      
+    ``has_module_perms(app_label)``   Returns ``True`` if the user has
+                                      any permissions in the given ``app_label``.                
+                                      If the user is inactive, this method will
+                                      always return ``False``.
+                                      
+    ``get_and_delete_messages()``     Returns a list of ``Message`` objects in
+                                      the user's queue and deletes the messages
+                                      from the queue.
+                                      
+    ``email_user(subj, msg)``         Sends an email to the user. This email
+                                      is sent from the ``DEFAULT_FROM_EMAIL`` 
+                                      setting.  You can also pass a third
+                                      argument, ``from_email``, to override the
+                                      From address on the email.
+                                      
+    ``get_profile()``                 Returns a site-specific profile for this 
+                                      user. See the "Profiles" section 
+                                      for more on this method.
+    ================================  ==========================================
     
 Finally, ``User`` objects have two many-to-many fields: ``groups`` and
 ``permissions``. ``User`` objects can access their related objects in the same

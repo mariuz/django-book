@@ -137,12 +137,12 @@ Django has parsed the URL to determine which view to run. It gets passed the
 ``process_request()`` should return either ``None`` or an ``HttpResponse``
 object.
 
-	* If it returns ``None``, Django will continue processing this request,
+    * If it returns ``None``, Django will continue processing this request,
       executing any other middleware and then the appropriate view.
 
-	* If it returns an ``HttpResponse`` object, Django won't bother calling
-	  *any* other middleware (of any type) or the appropriate view. Django
-	  will immediately return that ``HttpResponse``.
+    * If it returns an ``HttpResponse`` object, Django won't bother calling
+      *any* other middleware (of any type) or the appropriate view. Django
+      will immediately return that ``HttpResponse``.
 
 View Preprocessor: process_view(self, request, view, args, kwargs)
 -------------------------------------------------------------------

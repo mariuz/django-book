@@ -90,7 +90,7 @@ numerous, but they boil down to these points:
     * *Each piece of the stack must be easily moved or replicated*. If Apache
       for some reason doesn't work for a given deployment, you should be
       able to swap it out for another server with a minimum of fuss. Or, 
-	  on a hardware level, if a Web server fails, you should be able to
+      on a hardware level, if a Web server fails, you should be able to
       replace it with another physical box with minimum downtime. Remember,
       this whole philosophy is based around deployment on cheap, commodity
       hardware. Failure of individual machines is to be expected.
@@ -245,9 +245,9 @@ this directive inside a ``<VirtualHost>`` block) will be served by Django.
     domain or virtual host.  Alternatively, you can simply shift your URL 
     configuration down one level by using a shim URLconf::
     
-    urlpatterns = patterns('',
-        (r'^mysite/', include('normal.root.urls')),
-    )
+        urlpatterns = patterns('',
+            (r'^mysite/', include('normal.root.urls')),
+        )
 
 Running Multiple Django Installations on the Same Apache Instance
 -----------------------------------------------------------------

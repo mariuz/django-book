@@ -251,6 +251,7 @@ even draw the entire form for us. Let's hook it into a view and see it in
 action. In ``views.py``:
 
 .. parsed-literal::
+
     from django.db.models import Q
     from django.shortcuts import render_to_response
     from models import Book

@@ -574,7 +574,7 @@ objects via the Django database API, for example::
     <FlatPage: /about/ -- About>
 
 Using Flatpage Templates
-------------------
+------------------------
 
 By default, flatpages are rendered via the template ``flatpages/default.html``,
 but you can override that for a particular flatpage with the ``template_name``
