@@ -2,19 +2,28 @@
 Chapter 6: The Django Administration Site
 =========================================
 
-There's one part of web development we've always hated: writing administration
-interfaces. Developing the parts of the site that the general public sees is
-always different and interesting, but the bits that the administrators use to
-modify the site are always the same. You have to authenticate users, display
-and handle forms, validate input, and so on. It's boring, and it's repetitive.
+For a certain class of Web sites, an *admin interface* is an essential part of
+the infrastructure. This is a Web-based interface, limited to trusted site
+administrators, that enables the adding, editing and deletion of site content.
+The interface you use to post to your blog, the backend site managers use to
+moderate reader-generated comments, the tool your clients use to update the
+press releases on the Web site you built for them -- these are all examples of
+admin interfaces.
+
+There's a problem with admin interfaces, though: it's boring to build them.
+Web development is fun when you're developing public-facing functionality, but
+building admin interfaces is always the same. You have to authenticate users,
+display and handle forms, validate input, and so on. It's boring, and it's
+repetitive.
 
 So what's Django's approach to these boring, repetitive tasks? It does it all
-for you--in just a couple of lines of code, no less.
+for you--in just a couple of lines of code, no less. With Django, building an
+admin interface is a solved problem.
 
-One of the most powerful parts of Django is the automatic admin interface. It
-reads metadata in your model to provide a powerful and production-ready
-interface that content producers can immediately use to start adding content to
-the site. In this chapter, we discuss how to activate, use, and customize Django's admin interface. 
+This chapter is about Django's automatic admin interface. This feature works by
+reading metadata in your model to provide a powerful and production-ready
+interface that site administrators can start using immediately. Here, we discuss
+how to activate, use, and customize this feature.
 
 Activating the Admin Interface
 ==============================
@@ -22,7 +31,7 @@ Activating the Admin Interface
 We think the admin interface is the coolest part of Django--and most
 Djangonauts agree--but since not everyone actually needs it, it's an
 optional piece. That means there are three steps you'll need to follow to
-activate the admin interface:
+activate it:
 
     1.  Add admin metadata to your models.
 
@@ -39,6 +48,10 @@ activate the admin interface:
                 authors = models.ManyToManyField(Author)
                 publisher = models.ForeignKey(Publisher)
                 publication_date = models.DateField()
+                num_pages = models.IntegerField(blank=True, null=True)
+
+                def __str__(self):
+                    return self.title
 
                 **class Admin:**
                     **pass**
@@ -53,15 +66,25 @@ activate the admin interface:
         good idea to add ``Admin`` declarations to the ``Publisher`` and
         ``Author`` classes at this point.
 
-    2.  Install the admin models. Simply add ``"django.contrib.admin"`` to
-        your ``INSTALLED_APPS`` setting and run ``python manage.py syncdb``
-        to install the extra tables the admin interface uses.
+    2.  Install the admin application. Do this by adding ``"django.contrib.admin"``
+        to your ``INSTALLED_APPS`` setting.  
+
+    3.  If you've been following along, make sure that ``"django.contrib.sessions"``, 
+        ``"django.contrib.auth"``, and ``"django.contrib.contenttypes"`` are 
+        uncommented, since the admin application depends on them.  Also uncomment 
+        all the lines in the ``MIDDLEWARE_CLASSES`` setting tuple and delete the 
+        ``TEMPLATE_CONTEXT_PROCESSOR`` setting to allow it to take
+        the default values again.
+
+    4.  Run ``python manage.py syncdb``. This step will install the extra database 
+        tables the admin interface uses.
 
         .. note::
 
-            When you first ran ``syncdb``, you were probably asked about
-            creating a superuser. If you didn't do so at that time, you'll need
-            to run ``django/contrib/auth/bin/create_superuser.py`` to create an
+            When you first run ``syncdb`` with ``"django.contrib.auth"`` in 
+            INSTALLED_APPS, you'll be asked about creating a superuser. If you 
+            didn't do so at that time, you'll need to run 
+            ``django/contrib/auth/bin/create_superuser.py`` to create an
             admin user. Otherwise, you won't be able to log in to the admin
             interface.
 
@@ -84,7 +107,7 @@ server. You'll see something like this::
     Validating models...
     0 errors found.
 
-    Django version 0.96-pre, using settings 'ch6.settings'
+    Django version 0.96, using settings 'mysite.settings'
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
@@ -109,7 +132,7 @@ The first thing you'll see is a login screen, as shown in Figure 6-1.
    
    Figure 6-1. Django's login screen
 
-You'll use the username and password you set up when you first ran ``syncdb``. 
+You'll use the username and password you set up when you added your superuser. 
 Once you're logged in, you'll see that you can manage users, groups, and
 permissions (more on that shortly).
 
@@ -203,7 +226,7 @@ You edit these users and permissions through the admin interface just like any
 other object. The link to the ``User`` and ``Group`` models is there on the
 admin index along with all the objects you've defined yourself.
 
-User objects have the standard username, password, email, and real name fields
+User objects have the standard username, password, e-mail, and real name fields
 you might expect, along with a set of fields that define what the user is
 allowed to do in the admin interface. First, there's a set of three flags:
 
@@ -220,12 +243,11 @@ allowed to do in the admin interface. First, there's a set of three flags:
     * The "is superuser" flag gives the user full, unfettered access to
       every item in the admin interface; regular permissions are ignored.
 
-The access "normal" admin users--that is, active, non-superuser staff
-members--are granted depends on a set of assigned permissions. Each object
-editable through the admin interface has three permissions: a *create*
-permission, an *edit* permission, and a *delete* permission. Assigning
-permissions to a user grants the user access to do what is described by those
-permissions.
+"Normal" admin users--that is, active, non-superuser staff members--are granted
+access that depends on a set of assigned permissions. Each object editable
+through the admin interface has three permissions: a *create* permission, an
+*edit* permission, and a *delete* permission. Assigning permissions to a user
+grants the user access to do what is described by those permissions.
 
 .. note::
 
@@ -234,8 +256,8 @@ permissions.
     edit her own permissions, which might not be what you want!
 
 You can also assign users to groups. A *group* is simply a set of permissions to
-apply to all members of that group. Groups are extremely useful for granting a
-large number of users identical permissions.
+apply to all members of that group. Groups are useful for granting identical
+permissions to large number of users.
 
 Customizing the Admin Interface
 ===============================
@@ -260,10 +282,10 @@ display, searching, and filtering functions to this interface. Change the
             publication_date = models.DateField()
 
             class Admin:
-                **list_display   = ('title', 'publisher', 'publication_date')**
-                **list_filter    = ('publisher', 'publication_date')**
-                **ordering       = ('-publication_date',)**
-                **search_fields  = ('title',)**
+                **list_display = ('title', 'publisher', 'publication_date')**
+                **list_filter = ('publisher', 'publication_date')**
+                **ordering = ('-publication_date',)**
+                **search_fields = ('title',)**
 
 These four lines of code dramatically change our list interface, as shown in
 Figure 6-8.
@@ -280,9 +302,9 @@ Each of those lines instructed the admin interface to construct a different
 piece of this interface:
 
     * The ``list_display`` option controls which columns appear in the change
-      list table. By default, only a single column with the object's string
-      representation appears; here we've changed that to show the title,
-      publisher, and publication date.
+      list table. By default, the change list displays only a single column
+      that contains the object's string representation. Here, we've changed
+      that to show the title, publisher, and publication date.
 
     * The ``list_filter`` option creates the filtering bar on the right side
       of the list. We've allowed filtering by date (which allows you to
@@ -291,10 +313,11 @@ piece of this interface:
     
       You can instruct the admin interface to filter by any field, but foreign
       keys, dates, Booleans, and fields with a ``choices`` attribute work best.
+      The filters show up as long as there are at least 2 values to choose from.
 
     * The ``ordering`` option controls the order in which the objects are
-      presented in the admin interface. It's simply a list of fields to order
-      the results by; prefixing a field with a minus sign reverses the given
+      presented in the admin interface. It's simply a list of fields by which
+      to order the results; prefixing a field with a minus sign reverses the given
       order. In this example, we're ordering by publication date, with the most
       recent first.
 
@@ -309,36 +332,26 @@ for data editing.
 Customizing the Admin Interface's Look and Feel
 ===============================================
 
-.. This and the next section is taken mostly verbatim from tutorial02.txt
-
 Clearly, having the phrase "Django administration" at the top of each admin page
 is ridiculous. It's just placeholder text.
 
 It's easy to change, though, using Django's template system. The Django
 admin site is powered by Django itself, and its interfaces use Django's own
-template system.
+template system. (Django's template system was covered in Chapter 4.)
 
-Open your settings file (``mysite/settings.py``) and look at the
-``TEMPLATE_DIRS`` setting. ``TEMPLATE_DIRS`` is a tuple of filesystem
-directories to check when loading Django templates--it's a search path.
+As we explained in Chapter 4, the ``TEMPLATE_DIRS`` setting specifies a list
+of directories to check when loading Django templates. To customize Django's
+admin templates, simply copy the relevant stock admin template from the Django
+distribution into your one of the directories pointed-to by ``TEMPLATE_DIRS``.
 
-By default, ``TEMPLATE_DIRS`` is empty. Let's add a line to it, to tell
-Django where our templates live::
-
-    TEMPLATE_DIRS = (
-        "/home/mytemplates", # Change this to your own directory.
-    )
-
-.. note::
-
-    Make sure to include the trailing comma there--Python uses it to
-    distinguish between single-element tuples and parenthesized expressions.
-
-Now copy the template ``admin/base_site.html`` from within the default Django
-admin template directory (``django/contrib/admin/templates``) into an
-``admin`` subdirectory of whichever directory you're using in
+The admin site finds the "Django administration" header by looking for the
+template ``admin/base_site.html``. By default, this template lives in the
+Django admin template directory, ``django/contrib/admin/templates``, which you
+can find by looking in your Python ``site-packages`` directory, or wherever
+Django was installed. To customize this ``base_site.html`` template, copy that
+template into an ``admin`` subdirectory of whichever directory you're using in
 ``TEMPLATE_DIRS``. For example, if your ``TEMPLATE_DIRS`` includes
-``"/home/mytemplates"``, as shown previously, then copy
+``"/home/mytemplates"``, then copy
 ``django/contrib/admin/templates/admin/base_site.html`` to
 ``/home/mytemplates/admin/base_site.html``. Don't forget that ``admin``
 subdirectory.
@@ -434,5 +447,4 @@ What's Next?
 
 So far we've created a few models and configured a top-notch interface for
 editing data. In the next chapter, we'll move on to the real "meat and potatoes"
-of web development: form creation and processing. So grab another cup of your
-favorite beverage and let's continue.
+of Web development: form creation and processing.

@@ -3,7 +3,7 @@ Chapter 12: Sessions, Users, and Registration
 =============================================
 
 It's time for a confession: we've been deliberately ignoring an incredibly
-important aspect of web development prior to this point. So far, we've thought
+important aspect of Web development prior to this point. So far, we've thought
 of the traffic visiting our sites as some faceless, anonymous mass hurtling
 itself against our carefully designed pages.
 
@@ -27,8 +27,8 @@ Cookies
 =======
 
 Browser developers long ago recognized that HTTP's statelessness poses a huge
-problem for web developers, and thus *cookies* were born. A cookie is a
-small piece of information that browsers store on behalf of web servers. Every
+problem for Web developers, and thus *cookies* were born. A cookie is a
+small piece of information that browsers store on behalf of Web servers. Every
 time a browser requests a page from a certain server, it gives back the cookie
 that it initially received.
 
@@ -195,7 +195,7 @@ Django's Session Framework
 ==========================
 
 With all of these limitations and potential security holes, it's obvious that
-cookies and persistent sessions are examples of those "pain points" in web
+cookies and persistent sessions are examples of those "pain points" in Web
 development. Of course, Django's goal is to be an effective painkiller, so
 it comes with a session framework designed to smooth over these
 difficulties for you.
@@ -288,11 +288,12 @@ posting more than one comment::
 This simplistic view logs in a "member" of the site::
 
     def login(request):
-        m = members.get_object(username__exact=request.POST['username'])
-        if m.password == request.POST['password']:
-            request.session['member_id'] = m.id
-            return HttpResponse("You're logged in.")
-        else:
+        try:
+            m = Member.objects.get(username__exact=request.POST['username'])
+            if m.password == request.POST['password']:
+                request.session['member_id'] = m.id
+                return HttpResponse("You're logged in.")
+        except Member.DoesNotExist:
             return HttpResponse("Your username and password didn't match.")
 
 And this one logs out a member, according to ``login()``::
@@ -366,7 +367,7 @@ random 32-character hash stored in a cookie. Because it's a normal model, you
 can access sessions using the normal Django database API::
 
     >>> from django.contrib.sessions.models import Session
-    >>> s = Session.objects.get_object(pk='2b1189a188b44ad18c35e113ac6ceead')
+    >>> s = Session.objects.get(pk='2b1189a188b44ad18c35e113ac6ceead')
     >>> s.expire_date
     datetime.datetime(2005, 8, 20, 13, 35, 12)
 
@@ -656,8 +657,8 @@ object. Tables 12-3 and 12-4 list the fields and methods, respectively, on ``Use
                                     inactive, this method will always return
                                     ``False``.
 
-    ``has_module_perms(appname)``   Returns ``True`` if the user has
-                                    any permissions in the given ``appname``.                
+    ``has_module_perms(app_label)`` Returns ``True`` if the user has
+                                    any permissions in the given ``app_label``.                
                                     If the user is inactive, this method will
                                     always return ``False``.
 
@@ -1028,8 +1029,8 @@ can use for this purpose, which we'll use in this example::
             data = request.POST.copy()
             errors = form.get_validation_errors(data)
             if not errors:
-                new_user = form.save()
-                return HttpResponseRedirect("/accounts/created/")
+                new_user = form.save(data)
+                return HttpResponseRedirect("/books/")
         else:
             data, errors = {}, {}
             
@@ -1070,6 +1071,13 @@ example of what that template might look like::
     </label>
   {% endblock %}
 
+.. note::
+    ``django.contrib.auth.forms.UserCreationForm`` is, at the time of 
+    publication, an *oldforms* Form.  
+    See http://www.djangoproject.com/documentation/0.96/forms/ for details on 
+    oldforms.  The transition to newforms, as covered in 
+    Chapter 7, will be completed in the near future.
+    
 Using Authentication Data in Templates
 --------------------------------------
 

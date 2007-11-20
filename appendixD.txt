@@ -160,10 +160,10 @@ Use this view to display a page representing a list of objects.
 Example
 ```````
 
-Given the ``Author`` object from Chapter 9, we can use the ``object_list`` view
+Given the ``Author`` object from Chapter 5, we can use the ``object_list`` view
 to show a simple list of all authors given the following URLconf snippet::
 
-    from bookstore.models import Author
+    from mysite.books.models import Author
     from django.conf.urls.defaults import *
     from django.views.generic import list_detail
 
@@ -212,8 +212,8 @@ name of the application that the model is defined in, and the model name is the
 lowercased version of the name of the model class.
 
 In the previous example using ``Author.objects.all()`` as the ``queryset``, the application
-label would be ``bookstore`` and the model name would be ``author``. This means
-the default template would be ``bookstore/author_list.html``.
+label would be ``books`` and the model name would be ``author``. This means
+the default template would be ``books/author_list.html``.
 
 Template Context
 ````````````````
@@ -284,7 +284,7 @@ given author by modifying the URLconf:
 
 .. parsed-literal::
 
-    from bookstore.models import Author
+    from mysite.books.models import Author
     from django.conf.urls.defaults import *
     from django.views.generic import list_detail
 
@@ -331,7 +331,9 @@ Optional Arguments
       ``'the_template'``, then the generic view for this object will use the
       template ``'foo.html'``.
       
-       It's a bit of a brain-bender, but it's useful in some cases.
+      If the template named by ``template_name_field`` doesn't exist, the one 
+      named by ``template_name`` is used instead.  It's a bit of a 
+      brain-bender, but it's useful in some cases.
 
 This view may also take these common arguments (see Table D-1):
 
@@ -398,9 +400,9 @@ Say a typical book publisher wants a page of recently published books. Given som
 
 .. parsed-literal::
 
-    from bookstore.models import Book    
+    from mysite.books.models import Book    
     from django.conf.urls.defaults import *
-    from django.views.generic. import date_based
+    from django.views.generic import date_based
 
     book_info = {
         "queryset"   : Book.objects.all(),
@@ -477,9 +479,9 @@ the books published in a given year:
 
 .. parsed-literal::
 
-    from bookstore.models import Book    
+    from mysite.books.models import Book    
     from django.conf.urls.defaults import *
-    from django.views.generic. import date_based
+    from django.views.generic import date_based
 
     book_info = {
         "queryset"   : Book.objects.all(),
@@ -595,7 +597,7 @@ Optional Arguments
     * ``month_format``: A format string that regulates what format the ``month``
       parameter uses. This should be in the syntax accepted by Python's
       ``time.strftime``. (See Python's strftime documentation at
-      http://www.python.org/doc/current/lib/module-time.html.) It's set
+      http://www.djangoproject.com/r/python/strftime/.) It's set
       to ``"%b"`` by default, which is a three-letter month abbreviation (i.e.,
       "jan", "feb", etc.). To change it to use numbers, use ``"%m"``.
     
@@ -837,9 +839,9 @@ view uses URLs like ``/entries/<slug>/``, while this one uses URLs like
 Example
 ```````
 
-This one differs (slightly) from all the other examples in that we need to
-provide either an object ID or a slug so that Django can look up the object in
-question.
+This one differs (slightly) from all the other date-based examples in that we 
+need to provide either an object ID or a slug so that Django can look up the 
+object in question.
 
 Since the object we're using doesn't have a slug field, we'll use ID-based URLs.
 It's considered a best practice to use a slug field, but in the interest of
@@ -940,10 +942,7 @@ for creating, editing, and deleting objects.
 .. note::
 
     These views may change slightly when Django's revised form architecture
-    (currently under development as ``django.newforms``) is finalized. Be sure
-    to check the online documentation
-    (http://www.djangoproject.com/documentation/generic_views/) for the most
-    up-to-date information about these views.
+    (currently under development as ``django.newforms``) is finalized.
 
 These views all present forms if accessed with ``GET`` and perform the
 requested action (create/update/delete) if accessed via ``POST``.
@@ -972,9 +971,9 @@ Example
 If we wanted to allow users to create new books in the database, we could do
 something like this::
 
-    from bookstore.models import Book    
+    from mysite.books.models import Book    
     from django.conf.urls.defaults import *
-    from django.views.generic. import date_based
+    from django.views.generic import date_based
     
     book_info = {'model' : Book}
     
@@ -998,9 +997,9 @@ Optional Arguments
     * ``post_save_redirect``: A URL to which the view will redirect after saving
       the object. By default, it's ``object.get_absolute_url()``.
 
-    * ``post_save_redirect``: May contain dictionary string formatting, which will be interpolated
-        against the object's field attributes. For example, you could use
-        ``post_save_redirect="/polls/%(slug)s/"``.
+      ``post_save_redirect``: May contain dictionary string formatting, which will be interpolated
+      against the object's field attributes. For example, you could use
+      ``post_save_redirect="/polls/%(slug)s/"``.
 
     * ``login_required``: A Boolean that designates whether a user must be
       logged in, in order to see the page and save changes. This hooks into the
@@ -1037,6 +1036,10 @@ In addition to ``extra_context``, the template's context will be as follows:
             <p><label for="id_address">Address:</label> {{ form.address }}</p>
           </form>
 
+      Note that ``form`` is an *oldforms* FormWrapper, which is not covered in 
+      this book.  See http://www.djangoproject.com/documentation/0.96/forms/ for 
+      details.
+
 Update Object View
 ------------------
 
@@ -1053,7 +1056,7 @@ book with this URLconf snippet:
 
 .. parsed-literal::
 
-    from bookstore.models import Book    
+    from mysite.books.models import Book    
     from django.conf.urls.defaults import *
     from django.views.generic. import date_based
 

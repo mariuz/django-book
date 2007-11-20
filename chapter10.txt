@@ -2,10 +2,14 @@
 Chapter 10: Extending the Template Engine
 =========================================
 
-Most of your interactions with Django's template language will probably be in
-the role of a template author. This chapter delves deep into the guts
-of Django's template system, covering what you need to know if you plan to extend the template
-system, or if you're just curious about how it works internally.
+Although most of your interactions with Django's template language will be in
+the role of template author, you may want to customize and extend the template
+engine -- either to make it do something it doesn't already do, or to make your
+job easier in some other way.
+
+This chapter delves deep into the guts of Django's template system. It covers
+what you need to know if you plan to extend the system or if you're just
+curious about how it works.
 
 If you're looking to use the Django template system as part of another
 application (i.e., without the rest of the framework), make sure to read the
@@ -19,7 +23,7 @@ First, let's quickly review a number of terms introduced in Chapter 4:
 
     * A *template* is a text document, or a normal Python string, that is
       marked up using the Django template language. A template can contain
-      block tags or variables.
+      block tags and variables.
 
     * A *block tag* is a symbol within a template that does something. This
       definition is deliberately vague. For example, a block tag can produce
@@ -34,20 +38,20 @@ First, let's quickly review a number of terms introduced in Chapter 4:
           {% else %}
             Please log in.
           {% endif %}
-  
+
     * A *variable* is a symbol within a template that outputs a value.
 
       Variable tags are surrounded by ``{{`` and ``}}``::
-  
+
           My first name is {{ first_name }}. My last name is {{ last_name }}.
- 
+
     * A *context* is a name -> value mapping (similar to a Python
       dictionary) that is passed to a template.
 
     * A template *renders* a context by replacing the variable "holes" with
       values from the context and executing all block tags.
 
-For more details about the basics of these tems, refer back to Chapter 4. 
+For more details about the basics of these terms, refer back to Chapter 4. 
 
 The rest of this chapter discusses ways of extending the template engine. First,
 though, let's take a quick look at a few internals left out of Chapter 4 for
@@ -55,52 +59,227 @@ simplicity.
 
 RequestContext and Context Processors
 =====================================
+
 When rendering a template, you need a context. Usually this is an instance of
 ``django.template.Context``, but Django also comes with a special subclass,
 ``django.template.RequestContext``, that acts slightly differently.
+``RequestContext`` adds a bunch of variables to your template context by
+default -- things like the ``HttpRequest`` object or information about the
+currently logged-in user.
 
-The first difference is that it takes an ``HttpRequest`` object (see Appendix H)
-as its first argument::
+Use ``RequestContext`` when you don't want to have to specify the same set of
+variables in a series of templates. For example, consider these four views::
 
-    c = RequestContext(request, {'foo': 'bar'}
+    from django.template import loader, Context
 
-The second difference is that it automatically populates the context with a
-few variables, according to your ``TEMPLATE_CONTEXT_PROCESSORS`` setting.
+    def view_1(request):
+        # ...
+        t = loader.get_template('template1.html')
+        c = Context({
+            'app': 'My app',
+            'user': request.user,
+            'ip_address': request.META['REMOTE_ADDR'],
+            'message': 'I am view 1.'
+        })
+        return t.render(c)
 
-The ``TEMPLATE_CONTEXT_PROCESSORS`` setting is a tuple of callables called
-*context processors* that take a request object as their argument and
-return a dictionary of items to be merged into the context. By default,
-``TEMPLATE_CONTEXT_PROCESSORS`` is set to the following::
+    def view_2(request):
+        # ...
+        t = loader.get_template('template2.html')
+        c = Context({
+            'app': 'My app',
+            'user': request.user,
+            'ip_address': request.META['REMOTE_ADDR'],
+            'message': 'I am the second view.'
+        })
+        return t.render(c)
 
-    ("django.core.context_processors.auth",
-     "django.core.context_processors.debug",
-     "django.core.context_processors.i18n")
+    def view_3(request):
+    # ...
+        t = loader.get_template('template3.html')
+        c = Context({
+            'app': 'My app',
+            'user': request.user,
+            'ip_address': request.META['REMOTE_ADDR'],
+            'message': 'I am the third view.'
+        })
+        return t.render(c)
+
+    def view_4(request):
+        # ...
+        t = loader.get_template('template4.html')
+        c = Context({
+            'app': 'My app',
+            'user': request.user,
+            'ip_address': request.META['REMOTE_ADDR'],
+            'message': 'I am the fourth view.'
+        })
+        return t.render(c)
+
+(Note that we're deliberately *not* using the ``render_to_response()`` shortcut
+in these examples -- we're manually loading the templates, constructing the
+context objects and rendering the templates. We're "spelling out" all of the
+steps for the purpose of clarity.)
+
+Each view passes the same three variables -- ``app``, ``user`` and
+``ip_address`` -- to its template. Wouldn't it be nice if we could remove that
+redundancy?
+
+``RequestContext`` and **context processors** were created to solve this
+problem. Context processors let you specify a number of variables that get set
+in each context automatically -- without you having to specify the variables in
+each ``render_to_response()`` call. The catch is that you have to use
+``RequestContext`` instead of ``Context`` when you render a template.
+
+The most low-level way of using context processors is to create some processors
+and pass them to ``RequestContext``. Here's how the above example could be
+written with context processors::
+
+    from django.template import loader, RequestContext
+
+    def custom_proc(request):
+        "A context processor that provides 'app', 'user' and 'ip_address'."
+        return {
+            'app': 'My app',
+            'user': request.user,
+            'ip_address': request.META['REMOTE_ADDR']
+        }
+
+    def view_1(request):
+        # ...
+        t = loader.get_template('template1.html')
+        c = RequestContext(request, {'message': 'I am view 1.'},
+                processors=[custom_proc])
+        return t.render(c)
+
+    def view_2(request):
+        # ...
+        t = loader.get_template('template2.html')
+        c = RequestContext(request, {'message': 'I am the second view.'},
+                processors=[custom_proc])
+        return t.render(c)
+
+    def view_3(request):
+        # ...
+        t = loader.get_template('template3.html')
+        c = RequestContext(request, {'message': 'I am the third view.'},
+                processors=[custom_proc])
+        return t.render(c)
+
+    def view_4(request):
+        # ...
+        t = loader.get_template('template4.html')
+        c = RequestContext(request, {'message': 'I am the fourth view.'},
+                processors=[custom_proc])
+        return t.render(c)
+
+Let's step through this code:
+
+    * First, we define a function ``custom_proc``. This is a context processor
+      -- it takes an ``HttpRequest`` object and returns a dictionary of
+      variables to use in the template context. That's all it does.
+
+    * We've changed the four view functions to use ``RequestContext`` instead
+      of ``Context``. There are two differences in how the context is
+      constructed. One, ``RequestContext`` requires the first argument to be an
+      ``HttpRequest`` object -- the one that was passed into the view function
+      in the first place (``request``). Two, ``RequestContext`` takes an
+      optional ``processors`` argument, which is a list or tuple of context
+      processor functions to use. Here, we pass in ``custom_proc``, the custom
+      processor we defined above.
+
+    * Each view no longer has to include ``app``, ``user`` or ``ip_address`` in
+      its context construction, because those are provided by ``custom_proc``.
+
+    * Each view *still* has the flexibility to introduce any custom template
+      variables it might need. In this example, the ``message`` template
+      variable is set differently in each view.
+
+In Chapter 4, we introduced the ``render_to_response()`` shortcut, which saves
+you from having to call ``loader.get_template()``, then create a ``Context``,
+then call the ``render()`` method on the template. In order to demonstrate the
+lower-level workings of context processors, the above examples didn't use
+``render_to_response()``, . But it's possible -- and preferable -- to use
+context processors with ``render_to_response()``. Do this with the
+``context_instance`` argument, like so::
+
+    from django.shortcuts import render_to_response
+    from django.template import RequestContext
+
+    def custom_proc(request):
+        "A context processor that provides 'app', 'user' and 'ip_address'."
+        return {
+            'app': 'My app',
+            'user': request.user,
+            'ip_address': request.META['REMOTE_ADDR']
+        }
+
+    def view_1(request):
+        # ...
+        return render_to_response('template1.html',
+            {'message': 'I am view 1.'},
+            context_instance=RequestContext(request, processors=[custom_proc]))
+
+    def view_2(request):
+        # ...
+        return render_to_response('template2.html',
+            {'message': 'I am the second view.'},
+            context_instance=RequestContext(request, processors=[custom_proc]))
+
+    def view_3(request):
+        # ...
+        return render_to_response('template3.html',
+            {'message': 'I am the third view.'},
+            context_instance=RequestContext(request, processors=[custom_proc]))
+
+    def view_4(request):
+        # ...
+        return render_to_response('template4.html',
+            {'message': 'I am the fourth view.'},
+            context_instance=RequestContext(request, processors=[custom_proc]))
+
+Here, we've trimmed down each view's template rendering code to a single
+(wrapped) line.
+
+This is an improvement, but, evaluating the conciseness of this code, we have
+to admit we're now almost overdosing on the *other* end of the spectrum. We've
+removed redundancy in data (our template variables) at the cost of adding
+redundancy in code (in the ``processors`` call). Using context processors
+doesn't save you much typing if you have to type ``processors`` all the time.
+
+For that reason, Django provides support for *global* context processors. The
+``TEMPLATE_CONTEXT_PROCESSORS`` setting designates which context processors
+should *always* be applied to ``RequestContext``. This removes the need to
+specify ``processors`` each time you use ``RequestContext``.
+
+By default, ``TEMPLATE_CONTEXT_PROCESSORS`` is set to the following::
+
+    TEMPLATE_CONTEXT_PROCESSORS = (
+        'django.core.context_processors.auth',
+        'django.core.context_processors.debug',
+        'django.core.context_processors.i18n',
+        'django.core.context_processors.media',
+    )
+
+This setting is a tuple of callables that use the same interface as our
+``custom_proc`` function above -- functions that take a request object as their
+argument and return a dictionary of items to be merged into the context. Note
+that the values in ``TEMPLATE_CONTEXT_PROCESSORS`` are specified as *strings*,
+which means the processors are required to be somewhere on your Python path
+(so you can refer to them from the setting).
 
 Each processor is applied in order. That is, if one processor adds a variable
 to the context and a second processor adds a variable with the same name, the
-second will override the first. The default processors are explained shortly.
+second will override the first.
 
-Also, you can give ``RequestContext`` a list of additional processors by using
-the optional third argument, ``processors``. In this example, the
-``RequestContext`` instance gets an ``ip_address`` variable::
-
-    def ip_address_processor(request):
-        return {'ip_address': request.META['REMOTE_ADDR']}
-
-    def some_view(request):
-        # ...
-        return RequestContext(request, {
-            'foo': 'bar',
-        }, processors=[ip_address_processor])
-
-The sections that follow describe what each of the stock template processors
-does.
+Django provides a number of simple context processors, including the ones that
+are enabled by default:
 
 django.core.context_processors.auth
 -----------------------------------
 
 If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
-``RequestContext`` will contain these three variables:
+``RequestContext`` will contain these variables:
 
     * ``user``: A ``django.contrib.auth.models.User`` instance representing the
       current logged-in user (or an ``AnonymousUser`` instance, if the client
@@ -109,8 +288,7 @@ If ``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
     * ``messages``: A list of messages (as strings) for the current logged-in
       user. Behind the scenes, this variable calls
       ``request.user.get_and_delete_messages()`` for every request. That method
-      collects the user's messages and deletes them from the database. Note that
-      messages are set with ``user.add_message()``.
+      collects the user's messages and deletes them from the database.
 
     * ``perms``: An instance of ``django.core.context_processors.PermWrapper``,
       which represents the permissions the current logged-in user has.
@@ -120,43 +298,67 @@ See Chapter 12 for more information on users, permissions, and messages.
 django.core.context_processors.debug
 ------------------------------------
 
-This processor pushes debugging information down to the template layer. If it is
-enabled, it will only actually operate if both of the following conditions are
-met:
+This processor pushes debugging information down to the template layer. If
+``TEMPLATE_CONTEXT_PROCESSORS`` contains this processor, every
+``RequestContext`` will contain these variables:
 
-    * The ``DEBUG`` setting is ``True``.
-    
-    * The request came from an IP address in the ``INTERNAL_IPS`` setting.
-    
-If those conditions *are* met, the following variables will be set:
+    * ``debug``: The value of your ``DEBUG`` setting (either ``True`` or
+      ``False``). You can use this variable in templates to test whether you're
+      in debug mode.
 
-    * ``debug``: you can use this variable in templates to test whether you're
-      in ``DEBUG`` mode.
-        
-    * ``sql_queries``: a list of ``{'sql': ..., 'time': ...}`` dictionaries
+    * ``sql_queries``: A list of ``{'sql': ..., 'time': ...}`` dictionaries
       representing every SQL query that has happened so far during the request
       and how long it took. The list is in the order in which the queries were
       issued.
 
+Because debugging information is sensitive, this context processor will only
+add variables to the context if both of the following conditions are true:
+
+    * The ``DEBUG`` setting is ``True``.
+    
+    * The request came from an IP address in the ``INTERNAL_IPS`` setting.
+
 django.core.context_processors.i18n
 -----------------------------------
 
-If this processor is enabled, every ``RequestContext`` will contain these two
+If this processor is enabled, every ``RequestContext`` will contain these
 variables:
 
-    * ``LANGUAGES``: The value of the ``LANGUAGES`` setting
-        
+    * ``LANGUAGES``: The value of the ``LANGUAGES`` setting.
+
     * ``LANGUAGE_CODE``: ``request.LANGUAGE_CODE`` if it exists; otherwise, the
-      value of the ``LANGUAGE_CODE`` setting
+      value of the ``LANGUAGE_CODE`` setting.
 
 Appendix E provides more information about these two settings.
 
 django.core.context_processors.request
 --------------------------------------
 
-If enabled, every ``RequestContext`` will contain a variable ``request``,
-which is the current ``HttpRequest`` object. Note that this processor is not
-enabled by default; you have to activate it.
+If this processor is enabled, every ``RequestContext`` will contain a variable
+``request``, which is the current ``HttpRequest`` object. Note that this
+processor is not enabled by default; you have to activate it.
+
+Guidelines for Writing Your Own Context Processors
+--------------------------------------------------
+
+Here are a few tips for rolling your own:
+
+    * Make each context processor responsible for the smallest subset of
+      functionality possible. It's easy to use multiple processors, so you
+      might as well split functionality into logical pieces for future reuse.
+
+    * Keep in mind that any context processor in ``TEMPLATE_CONTEXT_PROCESSORS``
+      will be available in *every* template powered by that settings file, so
+      try to pick variable names that are unlikely to conflict with variable
+      names your templates might be using independently. As variable names are
+      case-sensitive, it's not a bad idea to use all caps for variables a
+      processor provides.
+
+    * It doesn't matter where on the filesystem they live, as long as they're
+      on your Python path so you can point to them from the
+      ``TEMPLATE_CONTEXT_PROCESSORS`` setting. With that said, the convention
+      is to save them in a file called ``context_processors.py`` within your
+      app or project.
 
 Inside Template Loading
 =======================
@@ -164,7 +366,7 @@ Inside Template Loading
 Generally, you'll store templates in files on your filesystem, but you can use
 custom *template loaders* to load templates from other sources.
 
-Django has two ways to load templates from files:
+Django has two ways to load templates:
 
     * ``django.template.loader.get_template(template_name)``: ``get_template``
       returns the compiled template (a ``Template`` object) for the template
@@ -174,6 +376,8 @@ Django has two ways to load templates from files:
     * ``django.template.loader.select_template(template_name_list)``:
       ``select_template`` is just like ``get_template``, except it takes a list
       of template names. Of the list, it returns the first template that exists.
+      If none of the templates exist, a ``TemplateDoesNotExist`` exception will
+      be raised.
         
 As covered in Chapter 4, each of these functions by default uses your
 ``TEMPLATE_DIRS`` setting to load templates. Internally, however, these
@@ -221,39 +425,55 @@ setting. It uses each loader until a loader finds a match.
 Extending the Template System
 =============================
 
-Now that you understand a bit more about the internals of the template language,
-let's look at how to extend the template system with custom code.
+Now that you understand a bit more about the internals of the template system,
+let's look at how to extend the system with custom code.
 
 Most template customization comes in the form of custom template tags and/or
 filters. Although the Django template language comes with many built-in tags and
-filters, it's quite easy to define your own.
+filters, you'll probably assemble your own libraries of tags and filters that
+fit your own needs. Fortunately, it's quite easy to define your own
+functionality.
 
 Creating a Template Library
 ---------------------------
 
-First, create a ``templatetags`` package in the appropriate Django application's
-package. It should be on the same level as ``models.py``, ``views.py``, and so
-forth, for example::
+Whether you're writing custom tags or filters, the first thing to do is to
+create a **template library** -- a small bit of infrastructure Django can hook
+into.
 
-    polls/
-        models.py
-        templatetags/
-        views.py
+Creating a template library is a two-step process:
 
-Add two files to the ``templatetags`` package: an ``__init__.py`` file (to
-indicate to Python that this is a module containing Python code) and a file that
-will contain your custom tag/filter definitions. The name of the latter file is
-what you'll use to load the tags later. For example, if your custom tags/filters
-are in a file called ``poll_extras.py``, you'd write the following in a
-template::
+    * First, decide which Django application should house the template library.
+      If you've created an app via ``manage.py startapp``, you can put it in
+      there, or you can create another app solely for the template library.
+      
+      Whichever route you take, make sure to add the app to your
+      ``INSTALLED_APPS`` setting. We'll explain this shortly.
 
-    {% load poll_extras %}
+    * Second, create a ``templatetags`` directory in the appropriate Django
+      application's package. It should be on the same level as ``models.py``,
+      ``views.py``, and so forth. For example::
 
-The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only allows
-the loading of template libraries within installed Django applications. This is
-a security feature; it allows you to host Python code for many template
-libraries on a single computer without enabling access to all of them for every
-Django installation.
+          books/
+              __init__.py
+              models.py
+              templatetags/
+              views.py
+
+      Create two empty files in the ``templatetags`` directory: an ``__init__.py``
+      file (to indicate to Python that this is a package containing Python code)
+      and a file that will contain your custom tag/filter definitions. The name
+      of the latter file is what you'll use to load the tags later. For example,
+      if your custom tags/filters are in a file called ``poll_extras.py``, you'd
+      write the following in a template::
+
+          {% load poll_extras %}
+
+      The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only
+      allows the loading of template libraries within installed Django
+      applications. This is a security feature; it allows you to host Python
+      code for many template libraries on a single computer without enabling
+      access to all of them for every Django installation.
 
 If you write a template library that isn't tied to any particular models/views,
 it's valid and quite normal to have a Django application package that contains
@@ -266,8 +486,9 @@ Once you've created that Python module, you'll just have to write a bit of
 Python code, depending on whether you're writing filters or tags.
 
 To be a valid tag library, the module must contain a module-level variable named
-``register`` that is a ``template.Library`` instance, in which all the tags and
-filters are registered. So, near the top of your module, insert the following::
+``register`` that is a ``template.Library`` instance. This ``template.Library``
+instance is the data structure in which all the tags and filters are registered.
+So, near the top of your module, insert the following::
 
     from django import template
 
@@ -277,8 +498,8 @@ filters are registered. So, near the top of your module, insert the following::
 
     For a good number of examples, read the source code for Django's default
     filters and tags. They're in ``django/template/defaultfilters.py`` and
-    ``django/template/defaulttags.py``, respectively. The applications in
-    ``django.contrib`` also contain numerous examples.
+    ``django/template/defaulttags.py``, respectively. Some applications in
+    ``django.contrib`` also contain template libraries.
 
 Once you've created this ``register`` variable, you'll use it to create template
 filters and tags.
@@ -342,6 +563,16 @@ decorator instead::
 
 If you leave off the ``name`` argument, as in the second example, Django
 will use the function's name as the filter name.
+
+Here, then, is a complete template library example, supplying the ``cut`` filter::
+
+    from django import template
+
+    register = template.Library()
+
+    @register.filter(name='cut')
+    def cut(value, arg):
+        return value.replace(arg, '')
 
 Writing Custom Template Tags
 ----------------------------
@@ -464,8 +695,10 @@ errors is at compilation time.
 Registering the Tag
 ```````````````````
 
-Finally, you need to register the tag with your module's ``Library`` instance,
-as explained in the "Writing Custom Template Filters" section::
+Finally, you need to register the tag with your module's ``Library`` instance.
+Registering custom tags is very similar to registering custom filters (as
+explained above). Just instantiate a ``template.Library`` instance and call
+its ``tag()`` method. For example::
 
     register.tag('current_time', do_current_time)
 
@@ -518,13 +751,13 @@ return a string, so if all the template tag does is set a variable,
 
 Here's how you'd use this new version of the tag::
 
-    {% current_time "%Y-%M-%d %I:%M %p" %}
+    {% current_time2 "%Y-%M-%d %I:%M %p" %}
     <p>The time is {{ current_time }}.</p>
 
 But there's a problem with ``CurrentTimeNode2``: the variable name
 ``current_time`` is hard-coded. This means you'll need to make sure your
 template doesn't use ``{{ current_time }}`` anywhere else, because
-``{% current_time %}`` will blindly overwrite that variable's value. 
+``{% current_time2 %}`` will blindly overwrite that variable's value. 
 
 A cleaner solution is to make the template tag specify the name of the variable
 to be set, like so::
@@ -567,7 +800,7 @@ To do so, you'll need to refactor both the compilation function and the
         if not (fmt[0] == fmt[-1] and fmt[0] in ('"', "'")):
             msg = "%r tag's argument should be in quotes" % tag_name
             raise template.TemplateSyntaxError(msg)
-            
+
         return CurrentTimeNode3(fmt[1:-1], var_name)
 
 Now ``do_current_time()`` passes the format string and the variable name to
@@ -718,16 +951,16 @@ dictionary of data for the result. Notice that we need to return only a
 dictionary, not anything more complex. This will be used as the context for
 the template fragment::
 
-    def show_results(poll):
-        choices = poll.choice_set.all()
-        return {'choices': choices}
+    def show_books_for_author(author):
+        books = author.book_set.all()
+        return {'books': books}
 
 Next, we create the template used to render the tag's output. Following our
 example, the template is very simple::
 
     <ul>
-    {% for choice in choices %}
-        <li> {{ choice }} </li>
+    {% for book in books %}
+        <li> {{ book }} </li>
     {% endfor %}
     </ul>
 
@@ -737,13 +970,13 @@ Finally, we create and register the inclusion tag by calling the
 Following our example, if the preceding template is in a file called
 ``polls/result_snippet.html``, we register the tag like this::
 
-    register.inclusion_tag('polls/result_snippet.html')(show_results)
+    register.inclusion_tag('books/books_for_author.html')(show_books_for_author)
 
 As always, Python 2.4 decorator syntax works as well, so we could have instead
 written this::
 
-    @register.inclusion_tag('results.html')
-    def show_results(poll):
+    @register.inclusion_tag('books/books_for_author.html')
+    def show_books_for_author(show_books_for_author):
         ...
 
 Sometimes, your inclusion tags need access to values from the parent template's
@@ -779,11 +1012,12 @@ without any arguments, like so::
 Writing Custom Template Loaders
 ===============================
 
-Django's built-in template loaders will usually cover all your template-loading
-needs, but it's pretty easy to write your own if you need special loading logic.
-For example, you could load templates from a database, or directly from a
-Subversion repository using Subversion's Python bindings, or (as shown shortly)
-from a ZIP archive.
+Django's built-in template loaders (described in the "Inside Template Loading"
+section above) will usually cover all your template-loading needs, but it's
+pretty easy to write your own if you need special loading logic. For example,
+you could load templates from a database, or directly from a Subversion
+repository using Subversion's Python bindings, or (as shown shortly) from a ZIP
+archive.
 
 A template loader--that is, each entry in the ``TEMPLATE_LOADERS`` setting
 --is expected to be a callable with this interface::
@@ -820,14 +1054,12 @@ expects each item on that path to be a ZIP file containing templates::
     import zipfile
     from django.conf import settings
     from django.template import TemplateDoesNotExist
-    
+
     def load_template_source(template_name, template_dirs=None):
         """Template loader that loads templates from a ZIP file."""
-        
-        # Look up ZIP file list from settings if it's not already given.
-        if template_zipfiles is None:
-            template_zipfiles = getattr(settings, "TEMPLATE_ZIP_FILES", [])
-        
+    
+        template_zipfiles = getattr(settings, "TEMPLATE_ZIP_FILES", [])
+    
         # Try each ZIP file in TEMPLATE_ZIP_FILES.
         for fname in template_zipfiles:
             try:
@@ -835,21 +1067,21 @@ expects each item on that path to be a ZIP file containing templates::
                 source = z.read(template_name)
             except (IOError, KeyError):
                 continue
-            
+            z.close()
             # We found a template, so return the source.
             template_path = "%s:%s" % (fname, template_name)
             return (source, template_path)
-    
+
         # If we reach here, the template couldn't be loaded
         raise TemplateDoesNotExist(template_name)
-    
+
     # This loader is always usable (since zipfile is included with Python)
     load_template_source.is_usable = True
 
 The only step left if we want to use this loader is to add it to the
-``TEMPLATE_LOADERS`` setting. If we put this code in a module called
-``myproject.zip_loader``, then we add 
-``myproject.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
+``TEMPLATE_LOADERS`` setting. If we put this code in a package called
+``mysite.zip_loader``, then we add 
+``mysite.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
 
 Using the Built-in Template Reference
 =====================================
@@ -865,7 +1097,8 @@ the tag and filter references in Chapter 4 come directly from those pages) as
 well as any custom tag or filter libraries available.
 
 The *views* page is the most valuable. Each URL in your site has a separate
-entry here, and clicking a URL will show you the following:
+entry here.   If the related view includes a docstring, clicking the URL will 
+show you the following:
 
     * The name of the view function that generates that view
 
@@ -875,6 +1108,9 @@ entry here, and clicking a URL will show you the following:
       template
 
     * The name of the template or templates that are used for that view
+
+For a detailed example of view documentation, read the source code for Django's 
+generic ``object_list`` view, which is in ``django/views/generic/list_detail.py``.
 
 Because Django-powered sites usually use database objects, the *models* pages
 describe each type of object in the system along with all the fields available
@@ -917,9 +1153,8 @@ What's Next
 ===========
 
 So far this book has assumed that the content you're displaying is HTML. This
-isn't a bad assumption for a book about web development, but at times you'll
-want to use Django to create other data formats.
+isn't a bad assumption for a book about Web development, but at times you'll
+want to use Django to output other data formats.
 
 The next chapter describes how you can use Django to produce images, PDFs, and
-any other format you can imagine.
-of data you 
+any other data format you can imagine.

@@ -1,18 +1,18 @@
 ==============================================================
-Chapter 16: Integrating with legacy databases and applications
+Chapter 16: Integrating with Legacy Databases and Applications
 ==============================================================
 
-Django is best suited for so-called "green-field" development -- starting
+Django is best suited for so-called green-field development -- that is, starting
 projects from scratch, as if you were constructing a building on a fresh field
 of green grass. But despite the fact that Django favors from-scratch projects,
 it's possible to integrate the framework into legacy databases and
 applications. This chapter explains a few integration strategies.
 
-Integrating with a legacy database
+Integrating with a Legacy Database
 ==================================
 
-Django's database layer generates SQL schemas from Python code -- but in the
-case of a legacy database, you already have the SQL schemas. In that case,
+Django's database layer generates SQL schemas from Python code -- but with
+a legacy database, you already have the SQL schemas. In such a case,
 you'll need to create models for your existing database tables. For this
 purpose, Django comes with a tool that can generate model code by reading your
 database table layouts. This tool is called ``inspectdb``, and you can call it
@@ -25,8 +25,8 @@ The ``inspectdb`` utility introspects the database pointed to by your settings
 file, determines a Django model representation for each of your tables, and
 prints the Python model code to standard output.
 
-Here's a walkthrough of a typical legacy-database integration process from
-scratch. Its only assumptions are that Django is installed and that you have a
+Here's a walk-through of a typical legacy database integration process from
+scratch. The only assumptions are that Django is installed and that you have a
 legacy database.
 
     1. Create a Django project by running
@@ -35,53 +35,53 @@ legacy database.
        example.
 
     2. Edit the settings file in that project, ``mysite/settings.py``,
-       to tell Django what your database connection parameters are, and what
+       to tell Django what your database connection parameters are and what
        the name of the database is. Specifically, provide the
        ``DATABASE_NAME``, ``DATABASE_ENGINE``, ``DATABASE_USER``,
-       ``DATABASE_PASSWORD``, ``DATABASE_HOST`` and ``DATABASE_PORT`` settings.
+       ``DATABASE_PASSWORD``, ``DATABASE_HOST``, and ``DATABASE_PORT`` settings.
        (Note that some of these settings are optional. Refer to Chapter 5 for
        more information.)
 
-    3. Create a Django app within your project by running
+    3. Create a Django application within your project by running
        ``python mysite/manage.py startapp myapp`` (where ``myapp`` is your
-       app's name). We'll use ``myapp`` as the application name here.
+       application's name). We'll use ``myapp`` as the application name here.
 
     4. Run the command ``python mysite/manage.py inspectdb``. This will
        examine the tables in the ``DATABASE_NAME`` database and print the 
        generated model class for each table. Take a look at the output to get
        an idea of what ``inspectdb`` can do.
 
-    5. Save that output to the ``models.py`` file within your app by using
+    5. Save the output to the ``models.py`` file within your application by using
        standard shell output redirection::
 
            python mysite/manage.py inspectdb > mysite/myapp/models.py
 
     6. Edit the ``mysite/myapp/models.py`` file to clean up the generated
-       models and make whatever customizations you need to make. We'll give
+       models and make any necessary customizations. We'll give
        some hints for this in the next section.
 
-Cleaning up generated models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Cleaning Up Generated Models
+----------------------------
 
 As you might expect, the database introspection isn't perfect, and you'll need
 to do some light cleanup of the resulting model code. Here are a few pointers
 for dealing with the generated models:
 
-    1. Each database table is converted to a model class -- i.e., there is a
-       one-to-one mapping between database tables and model classes. This means
+    1. Each database table is converted to a model class (i.e., there is a
+       one-to-one mapping between database tables and model classes). This means
        that you'll need to refactor the models for any many-to-many join tables
        into ``ManyToManyField`` objects.
 
-    2. Each generated model has an attribute for every field -- including
-       ``id`` primary-key fields. However, recall that Django automatically
-       adds an ``id`` primary-key field if a model doesn't have a primary key.
+    2. Each generated model has an attribute for every field, including
+       ``id`` primary key fields. However, recall that Django automatically
+       adds an ``id`` primary key field if a model doesn't have a primary key.
        Thus, you'll want to remove any lines that look like this::
 
            id = models.IntegerField(primary_key=True)
 
-       These lines are not only redundant; they can cause problems if your
+       Not only are these lines redundant, but also they can cause problems if your
        application will be adding *new* records to these tables. The
-       ``inspectdb`` command cannot detect whether a field is auto-incremented,
+       ``inspectdb`` command cannot detect whether a field is autoincremented,
        so it's up to you to change this to ``AutoField``, if necessary.
 
     3. Each field's type (e.g., ``CharField``, ``DateField``) is determined by
@@ -93,15 +93,15 @@ for dealing with the generated models:
        if needed.
 
        If a field in your database has no good Django equivalent, you can
-       safely leave it off; the Django model layer is not required to include
+       safely leave it off. The Django model layer is not required to include
        every field in your table(s).
 
     4. If a database column name is a Python reserved word (such as ``pass``,
-       ``class`` or ``for``), ``inspectdb`` will append ``'_field'`` to the
+       ``class``, or ``for``), ``inspectdb`` will append ``'_field'`` to the
        attribute name and set the ``db_column`` attribute to the real field
-       name (e.g., ``pass`` or ``class``).
+       name (e.g., ``pass``, ``class``, or ``for``).
 
-       For example, if a table has a INT column called ``for``, the generated
+       For example, if a table has an ``INT`` column called ``for``, the generated
        model will have a field like this::
 
            for_field = models.IntegerField(db_column='for')
@@ -114,9 +114,11 @@ for dealing with the generated models:
        databases do), you might need to rearrange the order of the generated
        models so that models that refer to other models are ordered properly.
        For example, if model ``Book`` has a ``ForeignKey`` to model ``Author``,
-       model ``Author`` should be defined before model ``Book``.
+       model ``Author`` should be defined before model ``Book``.  If you need 
+       to create a relationship on a model that has not yet been defined, you 
+       can use the name of the model, rather than the model object itself.
 
-    6. ``inspectdb`` detects primary keys for PostgreSQL, MySQL and SQLite.
+    6. ``inspectdb`` detects primary keys for PostgreSQL, MySQL, and SQLite.
        That is, it inserts ``primary_key=True`` where appropriate. For other
        databases, you'll need to insert ``primary_key=True`` for at least one
        field in each model, because Django models are required to have a
@@ -127,66 +129,66 @@ for dealing with the generated models:
        ``IntegerField``s, assuming the foreign-key column was an ``INT``
        column.
 
-Integrating with an authentication system
+Integrating with an Authentication System
 =========================================
 
 It's possible to integrate Django with an existing authentication system --
 another source of usernames and passwords or authentication methods.
 
 For example, your company may already have an LDAP setup that stores a username
-and password for every employee. It'd be a hassle for both the network
+and password for every employee. It would be a hassle for both the network
 administrator and the users themselves if users had separate accounts in LDAP
 and the Django-based applications.
 
 To handle situations like this, the Django authentication system lets you
-plug in another authentication sources. You can override Django's default
+plug in other authentication sources. You can override Django's default
 database-based scheme, or you can use the default system in tandem with other
 systems.
 
-Specifying authentication backends
+Specifying Authentication Back-ends
 ----------------------------------
 
-Behind the scenes, Django maintains a list of "authentication backends" that it
+Behind the scenes, Django maintains a list of "authentication back-ends" that it
 checks for authentication. When somebody calls
-``django.contrib.auth.authenticate()`` -- as described in Chapter 12 -- Django
-tries authenticating across all of its authentication backends. If the first
+``django.contrib.auth.authenticate()`` (as described in Chapter 12), Django
+tries authenticating across all of its authentication back-ends. If the first
 authentication method fails, Django tries the second one, and so on, until all
-backends have been attempted.
+back-ends have been attempted.
 
-The list of authentication backends to use is specified in the
+The list of authentication back-ends to use is specified in the
 ``AUTHENTICATION_BACKENDS`` setting. This should be a tuple of Python path
 names that point to Python classes that know how to authenticate. These classes
 can be anywhere on your Python path.
 
-By default, ``AUTHENTICATION_BACKENDS`` is set to::
+By default, ``AUTHENTICATION_BACKENDS`` is set to the following::
 
     ('django.contrib.auth.backends.ModelBackend',)
 
 That's the basic authentication scheme that checks the Django users database.
 
 The order of ``AUTHENTICATION_BACKENDS`` matters, so if the same username and
-password is valid in multiple backends, Django will stop processing at the
+password are valid in multiple back-ends, Django will stop processing at the
 first positive match.
 
-Writing an authentication backend
+Writing an Authentication Back-end
 ---------------------------------
 
-An authentication backend is a class that implements two methods:
+An authentication back-end is a class that implements two methods:
 ``get_user(id)`` and ``authenticate(**credentials)``.
 
 The ``get_user`` method takes an ``id`` -- which could be a username, database
-ID or whatever -- and returns a ``User`` object.
+ID, or whatever -- and returns a ``User`` object.
 
 The  ``authenticate`` method takes credentials as keyword arguments. Most of
-the time, it'll just look like this::
+the time it looks like this::
 
-    class MyBackend:
+    class MyBackend(object):
         def authenticate(self, username=None, password=None):
             # Check the username/password and return a User.
 
 But it could also authenticate a token, like so::
 
-    class MyBackend:
+    class MyBackend(object):
         def authenticate(self, token=None):
             # Check the token and return a User.
 
@@ -196,19 +198,19 @@ credentials are valid. If they're not valid, it should return ``None``.
 
 The Django admin system is tightly coupled to Django's own database-backed
 ``User`` object described in Chapter 12. The best way to deal with this is to
-create a Django ``User`` object for each user that exists for your backend 
-(e.g., in your LDAP directory, your external SQL database, etc.) You can either
-write a script to do this in advance, or your ``authenticate`` method can do it
+create a Django ``User`` object for each user that exists for your back-end 
+(e.g., in your LDAP directory, your external SQL database, etc.). Either you can 
+write a script to do this in advance or your ``authenticate`` method can do it
 the first time a user logs in.
 
-Here's an example backend that authenticates against a username and password
+Here's an example back-end that authenticates against a username and password
 variable defined in your ``settings.py`` file and creates a Django ``User``
 object the first time a user authenticates::
 
     from django.conf import settings
     from django.contrib.auth.models import User, check_password
 
-    class SettingsBackend:
+    class SettingsBackend(object):
         """
         Authenticate against the settings ADMIN_LOGIN and ADMIN_PASSWORD.
 
@@ -240,17 +242,17 @@ object the first time a user authenticates::
             except User.DoesNotExist:
                 return None
 
-Integrating with legacy Web applications
+Integrating with Legacy Web Applications
 ========================================
 
 It's possible to run a Django application on the same Web server as an
 application powered by another technology. The most straightforward way of
-doing this is by using Apache's configuration file, ``httpd.conf``, to delegate
+doing this is to use Apache's configuration file, ``httpd.conf``, to delegate
 different URL patterns to different technologies. (Note that Chapter 20 covers
 Django deployment on Apache/mod_python, so it might be worth reading that
 chapter first before attempting this integration.)
 
-The key is that Django will only be activated for a particular URL pattern if
+The key is that Django will be activated for a particular URL pattern only if
 your ``httpd.conf`` file says so. The default deployment explained in Chapter
 20 assumes you want Django to power every page on a particular domain::
 
@@ -280,15 +282,15 @@ most pages on a domain and you want to install a Django admin site at
 With this in place, only the URLs that start with ``/admin/`` will activate
 Django. Any other page will use whatever infrastructure already existed.
 
-Note that attaching Django to a qualified URL -- such as ``/admin/`` in this
-example -- does not affect the Django URL parsing. Django works with the
-absolute URL, e.g., ``/admin/people/person/add/``, not a "stripped" version of
-the URL, e.g., ``/people/person/add/``. This means that your root URLconf
+Note that attaching Django to a qualified URL (such as ``/admin/`` in this
+section's example) does not affect the Django URL parsing. Django works with the
+absolute URL (e.g., ``/admin/people/person/add/``), not a "stripped" version of
+the URL (e.g., ``/people/person/add/``). This means that your root URLconf
 should include the leading ``/admin/``.
 
 What's Next?
 ============
 
-Speaking of the Django admin and bending the framework to fit legacy needs,
+Speaking of the Django admin site and bending the framework to fit legacy needs,
 another common task is to customize the Django admin site. The next chapter
 focuses on such customization.

@@ -93,7 +93,7 @@ numerous, but they boil down to these points:
 	  on a hardware level, if a Web server fails, you should be able to
       replace it with another physical box with minimum downtime. Remember,
       this whole philosophy is based around deployment on cheap, commodity
-      hardware. Failure is to be expected.
+      hardware. Failure of individual machines is to be expected.
 
 As you've probably come to expect, Django handles this more or less
 transparently -- no part of Django violates these principles -- but knowing
@@ -160,7 +160,7 @@ that embeds Python within Apache and loads Python code into memory when the
 server starts. Code stays in memory throughout the life of an Apache process,
 which leads to significant performance gains over other server arrangements.
 
-Django requires Apache 2.x and mod_python 3.x, and you should use Apache's
+Django requires Apache 2.x and mod_python 3.x, and we prefer Apache's
 prefork MPM, as opposed to the worker MPM.
 
 .. note::
@@ -211,10 +211,11 @@ directive. The latter is used for pointing at places on your filesystem,
 whereas ``<Location>`` points at places in the URL structure of a Web site.
 ``<Directory>`` would be meaningless here.
 
-Also, if you've manually altered your ``PYTHONPATH`` to put your Django
-project on it, you'll need to tell mod_python::
+Apache likely runs as a different user than your normal login and may have a 
+different path and sys.path.  You may need to tell mod_python how to find your 
+project and Django itself. ::
 
-    PythonPath "['/path/to/project'] + sys.path"
+    PythonPath "['/path/to/project', '/path/to/django'] + sys.path"
 
 You can also add directives such as ``PythonAutoReload Off`` for performance.
 See the mod_python documentation for a full list of options.
@@ -241,7 +242,12 @@ this directive inside a ``<VirtualHost>`` block) will be served by Django.
 
     then *all* your URL patterns will need to start with ``"/mysite/"``. For
     this reason we usually recommend deploying Django at the root of your
-    domain or virtual host.
+    domain or virtual host.  Alternatively, you can simply shift your URL 
+    configuration down one level by using a shim URLconf::
+    
+    urlpatterns = patterns('',
+        (r'^mysite/', include('normal.root.urls')),
+    )
 
 Running Multiple Django Installations on the Same Apache Instance
 -----------------------------------------------------------------
@@ -302,16 +308,17 @@ If you're the type of programmer who debugs using scattered ``print``
 statements (we are), note that ``print`` statements have no effect in
 mod_python; they don't appear in the Apache log, as you might expect. If you
 have the need to print debugging information in a mod_python setup, you'll
-probably want to use Python's standard logging package or add the debugging
-information to the template of your page.
+probably want to use Python's standard logging package.  More information is
+available at http://docs.python.org/lib/module-logging.html.  Alternatively, 
+you can or add the debugging information to the template of your page.
 
 Serving Django and Media Files from the Same Apache Instance
 ------------------------------------------------------------
 
-Django doesn't serve media files itself; it leaves that job to whichever Web
-server you choose. We recommend using a separate Web server (i.e., one
-that's not also running Django) for serving media. For more information, see 
-the "Scaling" section.
+Django should not be used to serve media files itself; leave that job to 
+whichever Web server you choose. We recommend using a separate Web server 
+(i.e., one that's not also running Django) for serving media. For more 
+information, see the "Scaling" section.
 
 If, however, you have no option but to serve media files on the same Apache
 ``VirtualHost`` as Django, here's how you can turn off mod_python for a
@@ -388,7 +395,9 @@ and access your test URL in a browser. If this causes a crash, you've
 confirmed it's the importing of Django code that causes the problem. Gradually
 reduce the set of imports until it stops crashing, so as to find the specific
 module that causes the problem. Drop down further into modules and look into
-their imports as necessary.
+their imports as necessary.  For more help, system tools like ``ldconfig`` on 
+Linux, ``otool`` on Mac OS, and ``ListDLLs`` (from SysInternals) on Windows
+can help you identify shared dependencies and possible version conflicts.
 
 Using Django with FastCGI
 =========================
@@ -459,7 +468,7 @@ easier due to permissions issues.
 
 To start your server, first change into the directory of your project
 (wherever your ``manage.py`` is), and then run ``manage.py`` with the
-``runfcgi`` option::
+``runfcgi`` command::
 
     ./manage.py runfcgi [options]
 
@@ -509,7 +518,7 @@ script::
     PROJDIR="/home/user/myproject"
     PIDFILE="$PROJDIR/mysite.pid"
     SOCKET="$PROJDIR/mysite.sock"
-
+    
     cd $PROJDIR
     if [ -f $PIDFILE ]; then
         kill `cat -- $PIDFILE`
@@ -551,7 +560,8 @@ can specify either a ``socket`` or a ``host``. Here are examples of both::
     # Connect to FastCGI via a TCP host/port:
     FastCGIExternalServer /home/user/public_html/mysite.fcgi -host 127.0.0.1:3033
 
-In either case, the file ``/home/user/public_html/mysite.fcgi`` doesn't
+In either case, the the directory /home/user/public_html/ should exist,
+though the file ``/home/user/public_html/mysite.fcgi`` doesn't
 actually have to exist. It's just a URL used by the Web server internally -- a
 hook for signifying which requests at a URL should be handled by FastCGI.
 (More on this in the next section.)
@@ -867,7 +877,7 @@ At this point, the next few steps are pretty much derivatives of the last one:
       connection pooling, respectively.
 
     * If the single load balancer isn't enough, you can add more load
-      balancer machines out front and distribute amoung them using
+      balancer machines out front and distribute among them using
       round-robin DNS.
 
     * If a single media server doesn't suffice, you can add more media

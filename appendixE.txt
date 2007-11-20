@@ -10,7 +10,7 @@ available.
 
     As Django grows, it's occasionally necessary to add or (rarely) change
     settings. You should always check the online settings documentation at
-    http://www.djangoproject.com/documentation/settings/ for the latest
+    http://www.djangoproject.com/documentation/0.96/settings/ for the latest
     information.
 
 What's a Settings File?
@@ -170,7 +170,7 @@ settings file to use. Do that with ``SetEnv``::
     </Location>
 
 For more information, read the Django mod_python documentation online at
-http://www.djangoproject.com/documentation/modpython/.
+http://www.djangoproject.com/documentation/0.96/modpython/.
 
 Using Settings Without Setting DJANGO_SETTINGS_MODULE
 =====================================================
@@ -206,8 +206,8 @@ application.
 
 Consequently, when configured via ``settings.configure()``, Django will not
 make any modifications to the process environment variables. (See the
-explanation of ``TIME_ZONE`` later in this chapter for why this would normally occur.) It's
-assumed that you're already in full control of your environment in these cases.
+explanation of ``TIME_ZONE`` later in this appendix for why this would normally occur.)
+It's assumed that you're already in full control of your environment in these cases.
 
 Custom Default Settings
 -----------------------
@@ -356,8 +356,7 @@ DATABASE_ENGINE
 *Default*: ``''`` (empty string)
 
 This setting indicates which database back-end to use: ``'postgresql_psycopg2'``,
-``'postgresql'``, ``'mysql'``, ``'mysql_old'``, ``'sqlite3'``, or
-``'ado_mssql'``.
+``'postgresql'``, ``'mysql'``, ``'mysql_old'`` or ``'sqlite3'``.
 
 DATABASE_HOST
 -------------
@@ -541,7 +540,7 @@ FIXTURE_DIRS
 This is a list of locations of the fixture data files, in search order. Note that these
 paths should use Unix-style forward slashes, even on Windows. It is used by Django's
 testing framework, which is covered online at
-http://www.djangoproject.com/documentation/testing/.
+http://www.djangoproject.com/documentation/0.96/testing/.
 
 IGNORABLE_404_ENDS
 ------------------
@@ -604,8 +603,7 @@ LANGUAGES
 *Default*: A tuple of all available languages. This list is continually growing
 and any copy included here would inevitably become rapidly out of date. You can
 see the current list of translated languages by looking in
-``django/conf/global_settings.py`` or viewing the online source at
-http://code.djangoproject.com/browser/django/trunk/django/conf/global_settings.py.
+``django/conf/global_settings.py``.
 
 The list is a tuple of two-tuples in the format (language code, language name)
 -- for example, ``('ja', 'Japanese')``. This specifies which languages are
@@ -743,15 +741,11 @@ See also ``IGNORABLE_404_STARTS`` and ``IGNORABLE_404_ENDS``.
 SERIALIZATION_MODULES
 ---------------------
 
-*Default*: Not defined
+*Default*: Not defined.
 
-This is a dictionary of modules containing additional serializer definitions (provided
-as strings), keyed by a string identifier for that serialization type. For
-example, to include a BEEP serializer (see http://www.beepcore.org/), use this::
-
-    SERIALIZATION_MODULES = {'beep' : 'path.to.beep_serializer'}
-    
-(Of course, you'd still need to write that BEEP serializer.)
+Serialization is a feature still under heavy development. Refer to the online
+documentation at http://www.djangoproject.com/documentation/0.96/serialization/
+for more information.
 
 SERVER_EMAIL
 ------------
@@ -879,7 +873,7 @@ TEST_RUNNER
 
 This is the name of the method to use for starting the test suite. It is used by Django's
 testing framework, which is covered online at
-http://www.djangoproject.com/documentation/testing/.
+http://www.djangoproject.com/documentation/0.96/testing/.
 
 TEST_DATABASE_NAME
 ------------------
@@ -889,7 +883,7 @@ TEST_DATABASE_NAME
 This is the name of database to use when running the test suite. If a value of ``None``
 is specified, the test database will use the name ``'test_' +
 settings.DATABASE_NAME``. See the documentation for Django's testing framework,
-which is covered online at http://www.djangoproject.com/documentation/testing/.
+which is covered online at http://www.djangoproject.com/documentation/0.96/testing/.
 
 TIME_FORMAT
 -----------

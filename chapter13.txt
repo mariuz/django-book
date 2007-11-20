@@ -2,21 +2,21 @@
 Chapter 13: Caching
 ===================
 
-Static web sites, in which simple files are served directly to the Web, scale 
-like crazy. But a fundamental tradeoff in dynamic web sites is, well, they're
-dynamic. Each time a user requests a page, the web server makes all sorts of 
+Static Web sites, in which simple files are served directly to the Web, scale 
+like crazy. But a fundamental tradeoff in dynamic Web sites is, well, they're
+dynamic. Each time a user requests a page, the Web server makes all sorts of 
 calculations--from database queries, to template rendering, to business logic-- 
 to create the page that your site's visitor sees. From a processing-overhead
 perspective, this is quite expensive.
 
-For most web applications, this overhead isn't a big deal. Most web applications
+For most Web applications, this overhead isn't a big deal. Most Web applications
 aren't washingtonpost.com or Slashdot; they're simply small- to medium-sized
 sites with so-so traffic. But for medium- to high-traffic sites, it's essential
 to cut as much overhead as possible. That's where caching comes in.
 
 To *cache* something is to save the result of an expensive calculation so that
 you don't have to perform the calculation next time. Here's some pseudocode
-explaining how this would work for a dynamically generated web page::
+explaining how this would work for a dynamically generated Web page::
 
     given a URL, try finding that page in the cache
     if the page is in the cache:
@@ -157,7 +157,7 @@ of your filesystem. It doesn't matter whether you put a slash at the end of the
 setting.
 
 Make sure the directory pointed to by this setting exists and is readable and
-writable by the system user under which your web server runs. Continuing the
+writable by the system user under which your Web server runs. Continuing the
 preceding example, if your server runs as the user ``apache``, make sure the
 directory ``/var/tmp/django_cache`` exists and is readable and writable by the
 user ``apache``.
@@ -171,7 +171,7 @@ Local-Memory Caching
 
 If you want the speed advantages of in-memory caching but don't have the
 capability of running Memcached, consider the local-memory cache back-end. This
-cache is multiprocess and thread-safe, but it isn't as efficient as Memcached 
+cache is per-process and thread-safe, but it isn't as efficient as Memcached 
 due to its simplistic locking and memory allocation strategies.
 
 To use it, set ``CACHE_BACKEND`` to ``'locmem:///'``, for example::
@@ -217,12 +217,12 @@ the ``CACHE_BACKEND`` setting. Valid arguments are as follows:
       the maximum number of entries allowed in the cache before old values are
       deleted. This argument defaults to 300.
 
-    * ``cull_percentage``: The ratio of entries that are culled when
-      ``max_entries`` is reached. The actual ratio is ``1/cull_percentage``, so
-      set ``cull_percentage=2`` to cull half of the entries when ``max_entries``
+    * ``cull_frequency``: The ratio of entries that are culled when
+      ``max_entries`` is reached. The actual ratio is ``1/cull_frequency``, so
+      set ``cull_frequency=2`` to cull half of the entries when ``max_entries``
       is reached.
 
-      A value of ``0`` for ``cull_percentage`` means that the entire cache will
+      A value of ``0`` for ``cull_frequency`` means that the entire cache will
       be dumped when ``max_entries`` is reached. This makes culling *much*
       faster at the expense of more cache misses. This argument defaults to 3.
 
@@ -459,34 +459,34 @@ Upstream Caches
 ===============
 
 So far, this chapter has focused on caching your *own* data. But another type
-of caching is relevant to web development, too: caching performed by *upstream*
+of caching is relevant to Web development, too: caching performed by *upstream*
 caches. These are systems that cache pages for users even before the request
-reaches your web site.
+reaches your Web site.
 
 Here are a few examples of upstream caches:
 
     * Your ISP may cache certain pages, so if you requested a page from
       http://example.com/, your ISP would send you the page without having to
       access example.com directly. The maintainers of example.com have no
-      knowledge of this caching; the ISP sits between example.com and your web
+      knowledge of this caching; the ISP sits between example.com and your Web
       browser, handling all of the caching transparently.
 
-    * Your Django web site may sit behind a *proxy cache*, such as Squid Web
+    * Your Django Web site may sit behind a *proxy cache*, such as Squid Web
       Proxy Cache (http://www.squid-cache.org/), that caches pages for
       performance. In this case, each request first would be handled by the
       proxy, and it would be passed to your application only if needed.
 
-    * Your web browser caches pages, too. If a web page sends out the
+    * Your Web browser caches pages, too. If a Web page sends out the
       appropriate headers, your browser will use the local cached copy for
-      subsequent requests to that page, without even contacting the web page
+      subsequent requests to that page, without even contacting the Web page
       again to see whether it has changed.
 
 Upstream caching is a nice efficiency boost, but there's a danger to it. The
-content of many web pages differs based on authentication and a host of other
+content of many Web pages differs based on authentication and a host of other
 variables, and cache systems that blindly save pages based purely on URLs could
 expose incorrect or sensitive data to subsequent visitors to those pages.
 
-For example, say you operate a web e-mail system, and the contents of the
+For example, say you operate a Web e-mail system, and the contents of the
 "inbox" page obviously depend on which user is logged in. If an ISP blindly
 cached your site, then the first user who logged in through that ISP would have
 his or her user-specific inbox page cached for subsequent visitors to the site.
@@ -502,7 +502,7 @@ Using Vary Headers
 
 The ``Vary`` header defines which request headers a cache
 mechanism should take into account when building its cache key. For example, if
-the contents of a web page depend on a user's language preference, the page is
+the contents of a Web page depend on a user's language preference, the page is
 said to "vary on language."
 
 By default, Django's cache system creates its cache keys using the requested
@@ -587,7 +587,7 @@ A user usually faces two kinds of caches: his or her own browser cache (a
 private cache) and his or her provider's cache (a public cache). A public cache
 is used by multiple users and controlled by someone else. This poses problems
 with sensitive data--you don't want, say, your bank account number stored in a
-public cache. So web applications need a way to tell caches which data is
+public cache. So Web applications need a way to tell caches which data is
 private and which is public.
 
 The solution is to indicate a page's cache should be "private." To do this in
