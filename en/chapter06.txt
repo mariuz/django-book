@@ -88,7 +88,7 @@ activate it:
             admin user. Otherwise, you won't be able to log in to the admin
             interface.
 
-    3.  Add the URL pattern to your ``urls.py``. If you're still using the
+    5.  Add the URL pattern to your ``urls.py``. If you're still using the
         one created by ``startproject``, the admin URL pattern should be
         already there, but commented out. Either way, your URL patterns should
         look like the following:
