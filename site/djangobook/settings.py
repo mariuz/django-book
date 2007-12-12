@@ -30,6 +30,7 @@ MANAGERS = ADMINS
 
 MEDIA_ROOT = '/home/media/media.djangobook.com/'
 MEDIA_URL = 'http://new-media.djangobook.com/'
+CONTENT_MEDIA_BASE + MEDIA_URL + "content/"
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
