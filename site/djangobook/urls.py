@@ -19,14 +19,14 @@ urlpatterns = patterns('',
         r'^tools/markreviewed/(?P<comment_id>\d+)/$',
         mark_comment_reviewed,
     ),
-    (
-        r'^private/(?P<slug>[\w-]+)/$',
-        private_toc
-    ),
-    (
-        r'^private/(?P<slug>[\w-]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/$', 
-        private_chapter
-    ),
+    # (
+    #     r'^private/(?P<slug>[\w-]+)/$',
+    #     private_toc
+    # ),
+    # (
+    #     r'^private/(?P<slug>[\w-]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/$', 
+    #     private_chapter
+    # ),
     (
         r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/$',
         toc
