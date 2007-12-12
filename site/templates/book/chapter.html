@@ -34,12 +34,12 @@
 
 {% block content %}
   {% load markup %}
-  <h2 id="chapter-title">{{ content.title }}</h2>
+  <h2 id="chapter-title">{{ content.title|safe }}</h2>
   {% if content.subtitle %}
-    <h3 id="chapter-subtitle">{{ content.subtitle }}</h3>
+    <h3 id="chapter-subtitle">{{ content.subtitle|safe }}</h3>
   {% endif %}
   <div id="chapter-body">
-    {{ content.body }}
+    {{ content.body|safe }}
   </div>
 {% endblock %}
 

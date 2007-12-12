@@ -1,3 +1,4 @@
+import re
 import pysvn
 from djangobook.models import Chapter
 from djangobook.rst import publish_html
@@ -13,13 +14,14 @@ def create_chapters(vers, release_date=None, comments_open=True):
         if name.ext != ".txt":
             continue
         
-        parts = publish_html(c.cat(record["file"]))
+        parts = publish_html(c.cat(record["name"]))
+        title = re.sub(r"(?i)^(chapter|appendix)\s+[A-Z0-9]+:\s*", "", parts["title"])
         
         if name.startswith("appendix"):
             Chapter.objects.get_or_create(
                 type = "A",
-                number = ord(name.stem[-1]) - ord('A'),
-                title = parts["title"],
+                number = ord(name.stem[-1]) - ord('A') + 1,
+                title = title,
                 version = vers,
                 defaults = dict(
                     release_date = release_date,
@@ -30,8 +32,8 @@ def create_chapters(vers, release_date=None, comments_open=True):
         elif name.startswith("chapter"):
             Chapter.objects.get_or_create(
                 type = "C",
-                number = int(name.stem[-2:])
-                title = parts["title"],
+                number = int(name.stem[-2:]),
+                title = title,
                 version = vers,
                 defaults = dict(
                     release_date = release_date,

@@ -7,11 +7,12 @@ from django.core.cache import cache
 from docutils.core import publish_parts
 from django.template import RequestContext
 from django.http import Http404, HttpResponse
+from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import permission_required, login_required
 from django.shortcuts import render_to_response, get_object_or_404
 
-from djangobook.rst import DjangoBookHTMLWriter
+from djangobook.rst import publish_html
 from djangobook.models import Chapter, BookVersion, Comment, PrivateVersion
 
 def toc(request, lang, version):
@@ -43,7 +44,7 @@ def chapter(request, lang, version, type, chapter):
     release, content = _get_release_or_404(lang, version, type, chapter, request.user.has_perm("djangobook.change_chapter"))
     parts = cache.get("djangobook:rendered_content:%s" % release.id)
     if parts is None or settings.DEBUG or request.GET.has_key("clear_cache"):
-        parts = publish_parts(source=content, writer=DjangoBookHTMLWriter(), settings_overrides={'initial_header_level' : 3})
+        parts = publish_html(content)
         cache.set("djangobook:rendered_content:%s" % release.id, parts, 5*60)
     return render_to_response(
         ["book/%s%s.html" % (release.get_type_display(), release.get_number_display()), "book/chapter.html"], 

@@ -4,6 +4,7 @@ import urlparse
 from django.db import models
 from django.utils import text
 from django.core import validators
+from unipath import Path
 
 LANGUAGE_CHOICES = (
     ("en", "English"),
@@ -16,13 +17,15 @@ CHAPTER_TYPE_CHOICES = (
 
 def isValidSVNRoot(field_data, all_data):
     c = pysvn.Client()
-    if not c.is_url(field_data):
+    try:
+        c.info2(field_data, recurse=False)
+    except pysvn.ClientError:
         raise validators.ValidationError("Please enter a valid SVN URL.")
 
 class BookVersion(models.Model):
-    version  = models.CharField(maxlength=6)
-    language = models.CharField(maxlength=5, choices=LANGUAGE_CHOICES)
-    svn_root = models.CharField(maxlength=200, validator_list=[isValidSVNRoot])
+    version  = models.CharField(max_length=6)
+    language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES)
+    svn_root = models.CharField(max_length=200, validator_list=[isValidSVNRoot])
     
     class Admin:
         ordering = ("language", "version")
@@ -36,12 +39,13 @@ class BookVersion(models.Model):
         return ("djangobook.views.toc", (self.language, self.version))
 
 class Chapter(models.Model):
-    type          = models.CharField(maxlength=1, choices=CHAPTER_TYPE_CHOICES)
+    type          = models.CharField(max_length=1, choices=CHAPTER_TYPE_CHOICES)
     number        = models.PositiveSmallIntegerField()
-    title         = models.CharField(maxlength=200)
+    title         = models.CharField(max_length=200)
     version       = models.ForeignKey(BookVersion, related_name="chapters")
     release_date  = models.DateTimeField(blank=True, null=True)
     comments_open = models.BooleanField("comments are open", default=True)
+    code          = models.FileField(upload_to="code", blank=True, null=True)
 
     class Meta:
         unique_together = [("type", "number", "version")]
@@ -50,6 +54,7 @@ class Chapter(models.Model):
     class Admin:
         list_filter = ("version",)
         list_display = ("title", "get_number_display", "version", "release_date", "comments_open")
+        ordering = ("number",)
 
     def __str__(self):
         return "%s %s: %s" % (self.get_type_display().title(), self.get_number_display(), self.title)
@@ -59,8 +64,8 @@ class Chapter(models.Model):
             return str(self.number)
         else:
             return chr(ord('A') + self.number - 1)
-    get_number_display.verbose_name = "number"
-    get_number_display.admin_sort_field = "number"
+    get_number_display.short_description = "Number"
+    get_number_display.admin_order_field = "number"
             
     def get_number_url_fragment(self):
         if self.type == "C":
@@ -77,7 +82,7 @@ class Chapter(models.Model):
 
     def get_svn_url(self):
         filename = "%s%s.txt" % (self.get_type_display().lower(), self.get_number_url_fragment())
-        return urlparse.urljoin(self.version.svn_root, filename)
+        return str(Path(self.version.svn_root).child(filename))
         
     def get_content(self):
         c = pysvn.Client()
@@ -119,7 +124,7 @@ class Chapter(models.Model):
         
 class Comment(models.Model):
     chapter     = models.ForeignKey(Chapter, related_name="comments")
-    name        = models.CharField(maxlength=50)
+    name        = models.CharField(max_length=50)
     email       = models.EmailField()
     url         = models.URLField(verify_exists=False, blank=True)
     nodenum     = models.PositiveSmallIntegerField()
@@ -142,7 +147,7 @@ class Comment(models.Model):
     
 class PrivateVersion(models.Model):
     slug = models.SlugField()
-    svn_root = models.CharField(maxlength=200, validator_list=[isValidSVNRoot])
+    svn_root = models.CharField(max_length=200, validator_list=[isValidSVNRoot])
 
     class Admin:
         list_display = ["slug", "svn_root"]

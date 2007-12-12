@@ -1,5 +1,6 @@
 import smartypants
 from docutils import nodes
+from docutils.core import publish_parts
 from docutils.writers import html4css1
 
 def publish_html(content):
@@ -8,7 +9,6 @@ def publish_html(content):
         writer = DjangoBookHTMLWriter(), 
         settings_overrides = {'initial_header_level' : 3}
 )
-    
 
 class DjangoBookHTMLWriter(html4css1.Writer):
     def __init__(self):
@@ -106,13 +106,13 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
             self._add_autoid(node)
         return html4css1.HTMLTranslator.starttag(self, node, tagname, suffix, empty, **attributes)
         
-    def visit_admonition(self, node):
+    def visit_admonition(self, node, name=''):
         self._skip_autoid_depth += 1
         self._add_autoid(node)
         self.body.append(self.starttag(node, 'div'))
         self.set_first_last(node)
         
-    def depart_admonition(self, node):
+    def depart_admonition(self, node=None):
         html4css1.HTMLTranslator.depart_admonition(self, node)
         self._skip_autoid_depth -= 1
         
