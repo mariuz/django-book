@@ -44,7 +44,7 @@ def chapter(request, lang, version, type, chapter):
     release, content = _get_release_or_404(lang, version, type, chapter, request.user.has_perm("djangobook.change_chapter"))
     parts = cache.get("djangobook:rendered_content:%s" % release.id)
     if parts is None or settings.DEBUG or request.GET.has_key("clear_cache"):
-        parts = publish_html(content)
+        parts = publish_html(content, media_base="%s/%s/%s/" % (settings.MEDIA_URL, release.version.language, release.version.version))
         cache.set("djangobook:rendered_content:%s" % release.id, parts, 5*60)
     return render_to_response(
         ["book/%s%s.html" % (release.get_type_display(), release.get_number_display()), "book/chapter.html"], 

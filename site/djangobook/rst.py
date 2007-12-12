@@ -1,4 +1,4 @@
-import os
+import urlparse
 import smartypants
 from docutils import nodes
 from docutils.core import publish_parts
@@ -52,6 +52,13 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
             self.context.append("</p>\n")
         else:
             html4css1.HTMLTranslator.visit_title(self, node)
+            
+    # Make images be relative to media_base
+    def visit_image(self, node):
+        base = self.settings.media_base
+        if not base.endswith("/"): base = base + "/"
+        node["uri"] = urlparse.urljoin(base, node["uri"])
+        html4css1.HTMLTranslator.visit_image(self, node)
     
     # Avoid doing <blockquote><ul>...
     # Adapted from http://thread.gmane.org/gmane.text.docutils.user/742/focus=804
