@@ -15,6 +15,7 @@ class DjangoBookHTMLWriter(html4css1.Writer):
     
     settings_spec = html4css1.Writer.settings_spec + (
         "Djangobook-specific options",
+        "Options specific to the Django book web site",
         (
             ('The root URL for images/figures',
               ['--media-base'],
