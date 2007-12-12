@@ -1,16 +1,32 @@
+import os
 import smartypants
 from docutils import nodes
 from docutils.core import publish_parts
 from docutils.writers import html4css1
 
-def publish_html(content):
+def publish_html(content, **settings):
     return publish_parts(
         source = content, 
         writer = DjangoBookHTMLWriter(), 
-        settings_overrides = {'initial_header_level' : 3}
-)
+        settings_overrides = settings
+    )
 
 class DjangoBookHTMLWriter(html4css1.Writer):
+    
+    settings_spec = html4css1.Writer.settings_spec + (
+        "Djangobook-specific options",
+        (
+            ('The root URL for images/figures'
+              ['--media-base'],
+              {'metavar': '<URL>', 'overrides': 'media_base'}),
+        ),
+    )
+    
+    settings_defaults = dict(html4css1.Writer.settings_defaults,
+        initial_header_level = 3,
+        media_base = "",
+    )
+    
     def __init__(self):
         html4css1.Writer.__init__(self)
         self.translator_class = DjangoBookHTMLTranslator

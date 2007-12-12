@@ -29,7 +29,7 @@ INSTALLED_APPS = (
 MANAGERS = ADMINS
 
 MEDIA_ROOT = '/home/media/media.djangobook.com/'
-MEDIA_URL = 'http://media.djangobook.com/'
+MEDIA_URL = 'http://new-media.djangobook.com/'
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
