@@ -26,6 +26,7 @@ class BookVersion(models.Model):
     version  = models.CharField(max_length=6)
     language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES)
     svn_root = models.CharField(max_length=200, validator_list=[isValidSVNRoot])
+    newer_version = models.ForeignKey('self', blank=True, null=True)
     
     class Admin:
         ordering = ("language", "version")
