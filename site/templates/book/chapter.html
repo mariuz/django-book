@@ -34,6 +34,13 @@
 
 {% block content %}
   {% load markup %}
+  {% if release.version.newer_version %}
+    <div class="newer-version">
+      You're reading an outdated version of this book; a 
+      <a href="{{ release.version.newer_version.permalink }}">newer version</a>
+      is available.
+    </div>
+  {% endif %}
   <h2 id="chapter-title">{{ content.title|safe }}</h2>
   {% if content.subtitle %}
     <h3 id="chapter-subtitle">{{ content.subtitle|safe }}</h3>

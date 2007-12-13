@@ -122,7 +122,7 @@ class Chapter(models.Model):
         
     next = property(get_next_chapter)
     previous = property(get_previous_chapter)
-        
+    
 class Comment(models.Model):
     chapter     = models.ForeignKey(Chapter, related_name="comments")
     name        = models.CharField(max_length=50)
