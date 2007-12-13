@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% if book_version.newer_version %}
+    <div class="newer-version">
+      You're reading an outdated version of this book; a 
+      <a href="{{ book_version.newer_version.permalink }}">newer version</a>
+      is available.
+    </div>
+  {% endif %}
   <h2 id="chapter-title">Table of contents</h2>
   <h2 id="chapter-subtitle">{{ book_version.version|title }}, {{ book_version.get_language_display|title }}</h2>
   <ol class="toc">    
