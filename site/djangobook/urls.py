@@ -19,6 +19,13 @@ urlpatterns = patterns('',
         r'^tools/markreviewed/(?P<comment_id>\d+)/$',
         mark_comment_reviewed,
     ),
+    
+    # Hack so that "about/..." doesn't get interpreted as a BookVersion
+    (
+        r'(?P<url>about.*)$',
+        'django.contrib.flatpages.views.flatpage',
+    ),
+
     # (
     #     r'^private/(?P<slug>[\w-]+)/$',
     #     private_toc
