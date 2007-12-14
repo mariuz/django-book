@@ -371,7 +371,9 @@ validate email addresses, at least to a reasonable level of doubt.
         form = CommentForm(initial={'sender': 'user@example.com'})
 
     If our form will *always* use the same default values, we can configure
-    them in the form definition itself::
+    them in the form definition itself:
+    
+    .. parsed-literal::
 
         message = forms.CharField(widget=forms.Textarea(), 
                                   **initial="Replace with your feedback"**)
