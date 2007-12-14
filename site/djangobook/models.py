@@ -198,6 +198,6 @@ class Erratum(models.Model):
         verbose_name_plural = "errata"
     
     class Admin:
-        list_display = ["chapter", "page", "location", "description", "reported_by", "approved"]
+        list_display = ["chapter", "page", "location", "description", "reporter", "approved"]
         list_filter = ["book", "approved"]
         search_fields = ["page", "location", "description"]        

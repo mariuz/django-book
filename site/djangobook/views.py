@@ -149,27 +149,29 @@ def mark_comment_reviewed(request, comment_id):
 def errata(request):
     return list_detail.object_list(
         request,
-        queryset = Erratum.objects.filter(approved=True).order_by("page"),
+        queryset = PrintVersion.objects.latest().errata.filter(approved=True).order_by("page"),
         template_name = "errata/list.html",
+        template_object_name = "erratum",
         extra_context = {
-            "submitted": request.session.pop("errata_submitted", False)
+            "submitted": ("ok" in request.GET),
         }
     )
     
 def submit_erratum(request):
+    pv = PrintVersion.objects.latest()
     if request.method == "POST":
         erratum = Erratum(
-            book = PrintVersion.objects.latest(),
+            book = pv,
             date = datetime.date.today(),
             approved = False
         )
         form = ErratumForm(request.POST, instance=erratum)
         if form.is_valid():
             form.save()
-            request.session["errata_submitted"] = True
-            return HttpResponseRedirect(urlresolvers.reverse(errata))
+            return HttpResponseRedirect(urlresolvers.reverse(errata) + "?ok")
     else:
         form = ErratumForm()
+    form.fields["chapter"].queryset = pv.version.chapters.all()
     return render_to_response(
         "errata/submit.html",
         {"form": form},

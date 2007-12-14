@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Errata{% endblock %}
+
+{% block content %}
+  {% if submitted %}
+    <div class="message">Your error report has been submitted for review; thanks!</div>
+  {% endif %}
+
+  <h2 id="chapter-title">Errata <span>(<a href="submit/">report</a>)</span></h2>
+  
+  <div id="chapter-body">
+    {% for e in erratum_list %}
+      <div class="errata{% if forloop.last %} last{% endif %}" id="e{{ e.id }}">
+        <h4>{{ e.chapter.get_type_display|title }} {{ e.chapter.get_number_display }}, page {{ e.page }}, {{ e.location }}:</h4>
+        <p>{{ e.description }}</p>
+        {% if e.reporter %}<p class="reported-by">Reported by {{ e.reporter }} on {{ e.date|date:"F j, Y" }}.</p>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

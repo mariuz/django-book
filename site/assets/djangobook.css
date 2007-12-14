@@ -53,8 +53,7 @@ table.docutils { border-collapse:collapse; }
 blockquote { padding: 0 1em; margin: 1em 0; font:125%/1.2em "Trebuchet MS", sans-serif; color:#234f32; border-left:2px solid #94da3a; } 
 strong { font-weight: bold; }
 em { font-style: italic; }
-
-div.newer-version {color:#092e20; background: #FAFBD1 url(images/error.png) no-repeat 10px 50%; padding:3px 2px 5px 35px; font-size:13px; margin-top:1.5em;}
+div.newer-version, div.message {color:#092e20; background: #FAFBD1 url(images/error.png) no-repeat 10px 50%; padding:3px 2px 5px 35px; font-size:13px; margin-top:1.5em;}
 
 /*** lists ***/
 ul { padding-left:30px; }
@@ -146,6 +145,22 @@ div.has-comments > span, div.has-comments:hover > span { background-image: url(i
 #comment-tabs-help h4 { margin-top: 0; }
 #comment-tabs-help p.image { text-align: center; }
 #comment-tabs-help img { padding: 4px; border: 1px #999 solid; }
+
+/*** forms ***/
+#chapter-body form label { display: block; font-weight: bold; margin-top: 1.5em; margin-bottom: 0;}
+#chapter-body form label span { font-weight: normal; color: #555; }
+#chapter-body form input, #chapter-body form textarea, #chapter-body form select { width: 100%; padding: 1px; }
+#chapter-body form p { margin: 0; }
+#chapter-body form p.submit { text-align: right; }
+#chapter-body form p.submit input { width: 10em; font-size: 1.5em; }
+#chapter-body form p.errors { margin: 0; padding: 0; font-weight: bold; color: red; }
+
+/*** errata pages ***/
+div.errata p.reported-by { font-size: 90%; color: #555; }
+div.errata p { margin-bottom: 0; }
+div.errata { border-bottom:1px solid #dfdfdf; padding-bottom: 0.5em; }
+div.last { border-bottom: 0px none; }
+#chapter-title span { font-size: 70%; }
 
 /*** footer ***/
 #ft { color:#487858; font-size:90%; padding-bottom: 2em; }
