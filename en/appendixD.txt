@@ -262,7 +262,7 @@ If the results are paginated, the context will contain these extra variables:
             (r'^objects/page(?P<page>[0-9]+)/$', 'object_list', dict(info_dict))
 
         * Pass the page number via the ``page`` query-string parameter. For
-          example, a URL would look like this:
+          example, a URL would look like this::
 
             /objects/?page=3
 
