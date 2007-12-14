@@ -154,9 +154,9 @@ from docutils.parsers.rst.directives.admonitions import BaseAdmonition
 
 _original_run_method = BaseAdmonition.run
 def run_wrapper(self):
-    nodes = _original_run_method(self)
-    if not isinstance(nodes[0][0], nodes.title):
-        nodes[0].insert(0, nodes.title("%s:" % self.__class__.__name__.title(), ''))
-    return nodes
+    admonition = _original_run_method(self)
+    if not isinstance(admonition[0][0], nodes.title):
+        admonition[0].insert(0, nodes.title("%s:" % self.__class__.__name__.title(), ''))
+    return admonition
 
 BaseAdmonition.run = run_wrapper
