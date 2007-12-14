@@ -34,12 +34,6 @@ urlpatterns = patterns('',
         include('contact_form.urls'),
     ),
     
-    # Hack so that some things don't get interpreted as a BookVersion
-    (
-        r'(?P<url>(?:about).*)$',
-        'django.contrib.flatpages.views.flatpage',
-    ),
-
     # (
     #     r'^private/(?P<slug>[\w-]+)/$',
     #     private_toc
@@ -68,9 +62,5 @@ urlpatterns = patterns('',
         r'^feed/$', 
         'django.contrib.syndication.views.feed', 
         {'feed_dict': {"chapters" : PublishedChaptersFeed}, "url" : "chapters"}
-    ),
-    (
-        r'(?P<url>.*)$',
-        'django.contrib.flatpages.views.flatpage',
     ),
 )
