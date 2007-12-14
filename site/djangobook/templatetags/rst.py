@@ -6,4 +6,4 @@ register = template.Library()
 
 @register.filter
 def rst(text):
-    return mark_save(publish_html(text)['body'])
+    return mark_safe(publish_html(text)['body'])
