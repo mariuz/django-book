@@ -570,7 +570,7 @@ this interface, but not all of it, so you should always check
 ``user.is_authenticated()`` before assuming you're dealing with a bona fide user
 object. Tables 12-3 and 12-4 list the fields and methods, respectively, on ``User`` objects.
 
-..table:: Table 12-3. Fields on ``User`` Objects
+.. table:: Table 12-3. Fields on ``User`` Objects
 
     ==================  ======================================================
     Field               Description
@@ -606,7 +606,7 @@ object. Tables 12-3 and 12-4 list the fields and methods, respectively, on ``Use
                         account is created.
     ==================  ======================================================
 
-..table:: Table 12-4. Methods on ``User`` Objects
+.. table:: Table 12-4. Methods on ``User`` Objects
 
     ================================  ==========================================
     Method                            Description
@@ -901,7 +901,7 @@ can be written as follows::
 Note that ``permission_required()`` also takes an optional ``login_url``
 parameter, which also defaults to ``'/accounts/login/'``.
 
-..admonition:: Limiting Access to Generic Views
+.. admonition:: Limiting Access to Generic Views
 
     One of the most frequently asked questions on the Django users list deals
     with limiting access to a generic view. To pull this off, you'll need to
