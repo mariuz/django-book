@@ -257,9 +257,9 @@ easy to maintain, and performs well under load. If nothing else, the developers
 are motivated by their own selfish desires to save themselves time and enjoy
 their jobs. (To put it bluntly, they eat their own dog food.)
 
-... AH The following sections are the type of content that typically appears
-... AH in a book's Introduction section, but we include it here because this
-... AH chapter serves as an introduction.
+.. AH The following sections are the type of content that typically appears
+.. AH in a book's Introduction section, but we include it here because this
+.. AH chapter serves as an introduction.
 
 How to Read This Book
 =====================

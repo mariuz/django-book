@@ -38,10 +38,6 @@ urlpatterns = patterns('',
         r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/$',
         toc
     ),
-    # (
-    #     r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/frontmatter/$',
-    #     frontmatter,
-    # ),
     (
         r'^(?P<lang>[\w-]+)/(?P<version>[\w\-\.]+)/(?P<type>chapter|appendix)(?P<chapter>\d{2}|[A-Z])/$', 
         chapter
