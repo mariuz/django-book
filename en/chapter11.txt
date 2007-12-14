@@ -434,10 +434,10 @@ put into those elements.
       The RSS system renders that template for each item, passing it two
       template context variables:
 
-          ``obj``: The current object (one of whichever objects you
+          * ``obj``: The current object (one of whichever objects you
             returned in ``items()``).
             
-          ``site``: A ``django.models.core.sites.Site`` object representing the
+          * ``site``: A ``django.models.core.sites.Site`` object representing the
             current site. This is useful for ``{{ site.domain }}`` or ``{{
             site.name }}``.
 
@@ -580,7 +580,7 @@ add a ``feed_type`` attribute to your ``Feed`` class::
 Note that you set ``feed_type`` to a class object, not an instance. Currently
 available feed types are shown in Table 11-1.
 
-Table 11-1. Feed Types
+.. table:: Table 11-1. Feed Types
 
     ===================================================  =====================
     Feed Class                                           Format
