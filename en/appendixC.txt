@@ -64,7 +64,7 @@ What Happens When You Save?
 
 When you save an object, Django performs the following steps:
 
-    #. **Emit a ``pre_save`` signal.** This provides a notification that
+    #. **Emit a pre_save signal.** This provides a notification that
        an object is about to be saved. You can register a listener that
        will be invoked whenever this signal is emitted. These signals are
        still in development and weren't documented when this book went to
@@ -93,7 +93,7 @@ When you save an object, Django performs the following steps:
        data is then composed into an SQL statement for insertion into the
        database.
 
-    #. **Emit a ``post_save`` signal.** As with the ``pre_save`` signal, this
+    #. **Emit a post_save signal.** As with the ``pre_save`` signal, this
        is used to provide notification that an object has been successfully
        saved. Again, these signals are not yet documented.
 
@@ -323,10 +323,10 @@ You can evaluate a ``QuerySet`` in any following ways:
       immediately see your results when using the API interactively.
 
     * *Slicing*: As explained in the upcoming "Limiting QuerySets" section, 
-	  a ``QuerySet`` can be sliced using Python's array-slicing syntax. 
-	  Usually slicing a ``QuerySet`` returns another (unevaluated)``QuerySet``, 
-	  but Django will execute the database query if you use the "step" 
-	  parameter of slice syntax.
+      a ``QuerySet`` can be sliced using Python's array-slicing syntax. 
+      Usually slicing a ``QuerySet`` returns another (unevaluated)``QuerySet``, 
+      but Django will execute the database query if you use the "step" 
+      parameter of slice syntax.
 
     * *Converting to a list*: You can force evaluation of a ``QuerySet`` by calling
       ``list()`` on it, for example::
