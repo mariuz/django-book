@@ -148,3 +148,15 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
 
     def depart_definition_list_item(self, node):
         self.body.append("</div>\n");
+
+# Hack: manually add a titles to directives without 'em
+from docutils.parerss.rst.directives.admonitions import BaseAdmonition
+
+_original_run_method = BaseAdmonition.run
+def run_wrapper(self):
+    nodes = _original_run_method(self)
+    if not isinstance(nodes[0][0], nodes.title):
+        nodes[0].insert(0, nodes.title("%s:" % self.__class__.__name__.title(), ''))
+    return nodes
+
+BaseAdmonition.run = run_wrapper
