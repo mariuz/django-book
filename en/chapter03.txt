@@ -498,7 +498,7 @@ this::
 
 With that taken care of, let's write the ``hours_ahead`` view.
 
-..admonition:: Coding Order
+.. admonition:: Coding Order
 
     In this example, we wrote the URLpattern first and the view second, but in
     the previous example, we wrote the view first, then the URLpattern. Which
