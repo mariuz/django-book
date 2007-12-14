@@ -11,7 +11,19 @@
   <body>
     <div id="doc" class="yui-t7">
       <div id="hd">
-        <h1>The Django Book</h1>
+        <h1><a href="/">The Django Book</a></h1>
+        <div id="global-nav">
+            <a class="about" href="/about/">About</a>
+          |
+            <a class="comment-help" href="/about/comments/">Comment help</a>
+          |
+            <a class="contact" href="/contact/">Contact us</a>
+          |
+            <a class="buy"
+              href="http://www.amazon.com/gp/product/1590597257?ie=UTF8&amp;tag=jacobianorg-20&amp;linkCode=as2&amp;camp=1789&amp;creative=9325&amp;creativeASIN=1590597257">
+                Buy the print version on Amazon.com</a>
+              <img src="http://www.assoc-amazon.com/e/ir?t=jacobianorg-20&amp;l=as2&amp;o=1&amp;a=1590597257" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+        </div>
         {% block hdnav %}{% endblock %}
       </div>
       <div id="bd">

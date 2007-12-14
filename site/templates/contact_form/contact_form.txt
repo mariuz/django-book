@@ -1,0 +1,5 @@
+{% autoescape off %}
+From: {{ name }} <{{ email }}>
+
+{{ body|wordwrap:"76" }}
+{% endautoescape %}

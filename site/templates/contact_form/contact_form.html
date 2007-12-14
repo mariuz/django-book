@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Contact the authors{% endblock %}
+
+{% block extrahead %}
+  <style type="text/css" media="screen">
+    form label { display: block; font-weight: bold; margin-top: 1.5em; margin-bottom: 0;}
+    form input, form textarea { width: 100%; padding: 1px; }
+    form p { margin: 0; }
+    form p.submit { text-align: right; }
+    form p.submit input { width: 10em; font-size: 1.5em; }
+    form p.errors { margin: 0; padding: 0; font-weight: bold; color: red; }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <h2 id="chapter-title">Contact the authors</h2>
+  <div id="chapter-body">
+    <form action="." method="post" accept-charset="utf-8">
+      <p>
+        <label for="id_name">Your name:</label>
+        {% if form.name.errors %}<p class="errors">{{ form.name.errors.as_text }}</p>{% endif %}
+        {{ form.name }}
+      </p>
+      <p>
+        <label for="id_email">Your email address:</label>
+        {% if form.email.errors %}<p class="errors">{{ form.email.errors.as_text }}</p>{% endif %}
+        {{ form.email }}
+      </p>
+      <p>
+        <label for="id_body">Your message:</label>
+        {% if form.body.errors %}<p class="errors">{{ form.body.errors.as_text }}</p>{% endif %}
+        {{ form.body }}
+      </p>
+      <p class="submit"><input type="submit" value="Send &rarr;"></p>
+    </form>
+  </div>
+{% endblock %}

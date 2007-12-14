@@ -20,9 +20,14 @@ urlpatterns = patterns('',
         mark_comment_reviewed,
     ),
     
-    # Hack so that "about/..." doesn't get interpreted as a BookVersion
     (
-        r'(?P<url>about.*)$',
+        r'^contact/', 
+        include('contact_form.urls'),
+    ),
+    
+    # Hack so that some things don't get interpreted as a BookVersion
+    (
+        r'(?P<url>(?:about).*)$',
         'django.contrib.flatpages.views.flatpage',
     ),
 
