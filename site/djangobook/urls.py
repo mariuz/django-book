@@ -21,6 +21,15 @@ urlpatterns = patterns('',
     ),
     
     (
+        r'^errata/$',
+        errata,
+    ),
+    (
+        r'^errata/submit/$',
+        submit_erratum,
+    ),
+    
+    (
         r'^contact/', 
         include('contact_form.urls'),
     ),

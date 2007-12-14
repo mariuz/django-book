@@ -5,13 +5,17 @@ from django.conf import settings
 from django.utils import simplejson
 from django.core.cache import cache
 from django.template import RequestContext
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.core import urlresolvers
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import permission_required, login_required
+from django.views.generic import list_detail
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render_to_response, get_object_or_404
 
 from djangobook.rst import publish_html
-from djangobook.models import Chapter, BookVersion, Comment, PrivateVersion
+from djangobook.forms import ErratumForm
+from djangobook.models import Chapter, BookVersion, Comment
+from djangobook.models import Erratum, PrintVersion
 
 def toc(request, lang, version):
     bookversion = get_object_or_404(BookVersion, version=version, language=lang)
@@ -141,3 +145,33 @@ def mark_comment_reviewed(request, comment_id):
     c.is_reviewed = not c.is_reviewed
     c.save()
     return HttpResponse("OK")
+    
+def errata(request):
+    return list_detail.object_list(
+        request,
+        queryset = Erratum.objects.filter(approved=True).order_by("page"),
+        template_name = "errata/list.html",
+        extra_context = {
+            "submitted": request.session.pop("errata_submitted", False)
+        }
+    )
+    
+def submit_erratum(request):
+    if request.method == "POST":
+        erratum = Erratum(
+            book = PrintVersion.objects.latest(),
+            date = datetime.date.today(),
+            approved = False
+        )
+        form = ErratumForm(request.POST, instance=erratum)
+        if form.is_valid():
+            form.save()
+            request.session["errata_submitted"] = True
+            return HttpResponseRedirect(urlresolvers.reverse(errata))
+    else:
+        form = ErratumForm()
+    return render_to_response(
+        "errata/submit.html",
+        {"form": form},
+        RequestContext(request, {})
+    )

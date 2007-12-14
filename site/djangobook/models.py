@@ -32,8 +32,8 @@ class BookVersion(models.Model):
         ordering = ("language", "version")
         list_display = ("version", "language")
         
-    def __str__(self):
-        return "%s (%s)" % (self.version, self.get_language_display().lower())
+    def __unicode__(self):
+        return u"%s (%s)" % (self.version, self.get_language_display().lower())
         
     @models.permalink
     def permalink(self):
@@ -57,8 +57,8 @@ class Chapter(models.Model):
         list_display = ("title", "get_number_display", "version", "release_date", "comments_open")
         ordering = ("number",)
 
-    def __str__(self):
-        return "%s %s: %s" % (self.get_type_display().title(), self.get_number_display(), self.title)
+    def __unicode__(self):
+        return u"%s %s: %s" % (self.get_type_display().title(), self.get_number_display(), self.title)
     
     def get_number_display(self):
         if self.type == "C":
@@ -153,8 +153,8 @@ class PrivateVersion(models.Model):
     class Admin:
         list_display = ["slug", "svn_root"]
 
-    def __str__(self):
-        return "Private version from %s" % self.svn_root
+    def __unicode__(self):
+        return u"Private version from %s" % self.svn_root
 
     @models.permalink
     def permalink(self):
@@ -166,3 +166,38 @@ class PrivateVersion(models.Model):
             return c.cat(urlparse.urljoin(self.svn_root, chapterslug + ".txt"))
         except pysvn.ClientError:
             return None
+
+class PrintVersion(models.Model):
+    version = models.ForeignKey(BookVersion, related_name="print_versions")
+    pub_date = models.DateField()
+    isbn10 = models.CharField(max_length=10, verbose_name="ISBN (10)")
+    print_title = models.CharField(max_length=150)
+    
+    class Meta:
+        get_latest_by = "pub_date"
+    
+    class Admin:
+        list_display = ["print_title", "version", "pub_date"]
+        
+    def __unicode__(self):
+        return self.print_title
+        
+class Erratum(models.Model):
+    book = models.ForeignKey(PrintVersion, related_name="errata")
+    chapter = models.ForeignKey(Chapter, related_name="errata")
+    page = models.PositiveSmallIntegerField()
+    location = models.CharField(max_length=200, blank=True)
+    description = models.TextField()
+    reporter = models.CharField(max_length=200, blank=True)
+    reporter_email = models.EmailField(blank=True)
+    date = models.DateField()
+    approved = models.BooleanField(default=False)
+    link = models.URLField(blank=True)
+    
+    class Meta:
+        verbose_name_plural = "errata"
+    
+    class Admin:
+        list_display = ["chapter", "page", "location", "description", "reported_by", "approved"]
+        list_filter = ["book", "approved"]
+        search_fields = ["page", "location", "description"]        
