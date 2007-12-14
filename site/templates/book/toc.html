@@ -21,7 +21,7 @@
           {% endif %}
         </span>
         {% if chapter.is_released %}
-          <a href='{{ chapter.get_type_display }}{{ chapter.number|stringformat:"02i" }}/'>
+          <a href='{{ chapter.get_type_display }}{{ chapter.get_number_url_fragment }}/'>
             {{ chapter }}
           </a>
         {% else %}
