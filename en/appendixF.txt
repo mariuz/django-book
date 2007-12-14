@@ -415,9 +415,7 @@ Regroups a list of alike objects by a common attribute.
 
 This complex tag is best illustrated by use of an example. Say that ``people``
 is a list of ``Person`` objects that have ``first_name``, ``last_name``, and
-``gender`` attributes, and you'd like to display a list that looks like this:
-
-.. container:: example
+``gender`` attributes, and you'd like to display a list that looks like this::
 
     * Male:
         * George Bush
