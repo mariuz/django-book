@@ -104,7 +104,7 @@ To grab the latest Django trunk, follow these steps:
 .. admonition:: Tip:
 
     If ``.pth`` files are new to you, you can learn more about them at 
-	http://www.djangoproject.com/r/python/site-module/.
+    http://www.djangoproject.com/r/python/site-module/.
 
 After downloading from Subversion and following the preceding steps, there's no
 need to ``python setup.py install``--you've just done the work by hand!
@@ -249,7 +249,7 @@ These files are as follows:
     possibility that people will be able to view your code over the Web. That's
     not good for security.
     
-     Put your code in some directory **outside** of the document root.
+    Put your code in some directory **outside** of the document root.
 
 The Development Server
 ----------------------
