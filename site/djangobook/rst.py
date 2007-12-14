@@ -141,6 +141,14 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
         html4css1.HTMLTranslator.depart_admonition(self, node)
         self._skip_autoid_depth -= 1
         
+    def visit_container(self, node):
+        self._skip_autoid_depth += 1
+        html4css1.HTMLTranslator.visit_container(self, node)
+        
+    def depart_container(self, node):
+        html4css1.HTMLTranslator.depart_container(self, node)
+        self._skip_autoid_depth -= 1
+        
     # wrap <div> around <dd>/<dt>s
     def visit_definition_list_item(self, node):
         self._add_autoid(node)
