@@ -214,7 +214,7 @@ the filesystem. It has three special arguments, as shown in Table B-4.
 Of course, these arguments can be used together.
 
 The one potential gotcha is that ``match`` applies to the base file name,
-not the full path. So, this example
+not the full path. So, this example::
 
     FilePathField(path="/home/images", match="foo.*", recursive=True)
 
@@ -834,7 +834,7 @@ For example, if you have an application ``books`` (as created by
 a database table named ``books``.
 
 To override the database table name, use the ``db_table`` parameter in
-``class Meta``.
+``class Meta``::
 
     class Book(models.Model):
         ...
