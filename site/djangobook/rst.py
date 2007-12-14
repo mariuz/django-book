@@ -150,7 +150,7 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
         self.body.append("</div>\n");
 
 # Hack: manually add a titles to directives without 'em
-from docutils.parerss.rst.directives.admonitions import BaseAdmonition
+from docutils.parsers.rst.directives.admonitions import BaseAdmonition
 
 _original_run_method = BaseAdmonition.run
 def run_wrapper(self):
