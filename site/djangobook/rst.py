@@ -133,6 +133,7 @@ class DjangoBookHTMLTranslator(html4css1.HTMLTranslator):
     def visit_admonition(self, node, name=''):
         self._skip_autoid_depth += 1
         self._add_autoid(node)
+        node.setdefault("classes", []).append("admonition")
         self.body.append(self.starttag(node, 'div'))
         self.set_first_last(node)
         
