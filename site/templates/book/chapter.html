@@ -1,27 +1,6 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
-  {% if user.is_authenticated %}
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/yahoo/yahoo.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/dom/dom.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/event/event.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/dragdrop/dragdrop.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/connection/connection.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/yui-ext-core.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/tabs-lib.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/resizable-lib.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/djangobook.js"></script>
-  {% else %}
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/yahoo/yahoo-min.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/dom/dom-min.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/event/event-min.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/dragdrop/dragdrop-min.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui/connection/connection-min.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/yui-ext-core.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/tabs-lib.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/resizable-lib.js"></script>
-    <script type="text/javascript" src="http://new-media.djangobook.com/djangobook-min.js"></script>  
-  {% endif %}
   <link href="http://new-media.djangobook.com/yui/container/assets/container.css" type="text/css" media="screen" rel="stylesheet">
   <link href="http://new-media.djangobook.com/yui-ext/css/tabs.css" type="text/css" media="screen" rel="stylesheet">
   <link href="http://new-media.djangobook.com/yui-ext/css/resizable.css" type="text/css" media="screen" rel="stylesheet">
@@ -160,4 +139,17 @@
       </div>
     </div>
   </div>
+  {% if user.is_authenticated %}
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui/yahoo/yahoo.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui/dom/dom.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui/event/event.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui/dragdrop/dragdrop.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui/connection/connection.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/yui-ext-core.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/tabs-lib.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/yui-ext/resizable-lib.js"></script>
+    <script type="text/javascript" src="http://new-media.djangobook.com/djangobook.js"></script>
+  {% else %}
+    <script type="text/javascript" src="http://new-media.djangobook.com/djangobook-min-all.js"></script>
+  {% endif %}
 {% endblock %}

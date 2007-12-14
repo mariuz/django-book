@@ -8,9 +8,9 @@ DATABASE_ENGINE = 'postgresql_psycopg2'
 DATABASE_NAME = 'djangobook'
 DATABASE_USER = "apache"
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-PREPEND_WWW = not DEBUG
+PREPEND_WWW = False
 
 INSTALLED_APPS = (
     "django.contrib.admin",
@@ -33,6 +33,7 @@ MEDIA_URL = 'http://new-media.djangobook.com/'
 CONTENT_MEDIA_BASE = MEDIA_URL + "content/"
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
