@@ -152,8 +152,8 @@ has determined which view to execute, but before that view has actually been
 executed.
 
 The arguments passed to this view are shown in Table 15-1.
-.. XXX NF Table caption OK?
-Table 15-1. Arguments Passed to process_view()
+
+.. table:: Table 15-1. Arguments Passed to process_view()
 
     ==============  ==========================================================
     Argument        Explanation
@@ -175,12 +175,12 @@ Table 15-1. Arguments Passed to process_view()
 Just like ``process_request()``, ``process_view()`` should return either
 ``None`` or an ``HttpResponse`` object.
 
-	* If it returns ``None``, Django will continue processing this request,
-	  executing any other middleware and then the appropriate view.
+    * If it returns ``None``, Django will continue processing this request,
+      executing any other middleware and then the appropriate view.
 
-	* If it returns an ``HttpResponse`` object, Django won't bother calling
-	  *any* other middleware (of any type) or the appropriate view. Django
-	  will immediately return that ``HttpResponse``.
+    * If it returns an ``HttpResponse`` object, Django won't bother calling
+      *any* other middleware (of any type) or the appropriate view. Django
+      will immediately return that ``HttpResponse``.
 
 Response Postprocessor: process_response(self, request, response)
 ------------------------------------------------------------------
@@ -213,19 +213,20 @@ object raised by the view function.
 ``process_exception()`` should return a either ``None`` or an ``HttpResponse``
 object.
 
-	* If it returns ``None``, Django will continue processing this request
-	  with the framework's built-in exception handling.
+    * If it returns ``None``, Django will continue processing this request
+      with the framework's built-in exception handling.
 
-	* If it returns an ``HttpResponse`` object, Django will use that response
-	  instead of the framework's built-in exception handling.
+    * If it returns an ``HttpResponse`` object, Django will use that response
+      instead of the framework's built-in exception handling.
 
 .. note::
-        Django ships with a number of middleware classes (discussed in the 
-		following section) that make good examples. Reading the code for them 
-		should give you a good feel for the power of middleware.
-		
-		You can also find a number of community-contributed examples on Django's 
-		wiki: http://code.djangoproject.com/wiki/ContributedMiddleware
+
+    Django ships with a number of middleware classes (discussed in the following
+    section) that make good examples. Reading the code for them should give you
+    a good feel for the power of middleware.
+    
+    You can also find a number of community-contributed examples on Django's
+    wiki: http://code.djangoproject.com/wiki/ContributedMiddleware
 
 Built-in Middleware
 ===================
@@ -256,12 +257,12 @@ This middleware adds a few conveniences for perfectionists:
       objects that are matched against the user-agent header for each incoming
       request. Here's an example snippet from a settings file::
 
-	      import re
+          import re
 
-	      DISALLOWED_USER_AGENTS = (
-		      re.compile(r'^OmniExplorer_Bot'),
-		      re.compile(r'^Googlebot')
-	      )
+          DISALLOWED_USER_AGENTS = (
+              re.compile(r'^OmniExplorer_Bot'),
+              re.compile(r'^Googlebot')
+          )
 
       Note the ``import re``, because ``DISALLOWED_USER_AGENTS`` requires its
       values to be compiled regexes (i.e., the output of ``re.compile()``). 
@@ -291,8 +292,8 @@ This middleware adds a few conveniences for perfectionists:
       MD5-hashing the page content, and it will take care of sending ``Not
       Modified`` responses, if appropriate.
 
-	  Note there is also a conditional ``GET`` middleware, covered shortly, which
-	  handles ETags and does a bit more.
+      Note there is also a conditional ``GET`` middleware, covered shortly, which
+      handles ETags and does a bit more.
 
 Compression Middleware
 ----------------------
