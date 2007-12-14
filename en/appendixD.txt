@@ -305,7 +305,7 @@ given author by modifying the URLconf:
 Required Arguments
 ``````````````````
 
-    * `queryset``: A ``QuerySet`` that will be searched for the object (see Table D-1).
+    * ``queryset``: A ``QuerySet`` that will be searched for the object (see Table D-1).
 
 and either
 
