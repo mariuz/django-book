@@ -741,10 +741,10 @@ Required Arguments
     * ``year``: The four-digit year for which the archive serves (a string).
     
     * ``month``: The month for which the archive serves, formatted according to the
-        ``month_format`` argument.
+      ``month_format`` argument.
     
     * ``day``: The day for which the archive serves, formatted according to the
-        ``day_format`` argument.
+      ``day_format`` argument.
     
     * ``queryset``: A ``QuerySet`` of objects for which the archive serves.
     
@@ -864,15 +864,15 @@ Required Arguments
     * ``year``: The object's four-digit year (a string).
     
     * ``month``: The object's month, formatted according to the ``month_format``
-        argument.
+      argument.
     
     * ``day``: The object's day, formatted according to the ``day_format`` argument.
     
     * ``queryset``: A ``QuerySet`` that contains the object.
     
     * ``date_field``: The name of the ``DateField`` or ``DateTimeField`` in the
-        ``QuerySet``'s model that the generic view should use to look up the
-        object according to ``year``, ``month``, and ``day``.
+      ``QuerySet``'s model that the generic view should use to look up the
+      object according to ``year``, ``month``, and ``day``.
 
 You'll also need either:
 
