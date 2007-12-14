@@ -211,7 +211,7 @@ Using translations in Django templates uses two template tags and a slightly
 different syntax than in Python code. To give your template access to these
 tags, put ``{% load i18n %}`` toward the top of your template.
 
-The ``{% trans %}`` template tag marks a string for translations.
+The ``{% trans %}`` template tag marks a string for translations::
 
     <title>{% trans "This is the title." %}</title>
 
