@@ -154,7 +154,7 @@ Use the ``--settings`` command-line argument to specify the settings manually::
     django-admin.py runserver --settings=mysite.settings
 
 The ``manage.py`` utility created by ``startproject`` as part of the project
-skeleton sets `DJANGO_SETTINGS_MODULE`` automatically; see Appendix G for more
+skeleton sets ``DJANGO_SETTINGS_MODULE`` automatically; see Appendix G for more
 about ``manage.py``.
 
 On the Server (mod_python)
