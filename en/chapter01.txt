@@ -349,5 +349,7 @@ to database design, to deployment -- feel free to ask questions online.
 What's Next
 -----------
 
-In the next chapter, we'll get started with Django, covering installation and
+In the `next chapter`_, we'll get started with Django, covering installation and
 initial setup.
+
+.. _next chapter: ../chapter02/
