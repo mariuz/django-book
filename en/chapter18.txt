@@ -253,7 +253,7 @@ To pluralize, specify both the singular and plural forms with the
 Internally, all block and inline translations use the appropriate 
 ``gettext``/``ngettext`` call.
 
-When you use ``RequestContext`` (see Chapter 10), your templates have access to
+When you use ``RequestContext`` (see `Chapter 10`_), your templates have access to
 three translation-specific variables:
 
 
@@ -286,6 +286,8 @@ translation string, for example::
 In this case, both the tag and the filter will see the already-translated string
 (i.e., the string is translated *before* being passed to the tag handler
 functions), so they don't need to be aware of translations.
+
+.. _Chapter 10: ../chapter10/
 
 Creating Language Files
 =======================
@@ -768,6 +770,9 @@ know enough to start producing your own Django sites.
 
 However, writing the code is only the first step in deploying a successful
 Web site. The next two chapters cover the things you'll need to know if you want
-your site to survive in the real world. Chapter 19 discuses how you can secure 
-your sites and your users from malicious attackers, and Chapter 20 details how to 
+your site to survive in the real world. `Chapter 19`_ discuses how you can secure 
+your sites and your users from malicious attackers, and `Chapter 20`_ details how to 
 deploy a Django application onto one or many servers.
+
+.. _Chapter 19: ../chapter19/
+.. _Chapter 20: ../chapter20/

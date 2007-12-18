@@ -705,4 +705,6 @@ We've so far been producing views by hard-coding HTML into the Python code.
 Unfortunately, this is nearly always a bad idea. Luckily, Django ships with a
 simple yet powerful template engine that allows you to separate the design of
 the page from the underlying code. We'll dive into Django's template engine in
-the next chapter.
+the `next chapter`_.
+
+.. _next chapter: ../chapter04/

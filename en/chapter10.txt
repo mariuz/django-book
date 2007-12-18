@@ -1156,5 +1156,7 @@ So far this book has assumed that the content you're displaying is HTML. This
 isn't a bad assumption for a book about Web development, but at times you'll
 want to use Django to output other data formats.
 
-The next chapter describes how you can use Django to produce images, PDFs, and
+The `next chapter`_ describes how you can use Django to produce images, PDFs, and
 any other data format you can imagine.
+
+.. _next chapter: ../chapter11/

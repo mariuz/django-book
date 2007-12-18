@@ -637,11 +637,17 @@ What's Next?
 
 This chapter concludes the introductory material in this book. The next 13
 chapters deal with various advanced topics, including generating content other
-than HTML (Chapter 11), security (Chapter 19), and deployment (Chapter 20).
+than HTML (`Chapter 11`_), security (`Chapter 19`_), and deployment (`Chapter 20`_).
 
 After these first seven chapters, you should know enough to start writing your
 own Django projects. The rest of the material in this book will help fill in the
 missing pieces as you need them.
 
-We'll start in Chapter 8 by doubling back and taking a closer look at views and
-URLconfs (introduced first in Chapter 3).
+We'll start in `Chapter 8`_ by doubling back and taking a closer look at views and
+URLconfs (introduced first in `Chapter 3`_).
+
+.. _Chapter 3: ../chapter03/
+.. _Chapter 8: ../chapter08/
+.. _Chapter 11: ../chapter11/
+.. _Chapter 19: ../chapter19/
+.. _Chapter 20: ../chapter20/

@@ -244,7 +244,9 @@ into unknowingly loading a URL from a site at which they're already authenticate
 hence taking advantage of their authenticated status.
 
 Django has built-in tools to protect from this kind of attack. Both the attack
-itself and those tools are covered in great detail in Chapter 14.
+itself and those tools are covered in great detail in `Chapter 14`_.
+
+.. _Chapter 14: ../chapter14/
 
 Session Forging/Hijacking
 =========================
@@ -264,7 +266,7 @@ user's session data. It can take a number of different forms:
       cookie to impersonate the original user.
 
     * A *cookie-forging* attack, where an attacker overrides the supposedly
-      read-only data stored in a cookie. Chapter 12 explains in detail how
+      read-only data stored in a cookie. `Chapter 12`_ explains in detail how
       cookies work, and one of the salient points is that it's trivial for
       browsers and malicious users to change cookies without your knowledge.
 
@@ -298,6 +300,8 @@ user's session data. It can take a number of different forms:
       XSS attack; if that color isn't escaped, the user could again
       inject malicious code into the user's environment.
 
+.. _Chapter 12: ../chapter12/
+
 The Solution
 ------------
 
@@ -305,7 +309,7 @@ There are a number of general principles that can protect you from these attacks
 
     * Never allow session information to be contained in the URL.
 
-      Django's session framework (see Chapter 12) simply doesn't allow
+      Django's session framework (see `Chapter 12`_) simply doesn't allow
       sessions to be contained in the URL.
 
     * Don't store data in cookies directly; instead, store a session ID
@@ -519,5 +523,7 @@ your users is priceless.
 What's Next
 ===========
 
-In the next chapter, we'll finally cover the subtleties of deploying Django:
+In the `next chapter`_, we'll finally cover the subtleties of deploying Django:
 how to launch a production site and how to set it up for scalability.
+
+.. _Chapter 20: ../chapter20/

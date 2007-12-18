@@ -292,5 +292,7 @@ What's Next?
 ============
 
 Speaking of the Django admin site and bending the framework to fit legacy needs,
-another common task is to customize the Django admin site. The next chapter
+another common task is to customize the Django admin site. The `next chapter`_
 focuses on such customization.
+
+.. _next chapter: ../chapter17/

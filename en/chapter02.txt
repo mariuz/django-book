@@ -303,5 +303,7 @@ What's Next?
 ============
 
 Now that you have everything installed and the development server running, in
-the next chapter you'll write some basic code that demonstrates how to serve Web
+the `next chapter`_ you'll write some basic code that demonstrates how to serve Web
 pages using Django.
+
+.. _next chapter: ../chapter03/

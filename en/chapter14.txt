@@ -926,5 +926,7 @@ What's Next?
 Many of these contributed frameworks (CSRF, the auth system, etc.) do their
 magic by providing a piece of *middleware*. Middleware is essentially code that
 runs before and/or after every single request and can modify each request and
-response at will. Next, we'll discuss Django's built-in middleware and explain how you can
+response at will. `Next`_, we'll discuss Django's built-in middleware and explain how you can
 write your own.
+
+.. _Next: ../chapter15/

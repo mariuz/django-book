@@ -878,4 +878,6 @@ to write, and in this chapter we suggested how to cut down the code of
 your views and URLconfs.
 
 The next logical step in code elimination is removing the need to write views
-entirely. That's the topic of the next chapter.
+entirely. That's the topic of the `next chapter`_.
+
+.. _next chapter: ../chapter09/

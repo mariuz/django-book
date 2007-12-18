@@ -485,7 +485,9 @@ general ideas presented here should apply pretty closely to any
 generic view. Appendix D covers all the available views in detail, and it's
 recommended reading if you want to get the most out of this powerful feature.
 
-In the next chapter we delve deep into the inner workings of Django's
+In the `next chapter`_ we delve deep into the inner workings of Django's
 templates, showing all the cool ways they can be extended. Until now, we've
 treated the template engine as a mostly static tool you can use to render your
 content.
+
+.. _next chapter: ../chapter10/

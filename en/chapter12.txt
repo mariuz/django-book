@@ -1315,7 +1315,9 @@ you won't need all the features described in this chapter, but when you need to
 allow complex interactions between users, it's good to have all that power
 available.
 
-In the next chapter, we'll take a look at a piece of Django that builds on top
+In the `next chapter`_, we'll take a look at a piece of Django that builds on top
 of this session/user system: the comments application. It allows you to easily
 attach comments--from anonymous or authenticated users--to arbitrary objects.
 Onward and upward!
+
+.. _next chapter: ../chapter13/

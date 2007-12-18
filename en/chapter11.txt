@@ -967,7 +967,9 @@ What's Next?
 ============
 
 Next, we'll continue to dig deeper into all the nifty built-in tools Django
-gives you. Chapter 12 looks at all the tools you need to provide
+gives you. `Chapter 12`_ looks at all the tools you need to provide
 user-customized sites: sessions, users, and authentication.
 
 Onward!
+
+.. _Chapter 12: ../chapter12/
