@@ -1,0 +1,1 @@
+python rst2odt.py --strip-comments ../../branches/2.0/chapter03.txt > chapter03.odt
