@@ -22,28 +22,20 @@ framework is to make sure you have Python installed.
 Python Versions
 ---------------
 
-The core Django framework works with any Python version from 2.3 to 2.6,
-inclusive. Django's optional GIS (Geographic Information Systems) support
-requires Python 2.4 to 2.6.
+The core Django framework works with any Python version from 2.5 to 2.7,
+inclusive.
 
 If you're not sure which version of Python to install and you have complete
-freedom over the decision, pick the latest one in the 2.x series: version 2.6.
-Although Django works equally well with any version from 2.3 to 2.6, the later
-versions of Python have performance improvements and additional language
-features you might like to use in your applications. Plus, certain third-party
-Django add-ons that you might want to use might require a version newer than
-Python 2.3, so using a later version of Python keeps your options open.
+freedom over the decision, pick the latest one in the 2.x series: version 2.7.
+ Plus, certain third-party Django add-ons that you might want to use might require a version newer than
+Python 2.5, so using a later version of Python keeps your options open.
 
-.. admonition:: Django and Python 3.0
-
-    At the time of writing, Python 3.0 had been released, but Django didn't
-    yet support it. Python 3.0 introduced a substantial number of
-    backwards-incompatible changes to the language itself, and, as a result,
-    we expect most major Python libraries and frameworks, including Django,
-    will take a few years to catch up.
+.. admonition:: Django and Python 3.X
+	
+	Django 1.4 will drop our support for Python 2.4, establishing a minimum requirement of 2.5. Django 1.5 will then drop Python 2.5 support, 	  setting the minimum at 2.6. Additionally, Django 1.5 will begin the process of porting the codebase, and will -- through the 2/3 		compatibility features in Python 2.6 and 2.7 -- experimentally support Python 3 (we hope to be targeting up to Python 3.3, which is 		expected to be released in roughly the same time frame as Django 1.5). https://www.djangoproject.com/weblog/2012/mar/13/py3k/
 
     If you're new to Python and are wondering whether to learn Python 2.x or
-    Python 3.x, our advice is to stick with Python 2.x.
+    Python 3.x, our advice is to start with 2.x and progress after 1.5 release with 3.x.
 
 Installation
 ------------
@@ -52,10 +44,12 @@ If you're on Linux or Mac OS X, you probably have Python already installed.
 Type ``python`` at a command prompt (or in Applications/Utilities/Terminal, in
 OS X). If you see something like this, then Python is installed::
 
-    Python 2.4.1 (#2, Mar 31 2005, 00:05:10)
-    [GCC 3.3 20030304 (Apple Computer, Inc. build 1666)] on darwin
-    Type "help", "copyright", "credits" or "license" for more information.
-    >>>
+	python
+	Python 2.7.3 (default, Apr 20 2012, 22:39:59) 
+	[GCC 4.6.3] on linux2
+	Type "help", "copyright", "credits" or "license" for more information.
+	>>> 
+
 
 Otherwise, you'll need to download and install Python. It's fast and easy, and
 detailed instructions are available at http://www.python.org/download/
@@ -76,7 +70,7 @@ in the documentation and by members of the community.
 Installing an Official Release
 ------------------------------
 
-Official releases have a version number, such as 1.0.3 or 1.1, and the latest
+Official releases have a version number, such as 1.3 or 1.4, and the latest
 one is always available at http://www.djangoproject.com/download/.
 
 If you're on a Linux distribution that includes a package of Django, it's a
@@ -85,14 +79,14 @@ updates along with the rest of your system packages.
 
 If you don't have access to a prepackaged version, you can download and install
 the framework manually. To do so, first download the tarball, which will be
-named something like ``Django-1.0.2-final.tar.gz``. (It doesn't matter which
+named something like ``Django-1.3-final.tar.gz``. (It doesn't matter which
 local directory you download this file into; the installation process will put
 Django's files in the right place.) Then, unzip it and run ``setup.py install``,
 as you do with most Python libraries.
 
 Here's how that process looks on Unix systems:
 
-    #. ``tar xzvf Django-1.0.2-final.tar.gz``
+    #. ``tar xzvf Django-1.3.x.tar.gz``
     #. ``cd Django-*``
     #. ``sudo python setup.py install``
 
@@ -104,49 +98,45 @@ following command from within the directory whose name starts with ``Django-``::
     python setup.py install
 
 In case you're curious: Django's files will be installed into your Python
-installation's ``site-packages`` directory -- a directory where Python looks
-for third-party libraries. Usually it's in a place like
-``/usr/lib/python2.4/site-packages``.
+installation's ``dist-packages`` directory -- a directory where Python looks
+for third-party libraries. Usually it's in a place like (In Ubuntu 12.04)
+``/usr/local/lib/python2.7/dist-packages/``.
 
 Installing the "Trunk" Version
 ------------------------------
 
 The latest and greatest Django development version is referred to as *trunk*,
-and it's available from Django's Subversion repository. You should consider
+and it's available from Django's git repository. You should consider
 installing this version if you want to work on the bleeding edge, or if you
 want to contribute code to Django itself.
 
-Subversion is a free, open source revision-control system, and the Django team
-uses it to manage changes to the Django codebase. You can  use a Subversion
+Git is a free, open source distributed revision-control system, and the Django team
+uses it to manage changes to the Django codebase. You can  use a Git
 client to grab the very latest Django source code and, at any given time, you
 can update your local version of the Django code,  known as your
 *local checkout*, to get the latest changes and improvements made by Django
 developers.
 
-When using trunk, keep in mind there's no guarantee things won't be broken at
+When using master, keep in mind there's no guarantee things won't be broken at
 any given moment. With that said, though, some members of the Django team run
-production sites on trunk, so they have an incentive to keep it stable.
+production sites on master, so they have an incentive to keep it stable.
 
 To grab the latest Django trunk, follow these steps:
 
-    #. Make sure you have a Subversion client installed. You can get the
-       software free from http://subversion.tigris.org/, and you can find
-       excellent documentation at http://svnbook.red-bean.com/.
-       
-       (If you're on a Mac with OS X 10.5 or later, you're in luck; Subversion
-       should already be installed. You can verify this by typing
-       ``svn --version`` in the Terminal.)
+    #. Make sure you have a Git client installed. You can get the
+       software free from http://git-scm.com/download, and you can find
+       excellent documentation at http://git-scm.com/doc.
 
-    #. Check out the trunk using the command ``svn co
-       http://code.djangoproject.com/svn/django/trunk djtrunk``.
+    #. Check out the master using the command ``git clone
+       https://github.com/django/django.git djmaster``.
 
-    #. Locate your Python installation's ``site-packages`` directory. Usually
-       it's in a place like ``/usr/lib/python2.4/site-packages``. If you have
+    #. Locate your Python installation's ``dist-packages`` directory. Usually
+       it's in a place like ``./usr/local/lib/python2.7/dist-packages/``. If you have
        no idea, type this command from a command prompt::
        
            python -c 'import sys, pprint; pprint.pprint(sys.path)'
 
-       The resulting output should include your ``site-packages`` directory.
+       The resulting output should include your ``dist-packages`` directory.
 
     #  Within the ``site-packages`` directory, create a file called
        ``django.pth`` and edit it to contain the full path to your ``djtrunk``
@@ -162,21 +152,21 @@ To grab the latest Django trunk, follow these steps:
     If ``.pth`` files are new to you, you can learn more about them at 
     http://www.djangoproject.com/r/python/site-module/.
 
-After downloading from Subversion and following the preceding steps, there's no
+After downloading from Git and following the preceding steps, there's no
 need to run ``python setup.py install``-- you've just done the work by hand!
 
-Because the Django trunk changes often with bug fixes and feature additions,
+Because the Django master changes often with bug fixes and feature additions,
 you'll probably want to update it every once in a while. To update the code,
-just run the command ``svn update`` from within the ``djtrunk`` directory. When
-you run that command, Subversion will contact http://code.djangoproject.com,
+just run the command ``git pull`` from within the ``djmaster`` directory. When
+you run that command, Git will contact https://github.com/django/,
 determine whether any of Django's code has changed, and update your local
 version of the code with any changes that have been made since you last
 updated. It's quite slick.
 
-Finally, if you use trunk, you should know how to figure out which version of
-trunk you're running. Knowing your version number is important if you ever need
+Finally, if you use master, you should know how to figure out which version of
+master you're running. Knowing your version number is important if you ever need
 to reach out to the community for help, or if you submit improvements to the
-framework. In these cases, you should tell people the trunk version, also known
+framework. In these cases, you should tell people the master version, also known
 as a "revision number" or "changeset," that you're using. To find out your
 revision number, type "svn info" from within the ``djtrunk`` directory, and
 look for the number after "Revision:". This number is incremented each time
@@ -196,7 +186,7 @@ successful, you should be able to import the module ``django``:
 
     >>> import django
     >>> django.VERSION
-    (1, 1, 0, 'final', 1)
+    (1, 3, 1, 'final', 1)
 
 .. admonition:: Interactive Interpreter Examples
 
@@ -240,18 +230,13 @@ If you just want to start playing with Django, skip ahead to the
 "Starting a Project" section -- but keep in mind that all the examples in this
 book assume you have a working database set up.
 
-Django supports four database engines:
+Django supports many database engines:
 
-    * PostgreSQL (http://www.postgresql.org/)
-    * SQLite 3 (http://www.sqlite.org/)
-    * MySQL (http://www.mysql.com/)
-    * Oracle (http://www.oracle.com/)
 
 For the most part, all the engines here work equally well with the core Django
-framework. (A notable exception is Django's optional GIS support, which is much
-more powerful with PostgreSQL than with other databases.) If you're not tied to
+framework. . If you're not tied to
 any legacy system and have the freedom to choose a database backend, we
-recommend PostgreSQL, which achieves a fine balance between cost, features,
+recommend FirebirdSQL, which achieves a fine balance between cost, features,
 speed and stability.
 
 Setting up the database is a two-step process:
@@ -267,73 +252,27 @@ Setting up the database is a two-step process:
       interface with the database. We outline the specific, per-database
       requirements in the following sections.
 
-If you're just playing around with Django and don't want to install a database
-server, consider using SQLite. SQLite is unique in the list of supported
-databases in that it doesn't require either of the above steps, if you're using
-Python 2.5 or higher. It merely reads and writes its data to a single file on
-your filesystem, and Python versions 2.5 and higher include built-in support
-for it.
 
-On Windows, obtaining database driver binaries can be frustrating. If you're
-eager to jump in, we recommend using Python 2.5 and its built-in support for
-SQLite.
 
-Using Django with PostgreSQL
-----------------------------
+Using Django with FirebirdSQL
+-----------------------------
 
-If you're using PostgreSQL, you'll need to install either the ``psycopg`` or
-``psycopg2`` package from http://www.djangoproject.com/r/python-pgsql/. We
-recommend ``psycopg2``, as it's newer, more actively developed and can be
-easier to install. Either way, take note of whether you're using version 1 or
-2; you'll need this information later.
+If you're using FirebirdSQL, you'll need to install either the ``kinterbasdb`` or
+``fdb`` package from http://pypi.python.org/pypi/fdb. We
+recommend ``fdb``, as it's newer, more actively developed and can be
+easier to install.
+ 
+	pip install fdb
 
-If you're using PostgreSQL on Windows, you can find precompiled binaries of
-``psycopg`` at http://www.djangoproject.com/r/python-pgsql/windows/.
 
 If you're on Linux, check whether your distribution's package-management
-system offers a package called "python-psycopg2", "psycopg2-python",
-"python-postgresql" or something similar.
+system offers a package called ``kinterbasdb`` or ``fdb``
 
-Using Django with SQLite 3
---------------------------
 
-If you're using Python version 2.5 or higher, you're in luck: no
-database-specific installation is required, because Python ships with SQLite
-support. Skip ahead to the next section.
 
-If you're working with Python 2.4 or older, you'll need SQLite 3 -- *not*
-version 2 -- from http://www.djangoproject.com/r/sqlite/ and the ``pysqlite``
-package from http://www.djangoproject.com/r/python-sqlite/. Make sure you have
-``pysqlite`` version 2.0.3 or higher.
 
-On Windows, you can skip installing the former (the separate SQLite binaries),
-because they're statically linked into the ``pysqlite`` binaries.
 
-If you're on Linux, check whether your distribution's package-management system
-offers a package called "python-sqlite3", "sqlite-python", "pysqlite" or
-something similar.
 
-Using Django with MySQL
------------------------
-
-Django requires MySQL 4.0 or above. The 3.x versions don't support nested
-subqueries and some other fairly standard SQL statements.
-
-You'll also need to install the ``MySQLdb`` package from
-http://www.djangoproject.com/r/python-mysql/.
-
-If you're on Linux, check whether your distribution's package-management system
-offers a package called "python-mysql", "python-mysqldb", "mysql-python" or
-something similar.
-
-Using Django with Oracle
-------------------------
-
-Django works with Oracle Database Server versions 9i and higher.
-
-If you're using Oracle, you'll need to install the ``cx_Oracle`` library,
-available at http://cx-oracle.sourceforge.net/. Use version 4.3.1 or higher,
-but avoid version 5.0 due to a bug in that version of the driver.
 
 Using Django Without a Database
 -------------------------------
