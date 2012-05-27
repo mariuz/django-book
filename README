@@ -1,0 +1,14 @@
+To read the book in the browser 
+install restview 
+sudo pip install restview
+cd en
+restview .
+
+then you can browse the content of the book 
+in the browser (resview will load a new browser window and it will listen to a 
+random port)
+in the console you will see the new port 
+Listening on http://localhost:42576/
+
+
+
