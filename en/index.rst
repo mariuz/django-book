@@ -1,12 +1,10 @@
-.. Django Book documentation master file, created by
-   sphinx-quickstart on Sat Jun 16 15:17:33 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+The Django Book
+==========================
 
-Welcome to Django Book's documentation!
-=======================================
+Welcome to the online version of The Django Book, a free book about the Django
+Web framework for the Python programming language.
 
-Contents:
+Chapters:
 
 .. toctree::
    :maxdepth: 1
@@ -31,6 +29,12 @@ Contents:
    chapter18
    chapter19
    chapter20
+
+Appendix:
+
+.. toctree::
+   :maxdepth: 1
+    
    appendixA
    appendixB
    appendixC
