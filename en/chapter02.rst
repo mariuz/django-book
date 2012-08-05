@@ -102,10 +102,10 @@ installation's ``dist-packages`` directory -- a directory where Python looks
 for third-party libraries. Usually it's in a place like (In Ubuntu 12.04)
 ``/usr/local/lib/python2.7/dist-packages/``.
 
-Installing the "Trunk" Version
+Installing the "master" Version
 ------------------------------
 
-The latest and greatest Django development version is referred to as *trunk*,
+The latest and greatest Django development version is referred to as *master*,
 and it's available from Django's git repository. You should consider
 installing this version if you want to work on the bleeding edge, or if you
 want to contribute code to Django itself.
@@ -121,7 +121,7 @@ When using master, keep in mind there's no guarantee things won't be broken at
 any given moment. With that said, though, some members of the Django team run
 production sites on master, so they have an incentive to keep it stable.
 
-To grab the latest Django trunk, follow these steps:
+To grab the latest Django master, follow these steps:
 
     #. Make sure you have a Git client installed. You can get the
        software free from http://git-scm.com/download, and you can find
@@ -139,12 +139,12 @@ To grab the latest Django trunk, follow these steps:
        The resulting output should include your ``dist-packages`` directory.
 
     #  Within the ``site-packages`` directory, create a file called
-       ``django.pth`` and edit it to contain the full path to your ``djtrunk``
+       ``django.pth`` and edit it to contain the full path to your ``djmaster``
        directory to it. For example, the file could just contain this line::
 
-           /home/me/code/djtrunk
+           /home/me/code/djmaster
 
-    #. Place ``djtrunk/django/bin`` on your system PATH. This directory
+    #. Place ``djmaster/django/bin`` on your system PATH. This directory
        includes management utilities such as ``django-admin.py``.
 
 .. admonition:: Tip:
