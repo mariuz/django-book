@@ -1290,4 +1290,4 @@ What's Next
 Continuing this section's theme of advanced topics, the `next chapter`_ covers
 advanced usage of Django models.
 
-.. _next chapter: ../chapter10/
+.. _next chapter: chapter10.html

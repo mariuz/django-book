@@ -433,4 +433,4 @@ What's Next?
 Now that you have everything installed and the development server running,
 you're ready to `learn the basics`_ of serving Web pages with Django.
 
-.. _learn the basics: ../chapter03/
+.. _learn the basics: chapter03.html

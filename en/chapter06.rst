@@ -987,4 +987,4 @@ So far we've created a few models and configured a top-notch interface for
 editing data. In the `next chapter`_, we'll move on to the real "meat and potatoes"
 of Web development: form creation and processing.
 
-.. _next chapter: ../chapter07/
+.. _next chapter: chapter07.html
