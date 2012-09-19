@@ -1383,4 +1383,4 @@ case it would be helpful to have a Web-based interface for entering and
 managing data. The `next chapter`_ covers Django's admin interface, which exists
 precisely for that reason.
 
-.. _next chapter: ../chapter06/
+.. _next chapter: chapter06.html

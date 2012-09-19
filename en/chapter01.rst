@@ -370,4 +370,4 @@ What's Next
 In the `next chapter`_, we'll get started with Django, covering installation and
 initial setup.
 
-.. _next chapter: ../chapter02/
+.. _next chapter: chapter02.html
