@@ -187,7 +187,7 @@ Taken together, these pieces loosely follow a pattern called
 Model-View-Controller (MVC). Simply put, MVC is way of developing software so
 that the code for defining and accessing data (the model) is separate from
 request-routing logic (the controller), which in turn is separate from the user
-interface (the view). (We'll discuss MVC in more depth in Chapter 5.)
+interface (the view). (We'll discuss MVC in more depth in `Chapter 5`_.)
 
 A key advantage of such an approach is that components are *loosely coupled*.
 Each distinct piece of a Django-powered Web application has a single key
@@ -198,8 +198,8 @@ HTML without having to touch the Python code that renders it. A database
 administrator can rename a database table and specify the change in a single
 place, rather than having to search and replace through a dozen files.
 
-In this book, each component of MVC gets its own chapter. Chapter 3 covers
-views, Chapter 4 covers templates, and Chapter 5 covers models.
+In this book, each component of MVC gets its own chapter. `Chapter 3`_ covers
+views, `Chapter 4`_ covers templates, and `Chapter 5`_ covers models.
 
 Django's History
 ================
@@ -252,7 +252,7 @@ but it's much more of a collaborative team effort.
 
 This history is relevant because it helps explain two key things. The first is
 Django's "sweet spot." Because Django was born in a news environment, it offers
-several features (such as its admin site, covered in Chapter 6) that are
+several features (such as its admin site, covered in `Chapter 6`_) that are
 particularly well suited for "content" sites -- sites like Amazon.com,
 craigslist.org, and washingtonpost.com that offer dynamic, database-driven
 information. Don't let that turn you off, though -- although Django is
@@ -370,4 +370,8 @@ What's Next
 In the `next chapter`_, we'll get started with Django, covering installation and
 initial setup.
 
+.. _Chapter 5: chapter05.html
+.. _Chapter 4: chapter04.html
+.. _Chapter 6: chapter06.html
+.. _Chapter 3: chapter03.html
 .. _next chapter: chapter02.html
