@@ -70,7 +70,7 @@ in the documentation and by members of the community.
 Installing an Official Release
 ------------------------------
 
-Official releases have a version number, such as 1.3 or 1.4, and the latest
+Official releases have a version number, such 1.4, and the latest
 one is always available at http://www.djangoproject.com/download/.
 
 If you're on a Linux distribution that includes a package of Django, it's a
@@ -79,14 +79,18 @@ updates along with the rest of your system packages.
 
 If you don't have access to a prepackaged version, you can download and install
 the framework manually. To do so, first download the tarball, which will be
-named something like ``Django-1.3-final.tar.gz``. (It doesn't matter which
+named something like ``Django-1.4.x.tar.gz``. (It doesn't matter which
 local directory you download this file into; the installation process will put
 Django's files in the right place.) Then, unzip it and run ``setup.py install``,
 as you do with most Python libraries.
 
-Here's how that process looks on Unix systems:
+Here's how the automate process looks on Unix systems using pip:
 
-    #. ``tar xzvf Django-1.3.x.tar.gz``
+    #. ``pip install django==1.4``
+    
+Here's how tar.gz install process looks on Unix systems:
+
+    #. ``tar xzvf Django-1.4.x.tar.gz``
     #. ``cd Django-*``
     #. ``sudo python setup.py install``
 
@@ -186,7 +190,7 @@ successful, you should be able to import the module ``django``:
 
     >>> import django
     >>> django.VERSION
-    (1, 3, 1, 'final', 1)
+    (1, 4, 1, 'final', 1)
 
 .. admonition:: Interactive Interpreter Examples
 
