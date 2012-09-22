@@ -86,7 +86,7 @@ as you do with most Python libraries.
 
 Here's how the automate process looks on Unix systems using pip:
 
-    #. ``pip install django==1.4``
+    #. ``pip install django``
     
 Here's how tar.gz install process looks on Unix systems:
 
