@@ -1657,4 +1657,4 @@ stored in a relational database. This allows a clean separation of data and logi
 
 The `next chapter`_ covers the tools Django gives you to interact with a database.
 
-.. _next chapter: ../chapter05/
+.. _next chapter: chapter05.html

@@ -1282,5 +1282,5 @@ missing pieces as you need them.
 We'll start in `Chapter 8`_ by doubling back and taking a closer look at views
 and URLconfs (introduced first in `Chapter 3`_).
 
-.. _Chapter 3: ../chapter03/
-.. _Chapter 8: ../chapter08/
+.. _Chapter 3: chapter03.html
+.. _Chapter 8: chapter08.html
