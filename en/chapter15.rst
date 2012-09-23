@@ -59,7 +59,7 @@ loads at LiveJournal.com and subsequently open-sourced by Danga Interactive.
 It's used by sites such as Facebook and Wikipedia to reduce database access and
 dramatically increase site performance.
 
-Memcached is available for free at http://danga.com/memcached/ . It runs as a
+Memcached is available for free at http://memcached.org . It runs as a
 daemon and is allotted a specified amount of RAM. All it does is provide an
 fast interface for adding, retrieving and deleting arbitrary data in the cache.
 All data is stored directly in memory, so there's no overhead of database or
