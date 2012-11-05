@@ -566,7 +566,7 @@ list, so the setting ends up looking like this::
         # 'django.contrib.contenttypes',
         # 'django.contrib.sessions',
         # 'django.contrib.sites',
-        'books',
+        'mysite.books',
     )
 
 (As we mentioned last chapter when setting ``TEMPLATE_DIRS``, you'll need to be
