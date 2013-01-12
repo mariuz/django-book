@@ -32,10 +32,7 @@ Python 2.6, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.X
 	
-	Django 1.5 will drop our support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will then drop Python 2.6 support, 	  setting the minimum at 2.7. Additionally, Django 1.5 introduces support for Python 3 (we hope to be targeting up to Python 3.3).https://docs.djangoproject.com/en/dev/releases/1.5/#python-3-support 
-
-    If you're new to Python and are wondering whether to learn Python 2.x or
-    Python 3.x, our advice is to start with 2.x and progress after 1.5 release with 3.x.
+	Django 1.5 will drop our support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will then drop Python 2.6 support,setting the minimum at 2.7. Additionally, Django 1.5 introduces support for Python 3 .https://docs.djangoproject.com/en/dev/releases/1.5/#python-3-support 
 
 Installation
 ------------
@@ -79,7 +76,7 @@ updates along with the rest of your system packages.
 
 If you don't have access to a prepackaged version, you can download and install
 the framework manually. To do so, first download the tarball, which will be
-named something like ``Django-1.4.x.tar.gz``. (It doesn't matter which
+named something like ``Django-1.5.x.tar.gz``. (It doesn't matter which
 local directory you download this file into; the installation process will put
 Django's files in the right place.) Then, unzip it and run ``setup.py install``,
 as you do with most Python libraries.
@@ -90,7 +87,7 @@ Here's how the automate process looks on Unix systems using pip:
     
 Here's how tar.gz install process looks on Unix systems:
 
-    #. ``tar xzvf Django-1.4.x.tar.gz``
+    #. ``tar xzvf Django-1.5.x.tar.gz``
     #. ``cd Django-*``
     #. ``sudo python setup.py install``
 
@@ -167,17 +164,15 @@ determine whether any of Django's code has changed, and update your local
 version of the code with any changes that have been made since you last
 updated. It's quite slick.
 
-Finally, if you use master, you should know how to figure out which version of
-master you're running. Knowing your version number is important if you ever need
+Finally, if you use master, you should know how to figure out which git version hash of
+master you're running. Knowing your hash version is important if you ever need
 to reach out to the community for help, or if you submit improvements to the
-framework. In these cases, you should tell people the master version, also known
-as a "revision number" or "changeset," that you're using. To find out your
-revision number, type "svn info" from within the ``djtrunk`` directory, and
-look for the number after "Revision:". This number is incremented each time
+framework. In these cases, you should tell people the master hash version that you're using. 
+To find out your revision number, type "git log" from within the ``djmaster`` directory, and
+look for the hash after "commit". This is a unique string that is generated each time
 Django is changed, whether through a bug fix, feature addition, documentation
 improvement or anything else. Among some members of the Django community, it's
-a badge of honor to be able to say, "I've been using Django since [insert very
-low revision number here]."
+a badge of honor to be able to say, "I've been using Django since [insert hash number number here]."
 
 Testing the Django installation
 ===============================
@@ -190,7 +185,7 @@ successful, you should be able to import the module ``django``:
 
     >>> import django
     >>> django.VERSION
-    (1, 4, 1, 'final', 1)
+    (1, 5, 0, 'final', 1)
 
 .. admonition:: Interactive Interpreter Examples
 
@@ -261,16 +256,14 @@ Setting up the database is a two-step process:
 Using Django with FirebirdSQL
 -----------------------------
 
-If you're using FirebirdSQL, you'll need to install either the ``kinterbasdb`` or
-``fdb`` package from http://pypi.python.org/pypi/fdb. We
-recommend ``fdb``, as it's newer, more actively developed and can be
-easier to install.
+If you're using FirebirdSQL, you'll need to install ``fdb`` package from http://pypi.python.org/pypi/fdb. We
+recommend to use pip it is easier to install.
  
 	pip install fdb
 
 
 If you're on Linux, check whether your distribution's package-management
-system offers a package called ``kinterbasdb`` or ``fdb``
+system offers a package called ``fdb`` in the list of python packages
 
 
 
@@ -393,7 +386,7 @@ You'll see something like this::
     Validating models...
     0 errors found.
 
-    Django version 1.0, using settings 'mysite.settings'
+    Django version 1.5.0, using settings 'mysite.settings'
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
