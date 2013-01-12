@@ -65,6 +65,10 @@ fast interface for adding, retrieving and deleting arbitrary data in the cache.
 All data is stored directly in memory, so there's no overhead of database or
 filesystem usage.
 
+Installing the daemon on Ubuntu/Debian systems:
+
+    sudo apt-get install memcached
+
 After installing Memcached itself, you'll need to install the Memcached Python
 bindings, which are not bundled with Django directly. Two versions of this are
 available. Choose and install *one* of the following modules:
