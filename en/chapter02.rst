@@ -22,17 +22,17 @@ framework is to make sure you have Python installed.
 Python Versions
 ---------------
 
-The core Django framework works with any Python version from 2.5 to 2.7,
+The core Django framework works with any Python version from 2.6 to 3.3,
 inclusive.
 
 If you're not sure which version of Python to install and you have complete
 freedom over the decision, pick the latest one in the 2.x series: version 2.7.
  Plus, certain third-party Django add-ons that you might want to use might require a version newer than
-Python 2.5, so using a later version of Python keeps your options open.
+Python 2.6, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.X
 	
-	Django 1.4 will drop our support for Python 2.4, establishing a minimum requirement of 2.5. Django 1.5 will then drop Python 2.5 support, 	  setting the minimum at 2.6. Additionally, Django 1.5 will begin the process of porting the codebase, and will -- through the 2/3 		compatibility features in Python 2.6 and 2.7 -- experimentally support Python 3 (we hope to be targeting up to Python 3.3, which is 		expected to be released in roughly the same time frame as Django 1.5). https://www.djangoproject.com/weblog/2012/mar/13/py3k/
+	Django 1.5 will drop our support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will then drop Python 2.6 support, 	  setting the minimum at 2.7. Additionally, Django 1.5 is ported the codebase support Python 3 (we hope to be targeting up to Python 3.3, which is 		). https://www.djangoproject.com/weblog/2012/mar/13/py3k/
 
     If you're new to Python and are wondering whether to learn Python 2.x or
     Python 3.x, our advice is to start with 2.x and progress after 1.5 release with 3.x.
