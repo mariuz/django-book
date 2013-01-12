@@ -348,7 +348,7 @@ three years to release version 1.0. (This is very similar to the compatibility
 policy taken by the Python language itself: code that was written for Python
 2.0 works on Python 2.6, but not necessarily with Python 3.0.)
 
-Given that this book covers 1.3, it should serve you well for some time.
+Given that this book covers 1.5, it should serve you well for some time.
 
 Getting Help
 ------------
