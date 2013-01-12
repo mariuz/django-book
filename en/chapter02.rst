@@ -32,7 +32,7 @@ Python 2.6, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.X
 	
-	Django 1.5 will drop our support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will then drop Python 2.6 support, 	  setting the minimum at 2.7. Additionally, Django 1.5 adds experimental support for Python 3 (we hope to be targeting up to Python 3.3).https://www.djangoproject.com/weblog/2012/aug/19/experimental-python-3-support/ 
+	Django 1.5 will drop our support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will then drop Python 2.6 support, 	  setting the minimum at 2.7. Additionally, Django 1.5 introduces support for Python 3 (we hope to be targeting up to Python 3.3).https://docs.djangoproject.com/en/dev/releases/1.5/#python-3-support 
 
     If you're new to Python and are wondering whether to learn Python 2.x or
     Python 3.x, our advice is to start with 2.x and progress after 1.5 release with 3.x.
