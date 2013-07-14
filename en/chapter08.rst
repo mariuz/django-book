@@ -2,9 +2,6 @@
 Chapter 8: Advanced Views and URLconfs
 ======================================
 
-.. SL Note: as the code examples in this chapter are expository, and
-.. SL are not complete runnable examples, I'm proof-reading by eye
-.. SL and running an automated syntax check on them to test them.
 
 In `Chapter 3`_, we explained the basics of Django view functions and URLconfs.
 This chapter goes into more detail about advanced functionality in those two
