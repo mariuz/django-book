@@ -2,11 +2,11 @@ Django Book Revival
 ===================
 
 A revival of Django Book, the comprehensive guide to Django, overhauling it for
-Django 1.5 compatibility and keeping it up to date with Django 1.6 and beyond!
+Django 1.5 compatibility and keeping it up to date with Django 1.6 and beyond
 
 To build it you need sphinx installed , on debian/ubuntu
 
- sudo apt-get install python-sphinx
+ sudo pip install sphinx
 
 then type
 
