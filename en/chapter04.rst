@@ -372,10 +372,7 @@ object *once*, and then call ``render()`` on it multiple times::
         print t.render(Context({'name': name}))
 
 Django's template parsing is quite fast. Behind the scenes, most of the parsing
-happens via a call to a single regular expression. This is in stark
-contrast to XML-based template engines, which incur the overhead of an XML
-parser and tend to be orders of magnitude slower than Django's template
-rendering engine.
+happens via a call to a single regular expression.
 
 Context Variable Lookup
 -----------------------
