@@ -32,7 +32,7 @@ Python 2.6, so using a later version of Python keeps your options open.
 
 .. admonition:: Django and Python 3.X
 	
-	Django 1.5 will drop our support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will then drop Python 2.6 support,setting the minimum at 2.7. Additionally, Django 1.5 introduces support for Python 3 .https://docs.djangoproject.com/en/dev/releases/1.5/#python-3-support 
+	Django 1.5  dropped support for Python 2.5, establishing a minimum requirement of 2.6. Django 1.6 will drop Python 2.6 support,setting the minimum at 2.7. Additionally, Django 1.5 introduces support for Python 3 .https://docs.djangoproject.com/en/dev/releases/1.5/#python-3-support 
 
 Installation
 ------------
@@ -67,7 +67,7 @@ in the documentation and by members of the community.
 Installing an Official Release
 ------------------------------
 
-Official releases have a version number, such 1.4, and the latest
+Official releases have a version number, such 1.5, and the latest
 one is always available at http://www.djangoproject.com/download/.
 
 If you're on a Linux distribution that includes a package of Django, it's a
