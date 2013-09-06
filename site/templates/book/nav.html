@@ -1,9 +1,0 @@
-<div class="nav">
-	{% if release.previous %}
-		<a href='../{{ release.previous.get_type_display }}{{ release.previous.get_number_url_fragment }}/'>&laquo; previous</a> &loz;
-	{% endif %}
-	<a href="..">table of contents</a>
-	{% if release.next %}
-		&loz; <a href='../{{ release.next.get_type_display }}{{ release.next.get_number_url_fragment }}/'>next &raquo;</a>
-	{% endif %}
-</div>
