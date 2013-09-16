@@ -185,7 +185,7 @@ successful, you should be able to import the module ``django``:
 
     >>> import django
     >>> django.VERSION
-    (1, 5, 0, 'final', 1)
+    (1, 5, x, 'final', x)
 
 .. admonition:: Interactive Interpreter Examples
 
