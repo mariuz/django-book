@@ -335,10 +335,12 @@ To do this, navigate to the directory where ``django-admin.py`` is installed
 The ``startproject`` command creates a directory containing four files::
 
     mysite/
-        __init__.py
-        manage.py
-        settings.py
-        urls.py
+    	manage.py
+    	mysite/
+        	__init__.py
+        	settings.py
+        	urls.py
+        	wsgi.py
 
 These files are as follows:
 
@@ -358,6 +360,7 @@ These files are as follows:
     * ``urls.py``: The URLs for this Django project. Think of this as the
       "table of contents" of your Django-powered site. At the moment, it's
       empty.
+    * ``wsgi.py``: A simple default WSGI configuration ,which you can tweak as needed for your project
 
 Despite their small size, these files already constitute a working Django
 application.
